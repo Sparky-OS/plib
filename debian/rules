@@ -1,0 +1,133 @@
+#!/usr/bin/make -f
+#-*- makefile -*-
+# Made with the aid of dh_make, by Craig Small
+# Sample debian/rules that uses debhelper. GNU copyright 1997 by Joey Hess.
+# This version is for a hypothetical package that builds an
+# architecture-dependant package, as well as an architecture-independant
+# package.
+
+package=plib
+
+version=$(shell expr `pwd` : '.*-\([0-9.]*\)')
+version_major=$(shell expr `pwd` : '.*-\([0-9]*\).[0-9.]*')
+
+# Uncomment this to turn on verbose mode. 
+#export DH_VERBOSE=1
+
+# use debhelper v2 features
+export DH_COMPAT=2
+
+build: build-stamp
+build-stamp:
+	dh_testdir
+
+	./configure --prefix=/usr
+
+# First build the shared library
+	$(MAKE) CPPFLAGS="-O2 -fPIC -pipe"
+	( cd src/fnt; gcc -shared -Wl,-soname,libplibfnt.so.$(version_major) \
+	  -o libplibfnt.so.$(version) `ls *.o` )
+	( cd src/pui; gcc -shared -Wl,-soname,libplibpu.so.$(version_major) \
+	  -o libplibpu.so.$(version) `ls *.o` )
+	( cd src/sg; gcc -shared -Wl,-soname,libplibsg.so.$(version_major) \
+	  -o libplibsg.so.$(version) `ls *.o` )
+	( cd src/sl; gcc -shared -Wl,-soname,libplibsl.so.$(version_major) \
+	  -o libplibsl.so.$(version) `ls sl*.o` )
+	( cd src/sl; gcc -shared -Wl,-soname,libplibsm.so.$(version_major) \
+	  -o libplibsm.so.$(version) `ls sm*.o` )
+	( cd src/ssg; gcc -shared -Wl,-soname,libplibssg.so.$(version_major) \
+	  -o libplibssg.so.$(version) `ls *.o` )
+
+	make clean
+
+# Build the static library (it does not need Position Independent Code,
+# which reserves one register; thus without -fPIC we get more efficient
+# code).
+	$(MAKE) CFLAGS="-O2 -pipe"
+
+	touch build-stamp
+
+clean:
+	dh_testdir
+	dh_testroot
+
+	rm -f build-stamp install-stamp
+	find src -name 'lib*.so.*' -exec rm -f {} \;
+	if [ ! -e Makefile ]; then \
+	  ./configure ;\
+	fi
+	$(MAKE) distclean
+
+	dh_clean
+
+install: install-stamp
+
+install-stamp: build-stamp
+	dh_testdir
+	dh_testroot
+	dh_clean -k
+	dh_installdirs
+
+# plib-dev
+	$(MAKE) install prefix=`pwd`/debian/plib-dev/usr
+#	mv debian/plib-dev/usr/include/*.h debian/plib-dev/usr/include/plib
+
+# plib1
+	install -m 755 src/fnt/libplibfnt.so.$(version) \
+	  `pwd`/debian/plib1/usr/lib
+	install -m 755 src/pui/libplibpu.so.$(version) \
+	  `pwd`/debian/plib1/usr/lib
+	install -m 755 src/sg/libplibsg.so.$(version) \
+	  `pwd`/debian/plib1/usr/lib
+	install -m 755 src/sl/libplibsl.so.$(version) \
+	  `pwd`/debian/plib1/usr/lib
+	install -m 755 src/sl/libplibsm.so.$(version) \
+	  `pwd`/debian/plib1/usr/lib
+	install -m 755 src/ssg/libplibssg.so.$(version) \
+	  `pwd`/debian/plib1/usr/lib
+
+	touch install-stamp
+
+# Build architecture-independent files here.
+binary-indep:
+#	dh_testversion ge 2.0
+#	dh_testdir -i
+#	dh_testroot -i
+#	dh_installdirs -i
+#	dh_installdocs -i doc AUTHORS NOTICE README
+#	mv debian/plib-doc/usr/share/doc/plib-doc/doc \
+#	  debian/plib-doc/usr/share/doc/plib-doc/html
+#	( cd examples; make clean )
+#	dh_installexamples -i examples/*
+#	dh_installchangelogs -i CHANGES
+#	dh_link -i
+#	dh_compress -i
+#	dh_fixperms -i
+#	dh_installdeb -i
+#	dh_gencontrol -i
+#	dh_md5sums -i
+#	dh_builddeb -i
+
+binary-arch: build install
+	dh_testversion ge 2.0
+	dh_testdir -a
+	dh_testroot -a
+	dh_installdirs -a
+	dh_installdocs -A AUTHORS NOTICE README
+	dh_installchangelogs -a CHANGES
+	dh_link -a
+	dh_strip -a
+	dh_compress -a
+	dh_shlibdeps -a
+	dh_fixperms -a
+	dh_installdeb -a
+#	dh_makeshlibs -a
+	dh_gencontrol -a
+	dh_md5sums -a
+	dh_builddeb -a
+
+source diff:                                                                  
+	@echo >&2 'source and diff are obsolete - use dpkg-source -b'; false
+
+binary: binary-indep binary-arch
+.PHONY: build clean binary-indep binary-arch binary
