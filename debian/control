@@ -1,26 +1,61 @@
 Source: plib
 Section: devel
-Priority: optional
+Priority: extra
 Maintainer: Philipp Frauenfelder <pfrauenf@debian.org>
-Standards-Version: 3.5.5
-Build-Depends: libgl-dev, glutg3-dev, g++, m4, autoconf, automake, xlibs-dev, debhelper (>= 2)
+Standards-Version: 3.6.1
+Build-Depends: xlibmesa-gl-dev | libgl-dev, libglut3-dev, m4, autoconf, automake | automake1.7, libx11-dev, libxmu-dev, debhelper (>= 4)
 
-Package: plib1
+Package: plib1.8.3
 Section: libs
 Architecture: any
-Depends: glutg3, libgl1
+Conflicts: plib1c102, plib1
+Replaces: plib1c102, plib1
+Depends: libglut3, libgl1
 Description: Portability Libraries: Run-time package, stable release
  Provides a Joystick interface, a simple GUI built on top of OpenGL,
  some standard geometry functions, a sound library and a simple scene
  graph API built on top of OpenGL.
+ .
+ This package provides the shared libraries. It should be installed
+ automatically by packages which need it.
 
-Package: plib-dev
-Section: devel
+Package: plib1.8.3-dev
+Section: libdevel
 Architecture: any
-Depends: plib1 (= ${Source-Version}), glutg3-dev, libgl-dev
-Conflicts: plib1.3-dev, plib1.5-dev
-Replaces: plib1.3-dev, plib1.5-dev
+Depends: plib1.8.3 (= ${Source-Version}), libglut3-dev, xlibmesa-gl-dev | libgl-dev
+Conflicts: plib1.5-dev, plib1.7-dev, plib-pic, plib1.8-pic, plib1.8.3-pic, plib-dev, plib1.8-dev
+Replaces: plib1.5-dev, plib1.7-dev, plib-pic, plib1.8-pic, plib1.8.3-pic, plib-dev, plib1.8-dev
+Provides: plib-dev
 Description: Portability Libraries: Development package, stable release
  Provides a Joystick interface, a simple GUI built on top of OpenGL,
  some standard geometry functions, a sound library and a simple scene
  graph API built on top of OpenGL.
+ .
+ This package provides the static libraries, the header files and the
+ development links to the shared libraries. You need this package if you
+ want to compile software which needs plib.
+ .
+ This packages provides the same libraries as plib-pic but is compiled without
+ -fPIC. If you need to link the static libraries of plib into shared objects,
+ use plib-pic. Otherwise, this package is a safe choice.
+
+Package: plib1.8.3-pic
+Section: libdevel
+Architecture: any
+Depends: plib1.8.3 (= ${Source-Version}), libglut3-dev, xlibmesa-gl-dev | libgl-dev
+Conflicts: plib1.5-dev, plib1.7-dev, plib-dev, plib1.8-dev, plib1.8.3-dev
+Replaces: plib1.5-dev, plib1.7-dev, plib-dev, plib1.8-dev, plib1.8.3-dev
+Provides: plib-dev
+Description: Portability Libraries: Dev. package (with PIC code), stable rel.
+ Provides a Joystick interface, a simple GUI built on top of OpenGL,
+ some standard geometry functions, a sound library and a simple scene
+ graph API built on top of OpenGL.
+ .
+ This package provides the static libraries, the header files and the
+ development links to the shared libraries. You need this package if you
+ want to compile software which needs plib.
+ .
+ This packages provides the same libraries as plib-dev but is compiled with
+ -fPIC. This is needed by some applications which link the static libraries
+ of plib into shared objects. If you do not need this, plib-dev is a safe
+ choice.

@@ -1,6 +1,6 @@
 /*
      PLIB - A Suite of Portable Game Libraries
-     Copyright (C) 2001  Steve Baker
+     Copyright (C) 1998,2002  Steve Baker
  
      This library is free software; you can redistribute it and/or
      modify it under the terms of the GNU Library General Public
@@ -13,12 +13,12 @@
      Library General Public License for more details.
  
      You should have received a copy of the GNU Library General Public
-     License along with this library; if not, write to the Free
+     License along with this library; if not, write to the Free Software
      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgEntity.cxx,v 1.17 2001/06/16 16:27:37 stromberg Exp $
+     $Id: ssgEntity.cxx,v 1.26 2003/11/20 13:58:35 stromberg Exp $
 */
 
 
@@ -29,6 +29,9 @@ void ssgEntity::copy_from ( ssgEntity *src, int clone_flags )
   ssgBase::copy_from ( src, clone_flags ) ;
 
   traversal_mask = src -> getTraversalMask () ;
+
+  setTravCallback( SSG_CALLBACK_PRETRAV,  src->getTravCallback( SSG_CALLBACK_PRETRAV  ) );
+  setTravCallback( SSG_CALLBACK_POSTTRAV, src->getTravCallback( SSG_CALLBACK_POSTTRAV ) );
 
   dirtyBSphere () ;
 }
@@ -102,8 +105,8 @@ void ssgEntity::print ( FILE *fd, char *indent, int how_much )
 {
   ssgBase::print ( fd, indent, how_much ) ;
 
-	if ( how_much > 1 )
-		fprintf ( fd, "%s  Num Parents=%d\n", indent, parents . getNumEntities () ) ;
+  if ( how_much > 1 )
+    fprintf ( fd, "%s  Num Parents=%d\n", indent, parents.getNumEntities () ) ;
 }
 
 
@@ -183,17 +186,20 @@ int ssgEntity::preTravTests ( int *test_needed, int which )
   {
     if ( which & SSGTRAV_HOT )
       stats_hot_no_trav ++ ;
+    /*
+    if ( which & SSGTRAV_LOS )
+      stats_hot_no_trav ++ ;*/
     return FALSE ;
   }
 
   if ( preTravCB != NULL )
   {
     int result = (*preTravCB)(this,which) ;
-    
+
     if ( result == 0 ) return FALSE ;
     if ( result == 2 ) *test_needed = 0 ;
   }
-  
+
   return TRUE ;
 }
 
@@ -218,10 +224,7 @@ ssgCullResult ssgEntity::cull_test ( sgFrustum *f, sgMat4 m, int test_needed )
 
   tmp . orthoXform ( m ) ;
 
-  if ( _ssgCurrentContext->isOrtho() )
-    return SSG_STRADDLE ;   /* XXX Fix Me!! XXX */
-  else
-    return (ssgCullResult) f -> contains ( &tmp ) ;
+  return (ssgCullResult) f -> contains ( &tmp ) ;
 }
 
 
@@ -295,21 +298,22 @@ int ssgEntity::bindEntities ( ssgEntityBinding *bind )
 
     ++bind ;
   }
- 
+
   return success ;
 }
 
 
 ssgCullResult ssgEntity::hot_test ( sgVec3 s, sgMat4 m, int test_needed )
 {
+  /* Height-Off-Terrain Test */
   stats_hot_test++ ;
 
   if ( !test_needed )
-{
-stats_hot_triv_accept++ ;
+  {
+    stats_hot_triv_accept++ ;
     return SSG_INSIDE ;
-}
-   
+  }
+
   sgSphere tmp = *(getBSphere()) ;
 
   if ( tmp.isEmpty () )
@@ -321,12 +325,104 @@ stats_hot_triv_accept++ ;
             sgSquare ( s[1] - tmp.getCenter()[1] ) ;
 
   if ( d > sgSquare ( tmp.getRadius() ) )
-{
-stats_hot_radius_reject++ ;
+  {
+    stats_hot_radius_reject++ ;
     return SSG_OUTSIDE ;
+  }
+
+  stats_hot_straddle++ ;
+  return SSG_STRADDLE ;
 }
 
-stats_hot_straddle++ ;
+
+
+ssgCullResult ssgEntity::los_test ( sgVec3 s, sgMat4 m, int test_needed )
+{
+  /* Line of Sight Test
+   * Determine whether a line of sight that starts at the origin and proceeds along the
+   *  vector "s" intersects the B-sphere of this entity (I think that's right)
+   * Algorithm:  (please bear with the vector calculus)
+   *  Define the line of sight to be L = O + u S
+   *    where "O" is the origin of the line of sight (always (0.0.0) for this application)
+   *          "u" is a parametric coordinate which measures distance along the line of sight
+   *          "S" is the direction vector, given by the variable "s" in this function
+   *  Define the B-sphere as a sphere of radius "r" centered at a point "C".
+   *  The vector from the center of the sphere to a point on the line is given by
+   *     V = O + u S - C = ( O - C ) + u S
+   *  The line of sight intersects the sphere if the shortest length of this vector is less
+   *  than the radius of the sphere.  We will work with the square of the length as it is
+   *  easier and gives the same result.  This distance-squared from the point on the line to
+   *  the center of the sphere is given by the dot product of "V" with itself:
+   *     d2 = V dot V = ( O - C ) dot ( O - C ) + 2 u * ( O - C ) dot S + u^2 * S dot S
+   *  To get the shortest distance, differentiate "d2" with respect to "u" and set the
+   *  derivative to zero:
+   *     2 ( O - C ) dot S + 2 u * S dot S = 0
+   *     u = - [ ( O - C ) dot S ] / [ S dot S ]
+   *  For this value of "u", the distance squared becomes
+   *     d2 = ( O - C ) dot ( O - C ) - [ ( O - C ) dot S ] ^2 / [ S dot S ]
+   *  If d2 < radius of sphere squared, then the line of sight intersects the sphere.
+   */
+
+  stats_los_test++ ;
+
+  if ( !test_needed )
+  {
+    stats_los_triv_accept++ ;
+    return SSG_INSIDE ;
+  }
+
+  sgSphere tmp = *(getBSphere()) ;
+
+  /* If there is no B-sphere, the LOS is outside of it by definition */
+  if ( tmp.isEmpty () )
+    return SSG_OUTSIDE ;
+
+  tmp . orthoXform ( m ) ;
+
+  sgVec3 p1 ; /* End point at eye of Line-Of-Sight */
+
+  sgSetVec3 ( p1, 0.0, 0.0, 0.0 ) ; /* Eye point always at origin */
+        
+  /* Get the center and square the radius of the sphere  */
+  sgFloat const *center = tmp.getCenter () ;
+  sgFloat radius2 = sgSquare ( tmp.getRadius () ) ;
+
+  /* Calculate the distance from the line to the center of the sphere  */
+  sgVec3 oc ; 
+  sgSubVec3 ( oc, p1, center ) ; 
+
+  /* Check whether the eyepoint is within the sphere */
+  sgFloat eye_to_center_squared = sgSquare ( oc[0] ) + sgSquare ( oc[1] ) + sgSquare ( oc[2] ) ;
+  if ( eye_to_center_squared < radius2 )
+  {
+    stats_los_straddle++ ;
+    return SSG_STRADDLE ;
+  }
+
+  /* Calculate the dot product of the vector from the center to the eyepoint and the
+   * line of sight vector.  If this dot product is positive or zero, then the point of
+   * closest approach to the sphere is behind the eyepoint or at the eyepoint.  Since the
+   * eyepoint is outside the sphere, this means that the line of sight forward from the
+   * eyepoint will not intersect the sphere.
+   */
+  sgFloat oc_dot_s = oc[0] * s[0] + oc[1] * s[1] + oc[2] * s[2] ;
+  if ( oc_dot_s >= 0.0 )
+  {
+    stats_los_radius_reject++ ;
+    return SSG_OUTSIDE ;
+  }
+
+  float dmin2 = eye_to_center_squared - sgSquare ( oc_dot_s ) / 
+                                ( sgSquare ( s[0] ) + sgSquare ( s[1] ) + sgSquare ( s[2] ) ) ; 
+
+  /* Compare minimum distance squared with sphere radius squared */
+  if ( dmin2 > radius2 ) 
+  { 
+    stats_los_radius_reject++; 
+    return SSG_OUTSIDE; 
+  } 
+
+  stats_los_straddle++ ;
   return SSG_STRADDLE ;
 }
 
@@ -344,6 +440,25 @@ int ssgEntity::save ( FILE *fd )
 {
   _ssgWriteInt    ( fd, traversal_mask ) ;
   return ssgBase::save(fd) ;
+}
+
+
+
+void ssgEntity::getNetTransform ( sgMat4 xform )
+{
+  if ( getNumParents () > 0 )
+    getParent ( 0 ) -> getNetTransform ( xform ) ;
+  else
+    sgMakeIdentMat4 ( xform ) ;
+}
+
+
+void ssgEntity::getLastNetTransform ( sgMat4 xform )
+{
+  if ( getNumParents () > 0 )
+    getParent ( 0 ) -> getLastNetTransform ( xform ) ;
+  else
+    sgMakeIdentMat4 ( xform ) ;
 }
 
 

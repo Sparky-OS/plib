@@ -1,6 +1,6 @@
 /*
      PLIB - A Suite of Portable Game Libraries
-     Copyright (C) 2001  Steve Baker
+     Copyright (C) 1998,2002  Steve Baker
  
      This library is free software; you can redistribute it and/or
      modify it under the terms of the GNU Library General Public
@@ -13,12 +13,12 @@
      Library General Public License for more details.
  
      You should have received a copy of the GNU Library General Public
-     License along with this library; if not, write to the Free
+     License along with this library; if not, write to the Free Software
      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: slPortability.h,v 1.6 2001/04/12 03:37:36 deca Exp $
+     $Id: slPortability.h,v 1.14 2003/05/18 13:45:04 puggles Exp $
 */
 
 
@@ -33,13 +33,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-/* the next lines are to define BSD */
-/* see http://www.freebsd.org/handbook/porting.html for why we do this */
-#if (defined(__unix__) || defined(unix)) && !defined(USG)
-#include <sys/param.h>
-#endif
-
-#ifdef macintosh
+#ifdef UL_MACINTOSH
   #include <Sound.h>
   #include <Timer.h>
   #ifdef __MWERKS__
@@ -47,17 +41,8 @@
   #endif
 #endif
 
-#ifndef  WIN32
-#include <unistd.h>
-#include <sys/ioctl.h>
-#else
-#include <windows.h>
-#ifdef __CYGWIN32__
-#  define NEAR /* */
-#  define FAR  /* */
-#  define WHERE_EVER_YOU_ARE /* Curt: optional, but it reminds me of a song */
-#endif
-#include <mmsystem.h>
+#ifdef UL_MAC_OSX
+  #include <Carbon/Carbon.h>
 #endif
 
 #include <fcntl.h>
@@ -66,13 +51,14 @@
 #include <limits.h>
 #include <math.h>
 
-#if (defined(__linux__) || defined(BSD)) && !defined(__NetBSD__)
+#if (defined(UL_LINUX) || defined(UL_BSD)) && !defined(__NetBSD__)
 #define SL_USING_OSS_AUDIO 1
 #endif
 
 #ifdef SL_USING_OSS_AUDIO
-#  if defined(__linux__)
+#  if defined(UL_LINUX)
 #    include <linux/soundcard.h>
+#    include <sys/ioctl.h>
 #  elif defined(__FreeBSD__)
 #    include <machine/soundcard.h>
 #  else
@@ -88,20 +74,21 @@
 #  endif
 #endif
 
-#if defined (__NetBSD__) || defined(__OpenBSD__)
+#ifdef UL_BSD
+#ifndef __FreeBSD__
 #  include <sys/audioio.h>
+#endif
 #endif
 
 /* Tom */
 
-#ifdef	sgi
+#ifdef UL_IRIX
 #  include <audio.h>
 #endif
 
-#if defined(__svr4__) || defined(__SVR4)
+#ifdef UL_SOLARIS
 #  include <sys/audioio.h>
 #  include <sys/stropts.h>
-#  define SOLARIS
 #endif
 
 #endif

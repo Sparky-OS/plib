@@ -1,6 +1,6 @@
 /*
      PLIB - A Suite of Portable Game Libraries
-     Copyright (C) 2001  Steve Baker
+     Copyright (C) 1998,2002  Steve Baker
  
      This library is free software; you can redistribute it and/or
      modify it under the terms of the GNU Library General Public
@@ -13,12 +13,12 @@
      Library General Public License for more details.
  
      You should have received a copy of the GNU Library General Public
-     License along with this library; if not, write to the Free
+     License along with this library; if not, write to the Free Software
      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgKeyFlier.h,v 1.3 2001/04/12 03:38:15 deca Exp $
+     $Id: ssgKeyFlier.h,v 1.8 2004/04/06 13:32:26 sjbaker Exp $
 */
 
 
@@ -156,9 +156,9 @@ public:
     return & curr_pos ;
   }
 
-  void set_coord ( sgCoord *pos )
+  void set_coord ( sgCoord *pos, int noStop = 0 )
   {
-    stop_all () ;
+    if ( ! noStop ) stop_all () ;
     sgCopyCoord ( & last_pos, pos ) ;
     update   () ;
   }
@@ -206,9 +206,9 @@ public:
                     query_action ( last_pos.xyz[0], last_pos.xyz[1], last_pos.xyz[2],
                                    last_pos.hpr[0], last_pos.hpr[1], last_pos.hpr[2] ) ;
                   else
-                    printf ( "ssgKeyFlier: XYZ=(%g,%g,%g), HPR=(%g,%g,%g)\n",
-                             last_pos.xyz[0], last_pos.xyz[1], last_pos.xyz[2],
-                             last_pos.hpr[0], last_pos.hpr[1], last_pos.hpr[2] ) ;
+                    ulSetError ( UL_DEBUG, "ssgKeyFlier: XYZ=(%g,%g,%g), HPR=(%g,%g,%g)",
+                                 last_pos.xyz[0], last_pos.xyz[1], last_pos.xyz[2],
+                                 last_pos.hpr[0], last_pos.hpr[1], last_pos.hpr[2] ) ;
 
                   break ;
       case  'r' :
@@ -227,8 +227,8 @@ public:
       case  '6' : velocity.hpr[0] -= rscale ; break ;
       case  '4' : velocity.hpr[0] += rscale ; break ;
 /* Kludge to try to prevent *exact* +/-90 degree pitch terms */
-      case  '8' : velocity.hpr[1] -= rscale+0.00001 ; break ;
-      case  '2' : velocity.hpr[1] += rscale+0.00001 ; break ;
+      case  '8' : velocity.hpr[1] -= rscale+0.00001f ; break ;
+      case  '2' : velocity.hpr[1] += rscale+0.00001f ; break ;
 
       case  '7' : velocity.hpr[2] -= rscale ; break ;
       case  '9' : velocity.hpr[2] += rscale ; break ;

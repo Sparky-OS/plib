@@ -1,30 +1,28 @@
 # Microsoft Developer Studio Project File - Name="pui" - Package Owner=<4>
 # Microsoft Developer Studio Generated Build File, Format Version 6.00
-# ** NICHT BEARBEITEN **
+# ** DO NOT EDIT **
 
 # TARGTYPE "Win32 (x86) Static Library" 0x0104
 
 CFG=pui - Win32 Debug
-!MESSAGE Dies ist kein gültiges Makefile. Zum Erstellen dieses Projekts mit NMAKE
-!MESSAGE verwenden Sie den Befehl "Makefile exportieren" und führen Sie den Befehl
+!MESSAGE This is not a valid makefile. To build this project using NMAKE,
+!MESSAGE use the Export Makefile command and run
 !MESSAGE 
 !MESSAGE NMAKE /f "pui.mak".
 !MESSAGE 
-!MESSAGE Sie können beim Ausführen von NMAKE eine Konfiguration angeben
-!MESSAGE durch Definieren des Makros CFG in der Befehlszeile. Zum Beispiel:
+!MESSAGE You can specify a configuration when running NMAKE
+!MESSAGE by defining the macro CFG on the command line. For example:
 !MESSAGE 
 !MESSAGE NMAKE /f "pui.mak" CFG="pui - Win32 Debug"
 !MESSAGE 
-!MESSAGE Für die Konfiguration stehen zur Auswahl:
+!MESSAGE Possible choices for configuration are:
 !MESSAGE 
-!MESSAGE "pui - Win32 Release" (basierend auf  "Win32 (x86) Static Library")
-!MESSAGE "pui - Win32 Debug" (basierend auf  "Win32 (x86) Static Library")
+!MESSAGE "pui - Win32 Release" (based on "Win32 (x86) Static Library")
+!MESSAGE "pui - Win32 Debug" (based on "Win32 (x86) Static Library")
 !MESSAGE 
 
 # Begin Project
 # PROP AllowPerConfigDependencies 0
-# PROP Scc_ProjName "pui"
-# PROP Scc_LocalPath "."
 CPP=cl.exe
 RSC=rc.exe
 
@@ -41,7 +39,8 @@ RSC=rc.exe
 # PROP Intermediate_Dir "Release"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
-# ADD CPP /nologo /W3 /GX /O2 /I "..\fnt" /I "..\sg" /I "..\util" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /D "GLUT_IS_PRESENT" /YX /FD /c
+# ADD CPP /nologo /MT /W3 /GX /Zi /O2 /I "..\fnt" /I "..\sg" /I "..\util" /I ".." /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /D "PU_USE_NONE" /FD /c
+# SUBTRACT CPP /YX
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -50,19 +49,10 @@ BSC32=bscmake.exe
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
 # ADD LIB32 /nologo
-# Begin Custom Build - 'pui' gets installed
-ProjDir=.
-InputPath=.\Release\pui.lib
-SOURCE="$(InputPath)"
-
-"$(ProjDir)\..\..\pu.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy $(ProjDir)\pu.h $(ProjDir)\..\..\pu.h
-
-# End Custom Build
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
 PostBuild_Desc=Copy Library to plib directory
-PostBuild_Cmds=copy release\*.lib ..\..\*.*
+PostBuild_Cmds=copy  release\*.lib  ..\..\*.* 	copy  pu.h  ..\..\pu.h 	copy  puGLUT.h  "..\..\" 	copy  puFLTK.h  "..\..\" 	copy  puSDL.h  "..\..\" 	copy  puNative.h  "..\..\" 	copy  puPW.h  ..\..\ 
 # End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "pui - Win32 Debug"
@@ -78,7 +68,8 @@ PostBuild_Cmds=copy release\*.lib ..\..\*.*
 # PROP Intermediate_Dir "Debug"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
-# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I "..\fnt" /I "..\sg" /I "..\util" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /D "GLUT_IS_PRESENT" /YX /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /GX /Zi /Od /I "..\fnt" /I "..\sg" /I "..\util" /I ".." /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /D "PU_USE_NONE" /FR /FD /GZ /c
+# SUBTRACT CPP /YX
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -86,20 +77,11 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
-# ADD LIB32 /nologo
-# Begin Custom Build - 'pui' gets installed
-ProjDir=.
-InputPath=.\Debug\pui.lib
-SOURCE="$(InputPath)"
-
-"$(ProjDir)\..\..\pu.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy $(ProjDir)\pu.h $(ProjDir)\..\..\pu.h
-
-# End Custom Build
+# ADD LIB32 /nologo /out:"Debug\pui_d.lib"
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
 PostBuild_Desc=Copy Library to plib directory
-PostBuild_Cmds=copy debug\*.lib ..\..\*.*
+PostBuild_Cmds=copy  debug\*.lib  ..\..\*.* 	copy  pu.h  ..\..\pu.h 	copy  puGLUT.h  "..\..\" 	copy  puFLTK.h  "..\..\" 	copy  puSDL.h  "..\..\" 	copy  puNative.h  "..\..\" 	copy  puPW.h  ..\..\ 
 # End Special Build Tool
 
 !ENDIF 
@@ -138,6 +120,10 @@ SOURCE=.\puButtonBox.cxx
 # End Source File
 # Begin Source File
 
+SOURCE=.\puComboBox.cxx
+# End Source File
+# Begin Source File
+
 SOURCE=.\puDial.cxx
 # End Source File
 # Begin Source File
@@ -150,6 +136,14 @@ SOURCE=.\puFilePicker.cxx
 # End Source File
 # Begin Source File
 
+SOURCE=.\puFileSelector.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=.\puFLTK.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\puFont.cxx
 # End Source File
 # Begin Source File
@@ -158,11 +152,19 @@ SOURCE=.\puFrame.cxx
 # End Source File
 # Begin Source File
 
+SOURCE=.\puGLUT.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\puGroup.cxx
 # End Source File
 # Begin Source File
 
 SOURCE=.\puInput.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=.\puInputBase.cxx
 # End Source File
 # Begin Source File
 
@@ -186,6 +188,10 @@ SOURCE=.\puMenuBar.cxx
 # End Source File
 # Begin Source File
 
+SOURCE=.\puNative.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\puObject.cxx
 # End Source File
 # Begin Source File
@@ -202,7 +208,31 @@ SOURCE=.\puPopupMenu.cxx
 # End Source File
 # Begin Source File
 
+SOURCE=.\puPW.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\puRange.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=.\puScrollBar.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=.\puSDL.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\puSelectBox.cxx
+# End Source File
+# Begin Source File
+
 SOURCE=.\puSlider.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=.\puSpinBox.cxx
 # End Source File
 # Begin Source File
 

@@ -1,6 +1,6 @@
 /*
      PLIB - A Suite of Portable Game Libraries
-     Copyright (C) 2001  Steve Baker
+     Copyright (C) 1998,2002  Steve Baker
  
      This library is free software; you can redistribute it and/or
      modify it under the terms of the GNU Library General Public
@@ -13,12 +13,12 @@
      Library General Public License for more details.
  
      You should have received a copy of the GNU Library General Public
-     License along with this library; if not, write to the Free
+     License along with this library; if not, write to the Free Software
      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgLoadOBJ.cxx,v 1.17 2001/04/12 03:38:15 deca Exp $
+     $Id: ssgLoadOBJ.cxx,v 1.23 2002/09/15 01:29:12 ude Exp $
 */
 
 //
@@ -65,7 +65,6 @@
 #define MAX_LINE 100000
 #define MAX_FACE 100000
 #define MAX_VERT 100000
-#define MAX_STATES 1000
 #define MAX_MATERIALS 1000
 
 
@@ -86,9 +85,7 @@ struct matData
   sgVec4 spec ;
   float shine ;
   float trans ;
-
   char* tfname ;
-  ssgTexture* tex ;
 } ;
 
 
@@ -108,51 +105,18 @@ static sgVec3* vert_normal ;
 static int num_mat ;
 static matData* materials ;
 
-static ssgSimpleState** states ;
-static int num_states ;
-
 static ssgBranch       *current_branch   = NULL ;
 
-
-static ssgSimpleState* find_state( matData* mat )
+static ssgState* get_state( matData* mat )
 {
-  ssgTexture* tex = mat->tex ;
-  
-  for ( int i = 0 ; i < num_states ; i++ )
+  if (mat->tfname != NULL)
   {
-    ssgSimpleState *st2 = states [ i ] ;
-
-    if ( tex == NULL && st2->isEnabled ( GL_TEXTURE_2D ) )
-      continue ;
-
-    if ( tex != NULL && ! st2->isEnabled ( GL_TEXTURE_2D ) )
-      continue ;
-
-    if ( tex != NULL && tex -> getHandle() != st2 -> getTextureHandle () )
-      continue ;
-
-    if ( ! sgEqualVec4 ( mat->amb, st2->getMaterial ( GL_AMBIENT ) ) ||
-         ! sgEqualVec4 ( mat->diff, st2->getMaterial ( GL_DIFFUSE ) ) ||
-         ! sgEqualVec4 ( mat->spec, st2->getMaterial ( GL_SPECULAR ) ) ||
-         (int)( mat->trans < 0.99 ) != st2 -> isTranslucent () ||
-         mat -> shine != st2->getShininess () )
-      continue ;
-
-    return st2 ;
+    ssgState *st = ssgGetCurrentOptions () -> createState ( mat->tfname ) ;
+    if ( st != NULL )
+      return st ;
   }
 
-  if ( num_states >= MAX_STATES )
-    return 0 ;
   ssgSimpleState *st = new ssgSimpleState () ;
-  states [ num_states++ ] = st ;
-  
-  if ( tex != NULL )
-  {
-    st -> setTexture ( tex ) ;
-    st -> enable     ( GL_TEXTURE_2D ) ;
-  }
-  else
-    st -> disable    ( GL_TEXTURE_2D ) ;
 
   st -> setMaterial ( GL_AMBIENT, mat -> amb ) ;
   st -> setMaterial ( GL_DIFFUSE, mat -> diff ) ;
@@ -177,10 +141,20 @@ static ssgSimpleState* find_state( matData* mat )
     st -> setOpaque () ;
   }
 
+  if (mat->tfname != NULL)
+  {
+    st -> setTexture( ssgGetCurrentOptions () -> createTexture(mat->tfname) ) ;
+    st -> enable( GL_TEXTURE_2D ) ;
+  }
+  else
+  {
+    st -> disable( GL_TEXTURE_2D ) ;
+  }
+
   return st ;
 }
 
-static int leqi ( char* string1, char* string2 )
+static int leqi ( const char* string1, const char* string2 )
 //LEQI compares two strings for equality, disregarding case.
 {
   int i;
@@ -267,8 +241,7 @@ static void load_materials ( const char* fname )
       if ( count == 1 ) {
         index ++ ;
         memset( &materials[ index ], 0, sizeof(matData) ) ;
-        materials[ index ].name = new char [ strlen ( name ) + 1 ] ;
-        strcpy ( materials[ index ].name, name ) ;
+        materials[ index ].name = ulStrDup ( name ) ;
         materials[ index ].amb[3] = 1.0f ;
         materials[ index ].diff[3] = 1.0f ;
         materials[ index ].spec[3] = 1.0f ;
@@ -311,12 +284,8 @@ static void load_materials ( const char* fname )
       char tfname[MAX_LINE_LEN];
       count = sscanf ( next, "%s%n", tfname, &width ) ;
 
-      if ( count == 1 && index >= 0 ) {
-        ssgGetCurrentOptions () -> makeTexturePath ( path, tfname ) ;
-        materials[ index ].tfname = new char [ strlen( path )+1 ] ;
-        strcpy ( materials[ index ].tfname, path ) ;
-        materials[ index ].tex = new ssgTexture ( path ) ;
-      }
+      if ( count == 1 && index >= 0 )
+        materials[ index ].tfname = ulStrDup ( tfname ) ;
     }
   }
 
@@ -344,8 +313,8 @@ static void add_mesh ( int mat_index )
   ssgNormalArray   *nlist = 0 ;
   if ( num_vert_tex )
     tlist = new ssgTexCoordArray ( num * 3 ) ;
-//  if ( num_vert_normal )
-//    nlist = new ssgNormalArray ( num * 3 ) ;
+  if ( num_vert_normal )
+    nlist = new ssgNormalArray ( num * 3 ) ;
 
   for ( i=0; i<num_face; i++ ) {
     if ( face[i].mat_index == mat_index ) {
@@ -353,8 +322,8 @@ static void add_mesh ( int mat_index )
         vlist -> add ( vert[ face[i].vlist[j] ] ) ;
         if ( num_vert_tex )
           tlist -> add ( vert_tex[ face[i].tlist[j] ] ) ;
-//        if ( num_vert_normal )
-//          tlist -> add ( vert_normal[ face[i].nlist[j] ] ) ;
+        if ( num_vert_normal )
+          nlist -> add ( vert_normal[ face[i].nlist[j] ] ) ;
       }
     }
   }
@@ -362,10 +331,10 @@ static void add_mesh ( int mat_index )
   ssgState *st = NULL ;
   if ( mat_index < num_mat ) {
     matData* mat = &materials[ mat_index ];
-    if ( mat->tfname[0] != 0 )
+    if ( mat->tfname != 0 )
       st = ssgGetCurrentOptions() -> createState ( mat->tfname ) ;
     if ( st == NULL )
-      st = find_state ( mat ) ;
+      st = get_state ( mat ) ;
   }
 
   ssgVtxTable *vtab = new ssgVtxTable ( GL_TRIANGLES,
@@ -412,9 +381,6 @@ static int obj_read ( FILE *filein )
 
   num_mat = 0 ;
   materials = new matData [ MAX_MATERIALS ] ;
-
-  num_states = 0 ;
-  states = new ssgSimpleState* [ MAX_STATES ];
 
 /* 
   Read the next line of the file into INPUT. 
@@ -744,7 +710,6 @@ static int obj_read ( FILE *filein )
   }
 
   delete[] materials ;
-  delete[] states ;
   delete[] vert ;
   delete[] vert_tex ;
   delete[] vert_normal ;

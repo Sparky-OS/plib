@@ -1,0 +1,19 @@
+
+Windowing interfaces are horribly non-portable.
+
+There is one standard interface header:
+
+   pw.h
+
+...one set of common routines:
+
+   pw.cxx
+
+
+...and a bunch of OS-specific code:
+
+
+   pwX11.cxx
+   pwWindows.cxx
+   pwMacOS.cxx
+

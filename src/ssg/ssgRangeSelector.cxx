@@ -1,6 +1,6 @@
 /*
      PLIB - A Suite of Portable Game Libraries
-     Copyright (C) 2001  Steve Baker
+     Copyright (C) 1998,2002  Steve Baker
  
      This library is free software; you can redistribute it and/or
      modify it under the terms of the GNU Library General Public
@@ -13,12 +13,12 @@
      Library General Public License for more details.
  
      You should have received a copy of the GNU Library General Public
-     License along with this library; if not, write to the Free
+     License along with this library; if not, write to the Free Software
      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgRangeSelector.cxx,v 1.9 2001/06/16 16:27:37 stromberg Exp $
+     $Id: ssgRangeSelector.cxx,v 1.12 2002/09/02 06:05:48 sjbaker Exp $
 */
 
 
@@ -127,9 +127,33 @@ void ssgRangeSelector::hot ( sgVec3 sp, sgMat4 m, int test_needed )
     _ssgPopPath () ;
   }
 
-  postTravTests ( SSGTRAV_HOT ) ; 
+  postTravTests ( SSGTRAV_HOT ) ;
 }
 
+
+void ssgRangeSelector::los ( sgVec3 sp, sgMat4 m, int test_needed )
+{
+  if ( ! preTravTests ( &test_needed, SSGTRAV_LOS ) )
+    return ;
+
+  if ( additive )
+    ssgBranch::los ( sp, m, test_needed ) ;
+  else
+  {
+    /* No point in testing this node since it only has one child */
+
+    _ssgPushPath ( this ) ;
+
+    ssgEntity *e = getKid ( 0 ) ;
+
+    if ( e != NULL )
+      e -> los ( sp, m, test_needed ) ;
+
+    _ssgPopPath () ;
+  }
+
+  postTravTests ( SSGTRAV_LOS ) ;
+}
 
 void ssgRangeSelector::isect ( sgSphere *sp, sgMat4 m, int test_needed )
 {

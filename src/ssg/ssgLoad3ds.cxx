@@ -1,6 +1,6 @@
 /*
      PLIB - A Suite of Portable Game Libraries
-     Copyright (C) 2001  Steve Baker
+     Copyright (C) 1998,2002  Steve Baker
  
      This library is free software; you can redistribute it and/or
      modify it under the terms of the GNU Library General Public
@@ -13,12 +13,12 @@
      Library General Public License for more details.
  
      You should have received a copy of the GNU Library General Public
-     License along with this library; if not, write to the Free
+     License along with this library; if not, write to the Free Software
      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgLoad3ds.cxx,v 1.29 2001/05/22 05:30:34 mcdave Exp $
+     $Id: ssgLoad3ds.cxx,v 1.37 2002/09/02 06:05:48 sjbaker Exp $
 */
 
 /*******************************************************
@@ -49,6 +49,8 @@
 
 */
 
+#define USE_VTXARRAYS
+
 #include "ssgLocal.h"
 #include "ssg3ds.h"
 
@@ -63,17 +65,17 @@
 /* Define DEBUG if you want debug output
    (this might be a nice way of looking at the
    structure of a 3DS file). */
-/*#define DEBUG 1*/
+//#define DEBUG 1
 
 
 #ifdef DEBUG
-#define DEBUGPRINT(f, x, y, z) fprintf(stderr, f, debug_indent, x, y, z)
+#define DEBUGPRINT(f, x, y, z) ulSetError(UL_DEBUG, f, debug_indent, x, y, z)
 #else
 #define DEBUGPRINT(f, x, y, z)
 #endif
 
 #ifdef DEBUG
-char debug_indent[256];
+static char debug_indent[256];
 #endif
 
 /* this is the minimum value of the dot product for
@@ -341,7 +343,7 @@ static char* get_string() {
   char *s = new char[256], read;
   int c = 0;
 
-  while ( (read = fgetc(model)) != 0 ) {
+  while ( (read = getc(model)) != 0 ) {
     if (c < 255)
       s[c++] = read;
   }
@@ -387,7 +389,7 @@ static void addStructureNode( _ssg3dsStructureNode *node ) {
 static int parse_mapname( unsigned int length )
 {
   current_material->tex_name = get_string();
-  DEBUGPRINT("%sMap name: %s %s%s\n", current_material->tex_name, "", "");
+  DEBUGPRINT("%sMap name: %s %s%s", current_material->tex_name, "", "");
   return PARSE_OK;
 }
 
@@ -396,7 +398,7 @@ static int parse_mapoptions( unsigned int length )
   unsigned short value = ulEndianReadLittle16(model);
   // bit 4: 0=tile (default), 1=do not tile (a single bit for both u and v)
   current_material->wrap_s = current_material->wrap_t = ((value & 0x10) == 0);
-  DEBUGPRINT("%sMap options (wrap): %c %s%s\n", 
+  DEBUGPRINT("%sMap options (wrap): %c %s%s", 
 	     (current_material->wrap_s)?'Y':'N', "", "");
 
   return PARSE_OK;
@@ -405,21 +407,21 @@ static int parse_mapoptions( unsigned int length )
 static int parse_uscale( unsigned int length )
 {
   current_material->tex_scale[1] = ulEndianReadLittleFloat(model);
-  DEBUGPRINT("%sU-scale: %.3f %s%s\n", current_material->tex_scale[1], "", "");
+  DEBUGPRINT("%sU-scale: %.3f %s%s", current_material->tex_scale[1], "", "");
   return PARSE_OK;
 }
 
 static int parse_vscale( unsigned int length )
 {
   current_material->tex_scale[0] = ulEndianReadLittleFloat(model);
-  DEBUGPRINT("%sV-scale: %.3f %s%s\n", current_material->tex_scale[0], "", "");
+  DEBUGPRINT("%sV-scale: %.3f %s%s", current_material->tex_scale[0], "", "");
   return PARSE_OK;
 }
 
 static int parse_uoffst( unsigned int length )
 {
   current_material->tex_offset[1] = ulEndianReadLittleFloat(model);
-  DEBUGPRINT("%sU-offset: %.3f %s%s\n",
+  DEBUGPRINT("%sU-offset: %.3f %s%s",
 	     current_material->tex_offset[1], "", "");
   return PARSE_OK;
 }
@@ -427,7 +429,7 @@ static int parse_uoffst( unsigned int length )
 static int parse_voffst( unsigned int length )
 {
   current_material->tex_offset[0] = ulEndianReadLittleFloat(model);
-  DEBUGPRINT("%sV-offset: %.3f %s%s\n",
+  DEBUGPRINT("%sV-offset: %.3f %s%s",
 	     current_material->tex_offset[0], "", "");
   return PARSE_OK;
 }
@@ -451,13 +453,13 @@ static int parse_material( unsigned int length ) {
   sgSetVec2(current_material -> tex_offset, 0.0f, 0.0f);
   current_material -> wrap_s = current_material -> wrap_t = true;
   
-  DEBUGPRINT("%sNew material found.%s%s%s\n", "", "", "");
+  DEBUGPRINT("%sNew material found.%s%s%s", "", "", "");
   return PARSE_OK;
 }
 
 static int parse_material_name( unsigned int length ) {
   current_material -> name = get_string();
-  DEBUGPRINT("%sMaterial name:%s%s%s\n", current_material->name, "", "");
+  DEBUGPRINT("%sMaterial name:%s%s%s", current_material->name, "", "");
   
   return PARSE_OK;
 }
@@ -468,7 +470,7 @@ static int parse_rgb1( unsigned int length ) {
   r = ulEndianReadLittleFloat(model);
   g = ulEndianReadLittleFloat(model);
   b = ulEndianReadLittleFloat(model);
-  DEBUGPRINT("%sColour: R:%.2f, G:%.2f, B:%.2f\n", r, g, b);
+  DEBUGPRINT("%sColour: R:%.2f, G:%.2f, B:%.2f", r, g, b);
 
   sgSetVec3(current_material->colour[colour_mode], r, g, b);
 
@@ -481,7 +483,7 @@ static int parse_rgb2( unsigned int length ) {
   r = (float)get_byte() / 255.0f;
   g = (float)get_byte() / 255.0f;
   b = (float)get_byte() / 255.0f;
-  DEBUGPRINT("%sColour: R:%.2f, G:%.2f, B:%.2f\n", r, g, b);
+  DEBUGPRINT("%sColour: R:%.2f, G:%.2f, B:%.2f", r, g, b);
 
   sgSetVec3(current_material->colour[colour_mode], r, g, b);
   return PARSE_OK;
@@ -489,19 +491,19 @@ static int parse_rgb2( unsigned int length ) {
 
 static int parse_ambient( unsigned int length ) {
   colour_mode = _3DSMAT_AMB;
-  DEBUGPRINT("%sAmbient colour%s%s%s\n", "", "", "");
+  DEBUGPRINT("%sAmbient colour%s%s%s", "", "", "");
   return PARSE_OK;
 }
 
 static int parse_diffuse( unsigned int length ) {
   colour_mode = _3DSMAT_DIF;
-  DEBUGPRINT("%sDiffuse colour%s%s%s\n", "", "", "");
+  DEBUGPRINT("%sDiffuse colour%s%s%s", "", "", "");
   return PARSE_OK;
 }
 
 static int parse_specular( unsigned int length ) {
   colour_mode = _3DSMAT_SPE;
-  DEBUGPRINT("%sSpecular colour%s%s%s\n", "", "", "");
+  DEBUGPRINT("%sSpecular colour%s%s%s", "", "", "");
   return PARSE_OK;
 }
 
@@ -510,7 +512,7 @@ static int parse_shininess( unsigned int length ) {
   // so just read that chunks header
   ulEndianReadLittle16(model); ulEndianReadLittle32(model);
   current_material -> shi = (float)ulEndianReadLittle16(model) * 128.0f / 100.0f;
-  DEBUGPRINT("%sShininess:%.1f%s%s\n", current_material->shi, "", "");
+  DEBUGPRINT("%sShininess:%.1f%s%s", current_material->shi, "", "");
   return PARSE_OK;
 }
 
@@ -519,14 +521,14 @@ static int parse_transparency( unsigned int length ) {
   // so just read that chunks header
   ulEndianReadLittle16(model); ulEndianReadLittle32(model);
   current_material->alpha = 1.0f - (float)ulEndianReadLittle16(model) / 100.0f;
-  DEBUGPRINT("%sAlpha:%.1f%s%s\n", current_material->alpha, "", "");
+  DEBUGPRINT("%sAlpha:%.1f%s%s", current_material->alpha, "", "");
   return PARSE_OK;
 }
 
 static int parse_doublesided( unsigned int length ) {
   double_sided = current_material->flags |= IS_DOUBLESIDED;
 
-  DEBUGPRINT("%sMaterial is double sided.%s%s%s\n", "", "", "");
+  DEBUGPRINT("%sMaterial is double sided.%s%s%s", "", "", "");
 
   return PARSE_OK;
 }
@@ -596,7 +598,7 @@ static ssgSimpleState *get_state( _3dsMat *mat ) {
 
 static void free_trimesh()
 {
-  DEBUGPRINT("%sFreeing trimesh object%s%s%s\n", "","","");
+  DEBUGPRINT("%sFreeing trimesh object%s%s%s", "","","");
 
   if (vertex_list)
     delete [] vertex_list;
@@ -646,7 +648,7 @@ static int parse_trimesh( unsigned int length ) {
      This is kind of a kludge, but it was the easiest way to solve this problem
   */
   DEBUGPRINT("%sPrescanning sub-chunks for vertices and texture coords." \
-	     "%s%s%s\n", "","","");
+	     "%s%s%s", "","","");
 #ifdef DEBUG
   strcat(debug_indent, "    ");
 #endif
@@ -658,7 +660,7 @@ static int parse_trimesh( unsigned int length ) {
 #ifdef DEBUG
   debug_indent[strlen(debug_indent)-4] = 0;
 #endif
-  DEBUGPRINT("%sDone prescanning.%s%s%s\n", "","","");
+  DEBUGPRINT("%sDone prescanning.%s%s%s", "","","");
 
   return parse_ok;
 }
@@ -668,7 +670,7 @@ static int parse_vert_list( unsigned int length ) {
   vertex_list = new sgVec3[num_vertices];
   face_lists = new _ssg3dsFaceList*[num_vertices];
 
-  DEBUGPRINT("%sReading %d vertices.%s%s\n", num_vertices, "", "");
+  DEBUGPRINT("%sReading %d vertices.%s%s", num_vertices, "", "");
 
   for (int i = 0; i < num_vertices; i++) {
     vertex_list[i][0] = ulEndianReadLittleFloat(model);
@@ -687,7 +689,7 @@ static int parse_smooth_list( unsigned int length )
   smooth_found = TRUE;
 
   smooth_list = new unsigned int[num_faces];
-  DEBUGPRINT("%sReading smoothlist%s%s%s\n", "", "", "");
+  DEBUGPRINT("%sReading smoothlist%s%s%s", "", "", "");
 
   for (i = 0; i < num_faces; i++)
     smooth_list[i] = ulEndianReadLittle32(model);
@@ -729,7 +731,7 @@ static void smooth_normals( int use_smooth_list ) {
 
 static int identify_face_materials( unsigned int length ) {
   facemat_found = TRUE;
-  DEBUGPRINT("%sFace materials found.%s%s%s\n", "","","");
+  DEBUGPRINT("%sFace materials found.%s%s%s", "","","");
 
   fseek( model, length, SEEK_CUR );
 
@@ -740,7 +742,7 @@ static int parse_face_list( unsigned int length ) {
   int i;
   num_faces = ulEndianReadLittle16(model);
 
-  DEBUGPRINT("%sReading %d faces.%s%s\n", num_faces, "", "");
+  DEBUGPRINT("%sReading %d faces.%s%s", num_faces, "", "");
 
   vertex_index   = new unsigned short[num_faces*3];
   face_normals   = new sgVec3[num_faces];
@@ -780,7 +782,7 @@ static int parse_face_list( unsigned int length ) {
 
   smooth_found = FALSE;
   facemat_found = FALSE;
-  DEBUGPRINT("%sPrescanning sub-chunks for smooth list...%s%s%s\n", "","","");
+  DEBUGPRINT("%sPrescanning sub-chunks for smooth list...%s%s%s", "","","");
 #ifdef DEBUG
   strcat(debug_indent, "    ");
 #endif
@@ -792,15 +794,15 @@ static int parse_face_list( unsigned int length ) {
 #ifdef DEBUG
   debug_indent[strlen(debug_indent)-4] = 0;
 #endif
-  DEBUGPRINT("%sDone prescanning.%s%s%s\n", "","","");
+  DEBUGPRINT("%sDone prescanning.%s%s%s", "","","");
 
   /* now apply correct smoothing. If smooth list has been found,
      use it, otherwise use threshold value. */
-  smooth_normals( smooth_found );
+  smooth_normals( 0 /*smooth_found*/ );
 
   if (!facemat_found) {
     DEBUGPRINT("%sNo CHUNK_FACEMAT found. Adding default faces of material " \
-	       "\"%s\"%s%s.\n", materials[0]->name, "", "");
+	       "\"%s\"%s%s.", materials[0]->name, "", "");
     unsigned short *face_indices = new unsigned short[num_faces];
     for (i = 0; i < num_faces; i++) {
       face_indices[i] = i;
@@ -815,7 +817,7 @@ static int parse_map_list( unsigned int length ) {
   unsigned short num_v = ulEndianReadLittle16(model);
   texcrd_list = new sgVec2[num_v];
 
-  DEBUGPRINT("%sReading %d texture coords.%s%s\n", num_v, "", "");
+  DEBUGPRINT("%sReading %d texture coords.%s%s", num_v, "", "");
 
   for (int i = 0; i < num_v; i++) {
     texcrd_list[i][0] = ulEndianReadLittleFloat(model);
@@ -830,7 +832,7 @@ static int parse_tra_matrix( unsigned int length ) {
 
   sgMakeIdentMat4( m );
 
-  DEBUGPRINT("%sReading transformation matrix.%s%s%s\n", "","","");
+  DEBUGPRINT("%sReading transformation matrix.%s%s%s", "","","");
 
   /* Strange things seems to be going on with the
      local coordinate system in 3ds - I have commented
@@ -850,11 +852,11 @@ static int parse_tra_matrix( unsigned int length ) {
     
 #ifdef DEBUG
   for (int a = 0; a < 4; a++) {
-    DEBUGPRINT("%s%s%s%s", "","","");
+    fputs(debug_indent, stderr);
     for (int b = 0; b < 4; b++) {
       fprintf(stderr, "%.2f\t", m[b][a]);
     }
-    fprintf(stderr, "\n");
+   putc('\n', stderr);
   }
 #endif  
 
@@ -871,6 +873,9 @@ static void add_leaf( _3dsMat *material, int listed_faces,
   ssgVertexArray   *vertices = new ssgVertexArray();
   ssgNormalArray   *normals  = new ssgNormalArray();
   ssgTexCoordArray *texcrds  = NULL;
+#ifdef USE_VTXARRAYS
+  ssgIndexArray* indices = new ssgIndexArray();
+#endif
   
   if (has_texture) {
     if (texcrd_list == NULL) {
@@ -886,11 +891,19 @@ static void add_leaf( _3dsMat *material, int listed_faces,
     }
   }
 
+  int tri_idx = 0;
+
   for (int i = 0; i < listed_faces; i++) {
     unsigned short faceindex = face_indices[i];
     int v1 = faceindex * 3,
       v2 = faceindex * 3 + 1,
       v3 = faceindex * 3 + 2;
+
+#ifdef USE_VTXARRAYS
+    indices->add( tri_idx++ );
+    indices->add( tri_idx++ );
+    indices->add( tri_idx++ );
+#endif
 
     vertices->add( vertex_list[ vertex_index[v1] ] );
     vertices->add( vertex_list[ vertex_index[v2] ] );
@@ -941,12 +954,21 @@ static void add_leaf( _3dsMat *material, int listed_faces,
 	sgNegateVec3( n[j] );
 	normals->add( n[j] );
       }
+
+#ifdef USE_VTXARRAYS
+      indices->add( tri_idx++ );
+      indices->add( tri_idx++ );
+      indices->add( tri_idx++ );
+#endif
     }
 
   }
 
-  ssgVtxTable* vtab = new ssgVtxTable ( GL_TRIANGLES,
-    vertices, normals, texcrds, NULL ) ;
+#ifdef USE_VTXARRAYS
+  ssgVtxArray* vtab = new ssgVtxArray ( GL_TRIANGLES, vertices, normals, texcrds, NULL, indices );
+#else
+  ssgVtxTable* vtab = new ssgVtxTable ( GL_TRIANGLES, vertices, normals, texcrds, NULL ) ;
+#endif
   vtab -> setState ( get_state( material ) ) ;
   vtab -> setCullFace ( TRUE ) ;
 
@@ -977,7 +999,7 @@ static int parse_face_materials( unsigned int length ) {
 
   unsigned short listed_faces = ulEndianReadLittle16(model);
 
-  DEBUGPRINT("%sFaces of \"%s\" list with %d faces.%s\n", 
+  DEBUGPRINT("%sFaces of \"%s\" list with %d faces.%s", 
 	     mat_name, listed_faces, "");
 
   delete mat_name;  // no longer needed
@@ -989,7 +1011,7 @@ static int parse_face_materials( unsigned int length ) {
 
   add_leaf(material, listed_faces, face_indices);
 
-  delete face_indices;
+  delete [] face_indices;
 
   return PARSE_OK;
 }
@@ -1007,7 +1029,7 @@ static int parse_objblock( unsigned int length ) {
 
   addStructureNode( object_node );
 
-  DEBUGPRINT("%sObject block \"%s\"%s%s\n", object_name, "", "");
+  DEBUGPRINT("%sObject block \"%s\"%s%s", object_name, "", "");
   delete object_name;
 
   return PARSE_OK;
@@ -1016,7 +1038,7 @@ static int parse_objblock( unsigned int length ) {
 static int parse_oneunit( unsigned int length ) {
 #ifdef DEBUG
   float oneunit = ulEndianReadLittleFloat(model);
-  DEBUGPRINT("%sOne unit: %.3f%s%s\n", oneunit, "", "");
+  DEBUGPRINT("%sOne unit: %.3f%s%s", oneunit, "", "");
 #else
   ulEndianReadLittleFloat(model) ;
 #endif
@@ -1027,7 +1049,7 @@ static int parse_oneunit( unsigned int length ) {
 static int parse_version( unsigned int length ) {
 #ifdef DEBUG
   unsigned int version = ulEndianReadLittle32(model);
-  DEBUGPRINT("%s3DS Version: %d%s%s\n", version, "", "");
+  DEBUGPRINT("%s3DS Version: %d%s%s", version, "", "");
 #else
   ulEndianReadLittle32(model) ;
 #endif
@@ -1041,7 +1063,7 @@ static int parse_version( unsigned int length ) {
 static int parse_frame( unsigned int length ) {
   // this chunk is not used for anything right now
 #ifdef DEBUG
-  DEBUGPRINT("%sFrame start: %d, end: %d%s\n",
+  DEBUGPRINT("%sFrame start: %d, end: %d%s",
 	     ulEndianReadLittle32(model), ulEndianReadLittle32(model), "");
 #else
   ulEndianReadLittle32(model);
@@ -1064,7 +1086,7 @@ static int parse_frame_objname( unsigned int length ) {
   ulEndianReadLittle16(model);
   short parent_id = ulEndianReadLittle16(model);
 
-  DEBUGPRINT("%sObject name: %s, parent: %d%s\n",
+  DEBUGPRINT("%sObject name: %s, parent: %d%s",
 	     objname, parent_id, "");
 
   _ssg3dsStructureNode *current_structure_node = findStructureNode( objname );
@@ -1100,7 +1122,7 @@ static int parse_frame_objname( unsigned int length ) {
 
 static int parse_frame_hierarchy( unsigned int length ) {
   current_structure_id = ulEndianReadLittle16(model);
-  DEBUGPRINT("%sThis object's hierarchy id: %d.%s%s\n", 
+  DEBUGPRINT("%sThis object's hierarchy id: %d.%s%s", 
 	     current_structure_id, "", "");
 
   return PARSE_OK;
@@ -1133,7 +1155,7 @@ static int parse_chunks( _ssg3dsChunk *chunk_list, unsigned int length )
     for (t = chunk_list; t->id != 0 && t->id != id; t++);
 
     if (t->id == id) {
-      DEBUGPRINT("%sFound chunk %X of length %d%s (known)\n", 
+      DEBUGPRINT("%sFound chunk %X of length %d%s (known)", 
 		 id, sub_length,"");
       // this is a known chunk
       // do chunk-specific parsing if available
@@ -1157,7 +1179,7 @@ static int parse_chunks( _ssg3dsChunk *chunk_list, unsigned int length )
 #endif
 
     } else {
-      DEBUGPRINT("%sFound chunk %X of length %d%s (unknown)\n", 
+      DEBUGPRINT("%sFound chunk %X of length %d%s (unknown)", 
 		 id, sub_length,"");
       fseek( model, sub_length, SEEK_CUR );
     }
@@ -1210,10 +1232,10 @@ ssgEntity *ssgLoad3ds( const char *filename, const ssgLoaderOptions* options ) {
   // clean up the materials array
   for (i = 0; i < num_materials; i++) {
     if (materials[i] -> name != NULL) {
-      delete materials[i] -> name;
+      delete [] materials[i] -> name;
     }
     if (materials[i] -> tex_name != NULL) {
-      delete materials[i] -> tex_name;
+      delete [] materials[i] -> tex_name;
     }
 
     delete materials[i];

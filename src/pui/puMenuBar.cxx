@@ -1,28 +1,31 @@
 /*
      PLIB - A Suite of Portable Game Libraries
-     Copyright (C) 2001  Steve Baker
- 
+     Copyright (C) 1998,2002  Steve Baker
+
      This library is free software; you can redistribute it and/or
      modify it under the terms of the GNU Library General Public
      License as published by the Free Software Foundation; either
      version 2 of the License, or (at your option) any later version.
- 
+
      This library is distributed in the hope that it will be useful,
      but WITHOUT ANY WARRANTY; without even the implied warranty of
      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
      Library General Public License for more details.
- 
+
      You should have received a copy of the GNU Library General Public
-     License along with this library; if not, write to the Free
+     License along with this library; if not, write to the Free Software
      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
- 
+
      For further information visit http://plib.sourceforge.net
 
-     $Id: puMenuBar.cxx,v 1.9 2001/06/23 02:30:18 sjbaker Exp $
+     $Id: puMenuBar.cxx,v 1.21 2004/02/16 13:49:03 stromberg Exp $
 */
 
 
 #include "puLocal.h"
+
+UL_RTTI_DEF1(puMenuBar,puInterface)
+
 
 void puMenuBar_drop_down_the_menu ( puObject *b )
 {
@@ -31,7 +34,7 @@ void puMenuBar_drop_down_the_menu ( puObject *b )
 
   puPopupMenu *p = (puPopupMenu *) b -> getUserData () ;
 
-  if ( b -> getValue () )
+  if ( b -> getIntegerValue () )
   {
 /*
   SJBL Test hack.
@@ -43,13 +46,13 @@ void puMenuBar_drop_down_the_menu ( puObject *b )
     // If the parent floats in its own window, and the submenu drops off the window,
     // expand the window to fit.
 
-#ifndef PU_NOT_USING_GLUT
+#if 1
     puGroup *parent = p -> getParent () ;
 
-    if ( ( parent != parent -> getParent () ) && parent -> getFloating () )
+    if ( ( parent != parent -> getParent () ) && parent -> getFloating () )  // DEPRECATED! -- we need to replace this code.
     {
       int temp_window = puGetWindow () ;
-      glutSetWindow ( parent -> getWindow () ) ;
+      puSetWindow ( parent -> getWindow () ) ;
 
       puBox *par_box = parent -> getBBox () ;
       puBox *cur_box = p -> getBBox () ;
@@ -59,23 +62,21 @@ void puMenuBar_drop_down_the_menu ( puObject *b )
       int y_min = (cur_box->min[1] < 0) ? par_box->min[1] + cur_box->min[1] : par_box->min[1] ;
       int y_max = (par_box->max[1] > par_box->min[1] + cur_box->max[1]) ?
                                     par_box->max[1] : par_box->min[1] + cur_box->max[1] ;
-      int x_siz = glutGet ( (GLenum)GLUT_WINDOW_WIDTH ) ;
-      int y_siz = glutGet ( (GLenum)GLUT_WINDOW_HEIGHT ) ;
+      int x_siz, y_siz;
+      puGetWindowSize ( &x_siz, &y_siz ) ;
       if ( x_siz < (x_max - x_min) ) x_siz = x_max - x_min ;    // Adjust the present size
       if ( y_siz < (y_max - y_min) ) y_siz = y_max - y_min ;
-
-      int x_pos = glutGet ( (GLenum)GLUT_WINDOW_X ) ;
-      int y_pos = glutGet ( (GLenum)GLUT_WINDOW_Y ) ;
-
-      glutReshapeWindow ( x_siz, y_siz ) ;
-      glutPositionWindow ( x_pos + x_min, y_pos ) ;
+      puSetWindowSize ( x_siz, y_siz ) ;
 
       x_min = par_box->min[0] - x_min ;
       y_min = y_siz - ( par_box->max[1] - par_box->min[1] ) ;
 
-      parent -> setPosition ( x_min, y_min ) ;
+      /* If the parent window is SUPPOSED to be stuck at the top of the screen, move it. 
+         - JCJ 6 June 2002 */
+      if (parent -> getVStatus () == 1)
+        parent -> setPosition ( x_min, y_min ) ;
 
-      glutSetWindow ( temp_window ) ;
+      puSetWindow ( temp_window ) ;
     }
 #endif
   }
@@ -83,7 +84,7 @@ void puMenuBar_drop_down_the_menu ( puObject *b )
     p->hide () ;
 
   for ( puObject *child = b -> getParent () -> getFirstChild () ;
-        child != NULL ; child = child -> next )
+        child != NULL ; child = child -> getNextObject() )
   {
     if (( child -> getType() & PUCLASS_BUTTON    ) != 0 && child != b ) child -> clrValue () ;
     if (( child -> getType() & PUCLASS_POPUPMENU ) != 0 && child != p ) child -> hide     () ;
@@ -95,12 +96,25 @@ void puMenuBar_drop_down_the_menu ( puObject *b )
   puMoveToLast ( p );
 }
 
-void puMenuBar::add_submenu ( const char *str, char *items[], puCallback cb[] )
+void puMenuBar::add_submenu ( const char *str, char *items[], puCallback _cb[],
+                              void *_user_data[] )
 {
   int w, h ;
   getSize ( &w, &h ) ;
 
-  puOneShot    *b = new puOneShot ( w+10, 0, str ) ;
+  puOneShot *b ;
+
+  if ( bar_height > 0 )
+  {
+    b = new puOneShot ( w+10,
+                        0,
+                        w+10 + PUSTR_LGAP + puGetDefaultLegendFont().getStringWidth ( str ) + PUSTR_RGAP,
+                        bar_height ) ;
+    b -> setLegend ( str ) ;
+  }
+  else
+    b = new puOneShot ( w+10, 0, str ) ;
+
   b -> setStyle ( PUSTYLE_SPECIAL_UNDERLINED ) ;
   b -> setColourScheme ( colour[PUCOL_FOREGROUND][0],
                          colour[PUCOL_FOREGROUND][1],
@@ -113,8 +127,12 @@ void puMenuBar::add_submenu ( const char *str, char *items[], puCallback cb[] )
 
   b -> setUserData ( p ) ;
 
-  for ( int i = 0 ; items[i] != NULL ; i++ )
-    p -> add_item ( items[i], cb[i] ) ;
+  if ( _user_data != NULL )
+    for ( int i = 0 ; items[i] != NULL ; i++ )
+      p -> add_item ( items[i], _cb[i], _user_data[i] ) ;
+  else
+    for ( int i = 0 ; items[i] != NULL ; i++ )
+      p -> add_item ( items[i], _cb[i] ) ;
 
   p->close () ;
   recalc_bbox () ;
@@ -134,7 +152,7 @@ void puMenuBar::close (void)
     Use alternate objects - which gets the puOneShot/puPopupMenu pairs
   */
 
-  for ( ob = dlist ; ob != NULL ; ob = ob -> next )
+  for ( ob = dlist ; ob != NULL ; ob = ob -> getNextObject() )
   {
     int w, h ;
 
@@ -142,7 +160,7 @@ void puMenuBar::close (void)
 
     ob -> getSize ( &w, &h ) ;
     ob -> setPosition ( width, 0 ) ;
-    ob = ob -> next ;
+    ob = ob -> getNextObject() ;
 
     /* Reposition the submenu so it sits under the button */
 

@@ -1,6 +1,6 @@
 /*
      PLIB - A Suite of Portable Game Libraries
-     Copyright (C) 2001  Steve Baker
+     Copyright (C) 1998,2002  Steve Baker
  
      This library is free software; you can redistribute it and/or
      modify it under the terms of the GNU Library General Public
@@ -13,12 +13,12 @@
      Library General Public License for more details.
  
      You should have received a copy of the GNU Library General Public
-     License along with this library; if not, write to the Free
+     License along with this library; if not, write to the Free Software
      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgSimpleList.cxx,v 1.9 2001/04/12 03:38:15 deca Exp $
+     $Id: ssgSimpleList.cxx,v 1.14 2004/01/25 16:50:04 wolfram_kuss Exp $
 */
 
 
@@ -28,7 +28,7 @@ void ssgSimpleList::copy_from ( ssgSimpleList *src, int clone_flags )
 {
   ssgBase::copy_from ( src, clone_flags ) ;
 
-  delete list ;
+  delete [] list ;
   size_of = src -> getSizeOf () ;
   total   = src -> getNum () ;
   limit   = total ;
@@ -71,6 +71,13 @@ ssgBase *ssgColourArray::clone ( int clone_flags )
   return b ;
 }
 
+ssgBase *ssgIndexArray::clone ( int clone_flags )
+{
+  ssgIndexArray *b = new ssgIndexArray () ;
+  b -> copy_from ( this, clone_flags ) ;
+  return b ;
+}
+
 
 
  
@@ -103,6 +110,17 @@ void ssgNormalArray::print ( FILE *fd, char *indent, int how_much )
  
 
 
+void ssgIndexArray::print ( FILE *fd, char *indent, int how_much )
+{
+  ssgSimpleList::print ( fd, indent, how_much ) ;
+
+  if ( how_much < 4 )
+    return;
+
+  for ( unsigned int i = 0 ; i < total ; i++ )
+    fprintf ( fd, "%s  I%d) { %d }\n", indent, i,
+                     (int) (*get(i)) ) ;
+}
  
 void ssgTexCoordArray::print ( FILE *fd, char *indent, int how_much )
 {
@@ -149,7 +167,7 @@ void ssgSimpleList::print ( FILE *fd, char *indent, int how_much )
 
 int ssgSimpleList::load ( FILE *fd )
 {
-  delete list ;
+  delete [] list ;
   _ssgReadUInt ( fd, &size_of ) ;
   _ssgReadUInt ( fd, &total   ) ;
   limit = total ;

@@ -1,52 +1,56 @@
 /*
      PLIB - A Suite of Portable Game Libraries
-     Copyright (C) 2001  Steve Baker
- 
+     Copyright (C) 1998,2002  Steve Baker
+
      This library is free software; you can redistribute it and/or
      modify it under the terms of the GNU Library General Public
      License as published by the Free Software Foundation; either
      version 2 of the License, or (at your option) any later version.
- 
+
      This library is distributed in the hope that it will be useful,
      but WITHOUT ANY WARRANTY; without even the implied warranty of
      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
      Library General Public License for more details.
- 
+
      You should have received a copy of the GNU Library General Public
-     License along with this library; if not, write to the Free
+     License along with this library; if not, write to the Free Software
      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
- 
+
      For further information visit http://plib.sourceforge.net
 
-     $Id: fntTXF.cxx,v 1.9 2001/04/09 00:24:58 deca Exp $
+     $Id: fntTXF.cxx,v 1.19 2002/12/01 18:21:46 sjbaker Exp $
 */
 
 
 #include "fntLocal.h"
 
-#ifndef WIN32
-#  ifndef macintosh
-#    include <GL/glx.h>
-#  else
-#    include <agl.h>
-#  endif
+#ifdef UL_MACINTOSH
+#  include <agl.h>
+#elif defined(UL_MAC_OSX)
+#  include <OpenGL/CGLCurrent.h>
+#elif defined(UL_WIN32)
+   /* Nothing */
+#else
+#  include <GL/glx.h>
 #endif
 
-static bool glIsValidContext ()
+static bool glIsValidContext ( void )
 {
 #if defined(CONSOLE)
   return true ;
-#elif defined(WIN32)
+#elif defined(UL_WIN32)
   return ( wglGetCurrentContext () != NULL ) ;
-#elif defined(macintosh)
-  return ( aglGetCurrentContext() != NULL ) ;
+#elif defined(UL_MACINTOSH)
+  return ( aglGetCurrentContext () != NULL ) ;
+#elif defined(UL_MAC_OSX)
+  return ( CGLGetCurrentContext () != NULL ) ;
 #else
-  return ( glXGetCurrentContext() != NULL ) ;
+  return ( glXGetCurrentContext () != NULL ) ;
 #endif
 }
 
-FILE *curr_image_fd ;
-int isSwapped = FALSE ;
+FILE *_fntCurrImageFd ;
+int _fntIsSwapped = FALSE ;
 
 static void tex_make_mip_maps ( GLubyte *image, int xsize,
                                      int ysize, int zsize )
@@ -54,7 +58,7 @@ static void tex_make_mip_maps ( GLubyte *image, int xsize,
   GLubyte *texels [ 20 ] ;   /* One element per level of MIPmap */
 
   for ( int l = 0 ; l < 20 ; l++ )
-    texels [ 0 ] = NULL ;
+    texels [ l ] = NULL ;
 
   texels [ 0 ] = image ;
 
@@ -128,7 +132,7 @@ static void tex_make_mip_maps ( GLubyte *image, int xsize,
 
     if ( ww == 0 )
     {
-      delete texels [ 0 ] ;
+      delete [] texels [ 0 ] ;
       xsize >>= 1 ;
       ysize >>= 1 ;
 
@@ -160,7 +164,7 @@ static void tex_make_mip_maps ( GLubyte *image, int xsize,
                                        GL_RGBA,
                             GL_UNSIGNED_BYTE, (GLvoid *) texels[i] ) ;
     map_level++ ;
-    delete texels [ i ] ;
+    delete [] texels [ i ] ;
   }
 }
 
@@ -183,7 +187,7 @@ int fntTexFont::loadTXF ( const char *fname, GLenum mag, GLenum min )
     return FNT_FALSE ;
   }
 
-  curr_image_fd = fd ;
+  _fntCurrImageFd = fd ;
 
   unsigned char magic [ 4 ] ;
 
@@ -202,10 +206,10 @@ int fntTexFont::loadTXF ( const char *fname, GLenum mag, GLenum min )
     return FNT_FALSE ;
   }
 
-  isSwapped  = FALSE ;
+  _fntIsSwapped  = FALSE ;
   int endianness  = _fnt_readInt () ;
 
-  isSwapped  = ( endianness != 0x12345678 ) ;
+  _fntIsSwapped  = ( endianness != 0x12345678 ) ;
 
   int format      = _fnt_readInt () ;
   int tex_width   = _fnt_readInt () ;
@@ -242,6 +246,7 @@ int fntTexFont::loadTXF ( const char *fname, GLenum mag, GLenum min )
     glyph . y       = _fnt_readShort () ;
 
     setGlyph ( (char) glyph.ch,
+          (float)  glyph.step              / (float) max_height,
           (float)  glyph.x                 / (float) w + xstep,
           (float)( glyph.x + glyph.w )     / (float) w + xstep,
           (float)  glyph.y                 / (float) h + ystep,
@@ -284,7 +289,7 @@ int fntTexFont::loadTXF ( const char *fname, GLenum mag, GLenum min )
           teximage [ i*2 + 1 ] = orig [ i ] ;
         }
 
-        delete orig ;
+        delete [] orig ;
       }
       break ;
    
@@ -296,7 +301,7 @@ int fntTexFont::loadTXF ( const char *fname, GLenum mag, GLenum min )
 
         if ( (int)fread ( texbitmap, 1, stride * h, fd ) != stride * h )
         {
-          delete texbitmap ;
+          delete [] texbitmap ;
           ulSetError ( UL_WARNING,
             "fntLoadTXF: Premature EOF in '%s'.", fname ) ;
           return FNT_FALSE ;
@@ -315,7 +320,7 @@ int fntTexFont::loadTXF ( const char *fname, GLenum mag, GLenum min )
 	      teximage[(i * w + j) * 2 + 1] = 255;
 	    }
 
-        delete texbitmap ;
+        delete [] texbitmap ;
       }
       break ;
 

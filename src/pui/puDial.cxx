@@ -1,28 +1,31 @@
 /*
      PLIB - A Suite of Portable Game Libraries
-     Copyright (C) 2001  Steve Baker
- 
+     Copyright (C) 1998,2002  Steve Baker
+
      This library is free software; you can redistribute it and/or
      modify it under the terms of the GNU Library General Public
      License as published by the Free Software Foundation; either
      version 2 of the License, or (at your option) any later version.
- 
+
      This library is distributed in the hope that it will be useful,
      but WITHOUT ANY WARRANTY; without even the implied warranty of
      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
      Library General Public License for more details.
- 
+
      You should have received a copy of the GNU Library General Public
-     License along with this library; if not, write to the Free
+     License along with this library; if not, write to the Free Software
      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
- 
+
      For further information visit http://plib.sourceforge.net
 
-     $Id: puDial.cxx,v 1.7 2001/06/19 02:42:18 sjbaker Exp $
+     $Id: puDial.cxx,v 1.26 2002/09/21 17:47:09 ude Exp $
 */
 
 
 #include "puLocal.h"
+
+UL_RTTI_DEF2(puDial,puRange,puObject)
+
 
 void puDial::draw ( int dx, int dy )
 {
@@ -30,25 +33,26 @@ void puDial::draw ( int dx, int dy )
 
   // Draw the active box.
 
-  abox . draw ( dx, dy,
-                (style==PUSTYLE_BEVELLED||
-                 style==PUSTYLE_SHADED) ? -PUSTYLE_BOXED : -style,
-                colour, FALSE ) ;
-
-  // If greyed out then halve the opacity when drawing the label and legend
-
-  if ( active )
-    glColor4fv ( colour [ PUCOL_LEGEND ] ) ;
+  if ( ( style == PUSTYLE_BEVELLED ) ||
+       ( style == PUSTYLE_SHADED ) )
+    abox.draw ( dx, dy, -PUSTYLE_BOXED, colour, FALSE, 2 ) ;
   else
-    glColor4f ( colour [ PUCOL_LEGEND ][0],
-                colour [ PUCOL_LEGEND ][1],
-                colour [ PUCOL_LEGEND ][2],
-                colour [ PUCOL_LEGEND ][3] / 2.0f ) ; // 50% more transparent
+    abox.draw ( dx, dy, -style, colour, FALSE, border_thickness ) ;
 
   if ( r_cb )
     r_cb ( this, dx, dy, render_data ) ;
   else
   {
+    // If greyed out then halve the opacity when drawing the widget
+
+    if ( active )
+      glColor4fv ( colour [ PUCOL_MISC ] ) ;
+    else
+      glColor4f ( colour [ PUCOL_MISC ][0],
+                  colour [ PUCOL_MISC ][1],
+                  colour [ PUCOL_MISC ][2],
+                  colour [ PUCOL_MISC ][3] / 2.0f ) ; // 50% more transparent
+
     // Draw the surrounding circle.
 
     float rad = (float)( abox.max [0] - abox.min [0] ) / 2.0f - 3.0f ;
@@ -57,19 +61,17 @@ void puDial::draw ( int dx, int dy )
 
     float dtheta = 3.0f / rad ;   // three pixels per segment
 
-    float old_line_width ;
+    glPushAttrib ( GL_LINE_BIT ) ;
 
-    glGetFloatv ( GL_LINE_WIDTH, &old_line_width ) ;
-    
     glLineWidth ( 2.0f ) ;   // set line width to two pixels
 
     glBegin ( GL_LINE_STRIP ) ;
 
     float theta ;
-    for ( theta = -3.1415927f; theta < 3.1415927f+dtheta; theta+= dtheta )
+    for ( theta = -SG_PI; theta < SG_PI+dtheta; theta+= dtheta )
     {
-      float x = (float)x_cen + rad * cos ( (double)theta ) ;
-      float y = (float)y_cen + rad * sin ( (double)theta ) ;
+      float x = (float)x_cen + rad * (float)cos ( (double)theta ) ;
+      float y = (float)y_cen + rad * (float)sin ( (double)theta ) ;
 
       glVertex2f ( x, y ) ;
     }
@@ -82,27 +84,23 @@ void puDial::draw ( int dx, int dy )
 
     float val ;
     getValue ( &val ) ;
+    val = ( val - minimum_value) / (maximum_value - minimum_value) ;
 
-    if ( val < 0.0 ) val = 0.0 ;
-    if ( val > 1.0 ) val = 1.0 ;
+    if ( val < 0.0f ) val = 0.0f ;
+    if ( val > 1.0f ) val = 1.0f ;
 
-    val = ( 2.0f * val - 1.0f ) * 3.1415927f ;
+    val = ( 2.0f * val - 1.0f ) * SG_PI ;
 
     glBegin ( GL_LINES ) ;
 
-    glVertex2f ( x_cen, y_cen ) ;
-    glVertex2f ( x_cen + rad * sin ( (double)val ), y_cen + rad * cos ( (double)val ) ) ;
+    glVertex2f ( (float)x_cen, (float)y_cen ) ;
+    glVertex2f ( (float)x_cen + rad * (float)sin ( (double)val ), (float)y_cen + rad * (float)cos ( (double)val ) ) ;
 
     glEnd () ;
 
-    glLineWidth ( old_line_width ) ;  // restore the old width
+    glPopAttrib () ;
 
-    int xx = ( abox.max[0] - abox.min[0] - puGetStringWidth(legendFont,legend) ) / 2 ;
-    int yy = ( abox.max[1] - abox.min[1] - puGetStringHeight(legendFont) ) / 2 ;
-
-    puDrawString ( legendFont, legend,
-                    dx + abox.min[0] + xx,
-                    dy + abox.min[1] + yy ) ;
+    draw_legend ( dx, dy ) ;
   }
 
   draw_label ( dx, dy ) ;
@@ -130,14 +128,14 @@ void puDial::doHit ( int button, int updown, int x, int y )
   {
     int x_cen = ( abox.max [0] + abox.min [0] ) / 2 ;
     int y_cen = ( abox.max [1] + abox.min [1] ) / 2 ;
-    float angle = atan2 ( (double)(x-x_cen), (double)(y-y_cen) ) / 3.1415927f ;
+    float angle = (float)atan2 ( (double)(x-x_cen), (double)(y-y_cen) ) / SG_PI ;
 
     // Move to within the (0,1) interval
 
     if ( angle < -1.0f )
-      angle += 2.0 ;
+      angle += 2.0f ;
     else if (angle > 1.0f )
-      angle -= 2.0 ;
+      angle -= 2.0f ;
 
     angle = ( angle + 1.0f ) / 2.0f ;
 
@@ -145,16 +143,42 @@ void puDial::doHit ( int button, int updown, int x, int y )
     // of the widget)
     if ( !wrap )
     {
-      if ( ( angle > 0.75 ) && ( getValue () < 0.25 ) )
-        angle = 0.0 ;
-      else if ( ( angle < 0.25 ) && ( getValue () > 0.75 ) )
-        angle = 1.0 ;
+      if ( ( angle > 0.75f ) && ( getFloatValue () < 0.25f ) )
+        angle = 0.0f ;
+      else if ( ( angle < 0.25f ) && ( getFloatValue () > 0.75f ) )
+        angle = 1.0f ;
     }
+    
+    angle = angle * (maximum_value - minimum_value) + minimum_value ;
+    setValue( checkStep(angle) ) ;
 
-    setValue ( angle ) ;
-
+    switch ( cb_mode )
+    {
+      case PUSLIDER_CLICK :
+        if ( updown == active_mouse_edge )
+        {
+	  last_cb_value = angle ;
     puSetActiveWidget ( this, x, y ) ;
-    invokeCallback () ;
+	  invokeCallback () ;
+        }
+        break ;
+
+      case PUSLIDER_DELTA :/* Deprecated! */
+        if ( fabs ( last_cb_value - angle ) >= cb_delta )
+        {
+	  last_cb_value = angle ;
+    puSetActiveWidget ( this, x, y ) ;
+	  invokeCallback () ;
+        }
+        break ;
+
+      case PUSLIDER_ALWAYS :
+      default :
+        last_cb_value = angle ;
+        puSetActiveWidget ( this, x, y ) ;
+        invokeCallback () ;
+        break ;
+    }
   }
 }
 

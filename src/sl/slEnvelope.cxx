@@ -1,6 +1,6 @@
 /*
      PLIB - A Suite of Portable Game Libraries
-     Copyright (C) 2001  Steve Baker
+     Copyright (C) 1998,2002  Steve Baker
  
      This library is free software; you can redistribute it and/or
      modify it under the terms of the GNU Library General Public
@@ -13,18 +13,18 @@
      Library General Public License for more details.
  
      You should have received a copy of the GNU Library General Public
-     License along with this library; if not, write to the Free
+     License along with this library; if not, write to the Free Software
      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: slEnvelope.cxx,v 1.2 2001/04/12 03:37:36 deca Exp $
+     $Id: slEnvelope.cxx,v 1.7 2004/04/06 14:26:03 sjbaker Exp $
 */
 
 
 #include "sl.h"
 
-float slEnvelope::getValue ( float _time )
+float slEnvelope::getValue ( float _time ) const
 {
   float delta ;
   int   step = getStepDelta ( &_time, &delta ) ;
@@ -34,7 +34,7 @@ float slEnvelope::getValue ( float _time )
 
 
 
-int slEnvelope::getStepDelta ( float *_time, float *delta )
+int slEnvelope::getStepDelta ( float *_time, float *delta ) const
 {
   float tt ;
 
@@ -83,7 +83,7 @@ void slEnvelope::applyToPitch  ( Uchar *dst, slPlayer *src,
   unsigned char tmp [ 512 ] ;
   float  pos = 0 ;
   float npos = 0 ;
-  unsigned char last = 0x80 ;
+  unsigned char last = prev_pitchenv;
 
   while ( nframes-- )
   {
@@ -104,6 +104,7 @@ void slEnvelope::applyToPitch  ( Uchar *dst, slPlayer *src,
       src -> read ( offset, tmp, next_env ) ;
 
       *(dst++) = last = tmp [ offset-1 ] ; 
+      prev_pitchenv = last;
     }
   }
 }
@@ -166,6 +167,31 @@ void slEnvelope::applyToVolume ( Uchar *dst, Uchar *src,
     *(dst++) = ( res > 255 ) ? 255 : ( res < 0 ) ? 0 : res ;
   }
 }
+
+void slEnvelope::applyToLPFilter ( Uchar *dst, Uchar *src,
+                                 int nframes, int start )
+{
+  float  delta ;
+  float  _time = slScheduler::getCurrent() -> getElapsedTime ( start ) ;
+  int     step = getStepDelta ( &_time, &delta ) ;
+  float _value = delta * (_time - time[step]) + value[step] ;
+  register float p_v = previous_value;
+  delta /= (float) slScheduler::getCurrent() -> getRate () ;
+
+  while ( nframes-- )
+  {
+
+    register float c_v = (float) ((int)*(src++) - 0x80);
+    register float f=_value;
+    p_v = p_v*(1.0f - f)+ f*c_v;
+    register int res = (int)(p_v) + 0x80 ;
+    _value += delta ;
+
+    *(dst++) = ( res > 255 ) ? 255 : ( res < 0 ) ? 0 : res ;
+  }
+  previous_value = p_v;
+}
+
 
 void slEnvelope::applyToInvVolume ( Uchar *dst, Uchar *src,
                                     int nframes, int start )

@@ -64,20 +64,26 @@ SG  -- Some Standard Geometry functions (vector and
        matrix math, spheres, boxes, frustra, etc)
 SL  -- A Games-oriented Sound Library.
 FNT -- OpenGL texture-mapped font Library.
+PW  -- A minimalist windowing library.
+PSL -- A C-like scripting language.
 SSG -- A Simple Scene Graph API built on top of OpenGL.
+NET -- Some Networking functions for games.
 UTIL-- Utilities - things that your OS would normally
        handle - but these functions are portable.
+
+SSGAUX -- Some optional additional high level features for SSG
+PUIAUX -- Some optional additional high level features for PUI
 
 
 DIRECTORY STRUCTURE:
 
 PLIB expects to be installed in one standard place:
 
-   /usr/lib   or   C:\USR\LIB
+  /usr/lib
 
 ...with header files at:
 
-  /usr/include/plib   or   C:\USR\INCLUDE\PLIB
+  /usr/include/plib
 
 
 PORTABILITY and DEPENDANCIES:
@@ -89,14 +95,27 @@ yet been ported to all operating systems.
 
 JS  -- Currently Linux/Windows/BSD only.
 
-UTIL-- Should be portable to POSIX-compliant
+UL  -- Should be portable to POSIX-compliant
        OS's ... and Windows.
 
 SG  -- Totally portable, no dependancies.
 
-PUI -- Requires GLUT and OpenGL also FNT and SG.
+PUI -- Requires OpenGL also FNT and SG.
+       PUI also requires some kind of windowing
+       library - which could be PW - or GLUT,
+       freeglut, SDL, FLTK - or others.
 
-FNT and SSG -- Require OpenGL, SG and UTIL.
+PSL -- Requires UL.
+
+PW  -- Requires UL.
+
+NET -- Should be portable to POSIX-compliant
+       OS's.
+
+FNT and SSG -- Require OpenGL, SG and UL.
+
+SSGAUX -- Requires SSG - and hence OpenGL, SG and UL.
+PUIAUX -- Requires PUI - and hence FNT and SG.
 
 SL  -- This has now been ported onto:
 
@@ -120,32 +139,11 @@ SL  -- This has now been ported onto:
        No other requirements.
 
 
-STABILITY AND RELIABILITY:
-
-SG, SL, JS and PUI have all been in use for a long time
-in a huge number of applications - so they are reliable
-and unlikely to change much in the future.
-
-UTIL and FNT are pretty simple and should be very stable.
-
-SSG is still fairly new though - and it's by far the
-most complex and ambitious of the libraries. Whilst
-it seems to work well and to be stable for the couple
-of applications I have, it will certainly need more
-work in the future.
-
-
-
 AUX LIBRARIES AND TOOLS:
-
-PLIB comes with a number of auxiliary libraries in the
-'auxlibs' folder.  These add capabilities to PLIB that
-not every program will wish to be burdened with.
 
 The 'tools' directory contains a number of useful tools
 and utility programs that are either built using PLIB or
 which are specifically useful when writing PLIB programs.
-
 
 
 COMPILING/LINKING WITH PLIB
@@ -158,18 +156,27 @@ In your source code, add any combination of:
      #include <plib/fnt.h>
      #include <plib/pu.h>
      #include <plib/ssg.h>
+     #include <plib/pw.h>
+     #include <plib/puAux.h>
+     #include <plib/psl.h>
      #include <plib/sl.h>
+     #include <plib/net.h>
+     #include <plib/ssgAux.h>
 
 Add any of these to your link line:
 
-  -lplibssg -lplibsl -lplibpu -lplibfnt -lplibsg -lplibul
+  -lplibjs -lplibssgaux -lplibssg -lplibsl -lplibpu 
+  -lplibpuaux -lplibpw -lplibpsl -lplibfnt -lplibnet
+  -lplibsg -lplibul
 
 Under UNIX/Linux, you'll also need:
 
-  -lglut -lGLU -lGL -L/usr/X11/lib -lX11 -lXext -lXmu -lm
+  -lGLU -lGL -L/usr/X11/lib -lX11 -lXext -lXmu -lm
  
+...and perhaps a -l for whatever windowing library
+you're using - unless it's the built-in PW library.
 
              Steve Baker.
              <sjbaker1@airmail.net>
-             http://web2.airmail.net/sjbaker1
+             http://www.sjbaker.org
 

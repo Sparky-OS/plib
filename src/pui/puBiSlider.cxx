@@ -1,27 +1,31 @@
 /*
      PLIB - A Suite of Portable Game Libraries
-     Copyright (C) 2001  Steve Baker
- 
+     Copyright (C) 1998,2002  Steve Baker
+
      This library is free software; you can redistribute it and/or
      modify it under the terms of the GNU Library General Public
      License as published by the Free Software Foundation; either
      version 2 of the License, or (at your option) any later version.
- 
+
      This library is distributed in the hope that it will be useful,
      but WITHOUT ANY WARRANTY; without even the implied warranty of
      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
      Library General Public License for more details.
- 
+
      You should have received a copy of the GNU Library General Public
-     License along with this library; if not, write to the Free
+     License along with this library; if not, write to the Free Software
      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
- 
+
      For further information visit http://plib.sourceforge.net
 
-     $Id: puBiSlider.cxx,v 1.11 2001/06/19 02:42:18 sjbaker Exp $
+     $Id: puBiSlider.cxx,v 1.22 2002/09/02 06:05:45 sjbaker Exp $
 */
 
+
 #include "puLocal.h"
+
+UL_RTTI_DEF1(puBiSlider,puSlider)
+
 
 void puBiSlider::draw ( int dx, int dy )
 {
@@ -29,10 +33,11 @@ void puBiSlider::draw ( int dx, int dy )
 
   // Draw the slider box itself
 
-  abox . draw ( dx, dy,
-                (style==PUSTYLE_BEVELLED||
-                 style==PUSTYLE_SHADED) ? -PUSTYLE_BOXED : -style,
-                colour, FALSE ) ;
+  if ( ( style == PUSTYLE_BEVELLED ) ||
+       ( style == PUSTYLE_SHADED ) )
+    abox.draw ( dx, dy, -PUSTYLE_BOXED, colour, FALSE, 2 ) ;
+  else
+    abox.draw ( dx, dy, -style, colour, FALSE, border_thickness ) ;
 
   if ( r_cb )
     r_cb ( this, dx, dy, render_data ) ;
@@ -48,9 +53,9 @@ void puBiSlider::draw ( int dx, int dy )
       val = 1.0f ;
 
     char str_value[10] ;
-    sprintf (str_value, "%d", getCurrentMax() ) ;
+    sprintf (str_value, "%g", getCurrentMax() ) ;
 
-    draw_slider_box ( dx, dy, val, str_value ) ;
+    draw_slider_box ( dx, dy, abox, val, str_value ) ;
 
     // Draw the current_min slider and label it
 
@@ -59,26 +64,11 @@ void puBiSlider::draw ( int dx, int dy )
     else
       val = 0.0f ;
 
-    sprintf (str_value, "%d", getCurrentMin() ) ;
+    sprintf (str_value, "%g", getCurrentMin() ) ;
 
-    draw_slider_box ( dx, dy, val, str_value ) ;
+    draw_slider_box ( dx, dy, abox, val, str_value ) ;
 
-    // If greyed out then halve the opacity when drawing the label and legend
-
-    if ( active )
-      glColor4fv ( colour [ PUCOL_LEGEND ] ) ;
-    else
-      glColor4f ( colour [ PUCOL_LEGEND ][0],
-                  colour [ PUCOL_LEGEND ][1],
-                  colour [ PUCOL_LEGEND ][2],
-                  colour [ PUCOL_LEGEND ][3] / 2.0f ) ; // 50% more transparent
-
-    int xx = ( abox.max[0] - abox.min[0] - puGetStringWidth(legendFont,legend) ) / 2 ;
-    int yy = ( abox.max[1] - abox.min[1] - puGetStringHeight(legendFont) ) / 2 ;
-
-    puDrawString ( legendFont, legend,
-                    dx + abox.min[0] + xx,
-                    dy + abox.min[1] + yy ) ;
+    draw_legend ( dx, dy ) ;
   }
 
   draw_label ( dx, dy ) ;
@@ -121,29 +111,29 @@ void puBiSlider::doHit ( int button, int updown, int x, int y )
 
     next_value = (next_value < 0.0f) ? 0.0f : (next_value > 1.0) ? 1.0f : next_value ;
 
-    int new_value = getMinValue() + (int)( next_value * ( getMaxValue() - getMinValue() ) + 0.5 ) ;
+    float new_value = getMinValue() + next_value * ( getMaxValue() - getMinValue() ) ;
 
     if ( ( getActiveButton() == 0 ) || ( updown == PU_DOWN ) )  // No currently-active slider, set whichever is closest
     {
       if ( (new_value-getCurrentMin()) < (getCurrentMax()-new_value) ) // Closest to current_min
       {
-        setCurrentMin ( new_value ) ;
+        setCurrentMin ( checkStep(new_value) ) ;
         setActiveButton ( 1 ) ;
       }
       else  // Closest to current_max
       {
-        setCurrentMax ( new_value ) ;
+        setCurrentMax ( checkStep(new_value) ) ;
         setActiveButton ( 2 ) ;
       }
     }
     else if ( getActiveButton() == 1 )  // Currently moving current_min
     {
-      setCurrentMin ( new_value ) ;
+      setCurrentMin ( checkStep(new_value) ) ;
       if ( getCurrentMax() < getCurrentMin() ) setCurrentMax ( getCurrentMin() ) ;
     }
     else if ( getActiveButton() == 2 )  // Currently moving current_max
     {
-      setCurrentMax ( new_value ) ;
+      setCurrentMax ( checkStep(new_value) ) ;
       if ( getCurrentMax() < getCurrentMin() ) setCurrentMin ( getCurrentMax() ) ;
     }
 
@@ -159,7 +149,7 @@ void puBiSlider::doHit ( int button, int updown, int x, int y )
         }
         break ;
 
-      case PUSLIDER_DELTA :
+      case PUSLIDER_DELTA :/* Deprecated! */
         if ( fabs ( last_cb_value - next_value ) >= cb_delta )
         {
           last_cb_value = next_value ;

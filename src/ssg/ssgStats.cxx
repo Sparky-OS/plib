@@ -1,6 +1,6 @@
 /*
      PLIB - A Suite of Portable Game Libraries
-     Copyright (C) 2001  Steve Baker
+     Copyright (C) 1998,2002  Steve Baker
  
      This library is free software; you can redistribute it and/or
      modify it under the terms of the GNU Library General Public
@@ -13,12 +13,12 @@
      Library General Public License for more details.
  
      You should have received a copy of the GNU Library General Public
-     License along with this library; if not, write to the Free
+     License along with this library; if not, write to the Free Software
      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgStats.cxx,v 1.2 2001/04/12 03:38:16 deca Exp $
+     $Id: ssgStats.cxx,v 1.5 2002/09/02 06:05:49 sjbaker Exp $
 */
 
 #include "ssgLocal.h"
@@ -36,6 +36,13 @@ int stats_hot_no_trav     = 0 ;
 int stats_hot_radius_reject=0 ;
 int stats_hot_triv_accept = 0 ;
 int stats_hot_straddle    = 0 ;
+
+int stats_los_triangles   = 0 ;
+int stats_los_test        = 0 ;
+int stats_los_no_trav     = 0 ;
+int stats_los_radius_reject=0 ;
+int stats_los_triv_accept = 0 ;
+int stats_los_straddle    = 0 ;
 
 static char stats_string [ 1024 ] ;
 
@@ -73,6 +80,13 @@ char *ssgShowStats ()
   stats_hot_radius_reject=0 ;
   stats_hot_triv_accept = 0 ;
   stats_hot_straddle    = 0 ;
+
+  stats_los_triangles   = 0 ;
+  stats_los_test        = 0 ;
+  stats_los_no_trav     = 0 ;
+  stats_los_radius_reject=0 ;
+  stats_los_triv_accept = 0 ;
+  stats_los_straddle    = 0 ;
 
   return stats_string ;
 }

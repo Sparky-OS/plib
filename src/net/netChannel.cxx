@@ -1,6 +1,6 @@
 /*
      PLIB - A Suite of Portable Game Libraries
-     Copyright (C) 2001  Steve Baker
+     Copyright (C) 1998,2002  Steve Baker
  
      This library is free software; you can redistribute it and/or
      modify it under the terms of the GNU Library General Public
@@ -13,12 +13,12 @@
      Library General Public License for more details.
  
      You should have received a copy of the GNU Library General Public
-     License along with this library; if not, write to the Free
+     License along with this library; if not, write to the Free Software
      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: netChannel.cxx,v 1.5 2001/04/12 03:35:05 deca Exp $
+     $Id: netChannel.cxx,v 1.9 2004/03/22 19:44:50 sjbaker Exp $
 */
 
 // TODO:
@@ -48,8 +48,9 @@ netChannel::~netChannel ()
   close();
 
   netChannel* prev = NULL ;
+
   for ( netChannel* ch = channels; ch != NULL;
-    ch = ch -> next_channel )
+                    ch = ch -> next_channel )
   {
     if (ch == this)
     {
@@ -95,7 +96,7 @@ netChannel::listen ( int backlog )
 }
 
 int
-netChannel::connect ( cchar* host, int port )
+netChannel::connect ( const char* host, int port )
 {
   int result = netSocket::connect ( host, port ) ;
   if (result == 0) {
@@ -201,7 +202,7 @@ netChannel::handleWriteEvent (void)
 }
 
 bool
-netChannel::poll (u32 timeout)
+netChannel::poll (unsigned int timeout)
 {
   if (!channels)
     return false ;
@@ -271,7 +272,8 @@ netChannel::poll (u32 timeout)
 }
 
 void
-netChannel::loop (u32 timeout)
+netChannel::loop (unsigned int timeout)
 {
   while ( poll (timeout) ) ;
 }
+

@@ -4,28 +4,39 @@ thousands'.
 
 Most important of all - the 'official' PLIB developers:
 
+  Alex Perry
   Curtis Olson
   Ben Woodhead
   Dave McClurg
   Gerard Decatrel
   Gil Carter
-  John Fay
+  Giancarlo Niccolai
+  James Jones
+  John Fay ("Mr. PUI")
+  Juergen Marquardt
   Mark Vallevand
   Marten Stromberg
+  Nathan Matias
   Norman Vine
   Per Liedman
-  Steve Baker        <--- Hmmm - must sort this list by SECOND name!
   Sam Stickland
+  Sebastian Ude
+  Steve Baker        <--- Hmmm - must sort this list by SECOND name!
+  Will Lachance
   Wolfram Kuss
 
-Apologies to anyone I've left out - please let me know
-who you are and I'll add you in.
+Then, the non-registered contributors:
 
-  Alex Perry
+  (Apologies to anyone I've left
+   out - please let me know who
+   you are and I'll add you in.)
+
+  Andrew Ross
   Christopher St.John
   Christian Mayer
   Darrell Walisser
   Dave Heil
+  Erik Hofman
   Kevin Thompson
   Karl Kremer
   Negative0         <---- Who?  Some kind of 1's complement arithmetic fanatic?
@@ -51,5 +62,5 @@ Special mention must go to:
                      although the original code has been almost
                      entirely rewritten in the process of merging
                      it with SL.
-  Everyone at OPENGL-GAMEDEV-L and 3Dfx.glide.linux
+  Everyone at OPENGL-GAMEDEV-L
 

@@ -1,6 +1,6 @@
 /*
      PLIB - A Suite of Portable Game Libraries
-     Copyright (C) 2001  Steve Baker
+     Copyright (C) 1998,2002  Steve Baker
  
      This library is free software; you can redistribute it and/or
      modify it under the terms of the GNU Library General Public
@@ -13,12 +13,12 @@
      Library General Public License for more details.
  
      You should have received a copy of the GNU Library General Public
-     License along with this library; if not, write to the Free
+     License along with this library; if not, write to the Free Software
      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgSimpleState.cxx,v 1.21 2001/06/16 16:27:37 stromberg Exp $
+     $Id: ssgSimpleState.cxx,v 1.25 2002/09/02 06:05:49 sjbaker Exp $
 */
 
 
@@ -104,6 +104,8 @@ ssgSimpleState::~ssgSimpleState (void)
 
 void ssgSimpleState::apply (void)
 {
+  preApply () ;
+
   int turn_off = ~dont_care & ~enables & _ssgCurrentContext->getState()->enables & 0x3F ;
   (*(__ssgDisableTable[turn_off]))() ;
   _ssgCurrentContext->getState()->enables &= ~turn_off ;
@@ -203,10 +205,13 @@ void ssgSimpleState::apply (void)
   int turn_on = ~dont_care & enables & ~_ssgCurrentContext->getState()->enables & 0x3F ;
   (*(__ssgEnableTable [turn_on ]))() ;
   _ssgCurrentContext->getState()->enables |= turn_on ;
+
+  preDraw () ;
 }
 
 void ssgSimpleState::force (void)
 {
+  preApply () ;
   int turn_off = ~dont_care & ~enables & 0x3F ;
   (*(__ssgDisableTable[turn_off]))() ;
   _ssgCurrentContext->getState()->enables &= ~turn_off ;
@@ -288,6 +293,7 @@ void ssgSimpleState::force (void)
   int turn_on = ~dont_care & enables & 0x3F ;
   (*(__ssgEnableTable [turn_on ]))() ;
   _ssgCurrentContext->getState()->enables |= turn_on ;
+  preDraw () ;
 }
 
 
@@ -454,14 +460,14 @@ use gkGetTexParamiv or so.
 
 int ssgSimpleState::getWrapU()
 {
-int    wrapu = TRUE, wrapv = TRUE ;
+  int wrapu = TRUE, wrapv = TRUE ;
 
-	if ( filename == NULL )
-		return TRUE;
-	if ( filename[0] == 0 )
-		return TRUE;
-	GLuint texture_handle = getTextureHandle ();
-	
+  if ( filename == NULL )
+    return TRUE;
+  if ( filename[0] == 0 )
+    return TRUE;
+
+  GLuint texture_handle = getTextureHandle () ;
 }
 */
 
@@ -481,8 +487,8 @@ void ssgSimpleState::print ( FILE *fd, char *indent, int how_much )
 {
   ssgState::print ( fd, indent, how_much ) ;
  
-	if ( how_much < 2 )
-		return;
+  if ( how_much < 2 )
+    return;
 
   fprintf ( fd, "%s  Don't Care   = ", indent ) ;
              printStateString ( fd, dont_care ) ;
@@ -493,14 +499,15 @@ void ssgSimpleState::print ( FILE *fd, char *indent, int how_much )
 
   fprintf ( fd, "%s  TexHandle    = %d\n", indent, getTextureHandle() ) ;
   fprintf ( fd, "%s  TexFilename  = '%s'\n", indent,
-                           (getTextureFilename()==NULL) ? "<none>" : getTextureFilename() ) ;
+            (getTextureFilename()==NULL) ? "<none>" : getTextureFilename() ) ;
   fprintf ( fd, "%s  Shade Model  = %d\n", indent, shade_model ) ;
   fprintf ( fd, "%s  Shininess    = %f\n", indent, shininess ) ;
   fprintf ( fd, "%s  AlphaClamp   = %f\n", indent, alpha_clamp ) ;
   fprintf ( fd, "%s  ColourMatMode= %s\n", indent,
     (colour_material_mode == GL_AMBIENT) ? "GL_AMBIENT" :
     (colour_material_mode == GL_DIFFUSE) ? "GL_DIFFUSE" :
-    (colour_material_mode == GL_AMBIENT_AND_DIFFUSE) ? "GL_AMBIENT_AND_DIFFUSE" :
+    (colour_material_mode == GL_AMBIENT_AND_DIFFUSE) ?
+                               "GL_AMBIENT_AND_DIFFUSE" :
     (colour_material_mode == GL_SPECULAR) ? "GL_SPECULAR" :
     (colour_material_mode == GL_EMISSION) ? "GL_EMISSION" : "?????" ) ;
 

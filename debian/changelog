@@ -1,3 +1,80 @@
+plib (1.8.3-2) unstable; urgency=low
+
+  * Corrected C++ syntax in ssgAux/ssgaSky.h. Thanks to
+    neuro.harald AT surfeu.at for the patch. Closes: #260355
+  * Build-Depends on libx11-dev, libxmu-dev instead of xlibs-dev
+  * Removed build depends on g++, libc6.
+  * Changed (build) depends on libgl-dev to xlibmesa-gl-dev | libgl-dev
+
+ -- Philipp Frauenfelder <pfrauenf@debian.org>  Thu, 26 Aug 2004 23:31:16 +0200
+
+plib (1.8.3-1) unstable; urgency=low
+
+  * New upstream release:
+    - NET now allows a NULL argument to netSocket::accept
+    - Added #include <stdio.h> to all top level header files
+      in order to ensure that NULL is defined.
+    - Added ssgaScreenDump into ssgAux.dsp
+    - Cleaned up some warnings from MSVC.
+    - Added Christos Dimitrakakis' fixes to SL to prevent
+      crackling in certain envelope conditions.
+    - Added pwAutoRepeatKey to control keyboard auto-repeat.
+    - Fixed a horrific bug in the sgDistToLineSegment routines.
+  * The above includes changes in the header files and therefore, we
+    have a new soname.
+
+ -- Philipp Frauenfelder <pfrauenf@debian.org>  Sun, 11 Apr 2004 20:40:53 +0200
+
+plib (1.8.2-2) unstable; urgency=low
+
+  * Changed dependencies from glutg3* to libglut3*.
+  * Added build dependency to libc6-dev | libc-dev
+  * Changed SONAME from 1 to 1.8 (though I had this naming scheme since
+    long ago), changed package names also.
+  * Removed shlibs file.
+
+ -- Philipp Frauenfelder <pfrauenf@debian.org>  Sun,  4 Apr 2004 14:23:19 +0200
+
+plib (1.8.2-1) unstable; urgency=low
+
+  * New upstream release
+  * Reverted package name from plib1c102 to plib1 as we have a new so-name.
+  * Updated config.guess and config.sub
+  * Added debian/watch file
+  * Some other changes in rules file
+
+ -- Philipp Frauenfelder <pfrauenf@debian.org>  Fri, 26 Mar 2004 23:46:54 +0100
+
+plib (1.6.0-4) unstable; urgency=low
+
+  * Add automake1.7 as alternative to automake to build dependencies
+  * Create a new package plib-pic which is a copy of plib-dev but
+    the libraries have -fPIC code opposed to plib-dev. Closes: #229852
+  * Made the package descriptions somewhat clearer.
+  * Bumped standards version to 3.6.1
+
+ -- Philipp Frauenfelder <pfrauenf@debian.org>  Wed, 18 Feb 2004 13:15:57 +0100
+
+plib (1.6.0-3) unstable; urgency=low
+
+  * Adapted shlibs file to name change. Closes: #177775
+    Tried to follow the hint in the same bug.
+
+ -- Philipp Frauenfelder <pfrauenf@debian.org>  Mon,  3 Feb 2003 18:15:57 +0100
+
+plib (1.6.0-2) unstable; urgency=low
+
+  * Changed name of binary package to plib1c102, recompiled with gcc 3.2
+    and added a conflict to plib1
+
+ -- Philipp Frauenfelder <pfrauenf@debian.org>  Sun, 12 Jan 2003 17:10:11 +0100
+
+plib (1.6.0-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- Philipp Frauenfelder <pfrauenf@debian.org>  Thu,  5 Sep 2002 22:18:18 +0200
+
 plib (1.4.1-1) unstable; urgency=low
 
   * New upstream release

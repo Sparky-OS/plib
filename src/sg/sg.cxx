@@ -1,6 +1,6 @@
 /*
      PLIB - A Suite of Portable Game Libraries
-     Copyright (C) 2001  Steve Baker
+     Copyright (C) 1998,2002  Steve Baker
  
      This library is free software; you can redistribute it and/or
      modify it under the terms of the GNU Library General Public
@@ -13,16 +13,18 @@
      Library General Public License for more details.
  
      You should have received a copy of the GNU Library General Public
-     License along with this library; if not, write to the Free
+     License along with this library; if not, write to the Free Software
      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: sg.cxx,v 1.20 2001/06/22 13:35:07 wolfram_kuss Exp $
+     $Id: sg.cxx,v 1.43 2004/04/09 01:41:11 sjbaker Exp $
 */
 
 
 #include "sg.h"
+
+sgVec3 _sgGravity = { 0.0f, 0.0f, -9.8f } ;
 
 void sgVectorProductVec3 ( sgVec3 dst, const sgVec3 a, const sgVec3 b )
 {
@@ -154,10 +156,12 @@ void sgMakeLookAtMat4 ( sgMat4 dst, const sgVec3 eye,
 }
 
 // -dw- inconsistent linkage!
+
 float sgTriArea( sgVec3 p0, sgVec3 p1, sgVec3 p2 )
 {
   /* 
     From comp.graph.algorithms FAQ
+
 	2A(P) = abs(N.(sum_{i=0}^{n-1}(v_i x v_{i+1})))
 	This is an optimized version for a triangle
 	but easily extended for planar polygon's with more sides
@@ -168,26 +172,29 @@ float sgTriArea( sgVec3 p0, sgVec3 p1, sgVec3 p2 )
 	for( int i=0; i<n; i++ )
   */
 
-	sgVec3 sum;
-	sgZeroVec3( sum );
+  sgVec3 sum;
+  sgZeroVec3( sum );
 
-	sgVec3 norm;
-	sgMakeNormal( norm, p0, p1, p2 );
+  sgVec3 norm;
+  sgMakeNormal( norm, p0, p1, p2 );
 
-	float *vv[3];
-	vv[0] = p0;
-	vv[1] = p1;
-	vv[2] = p2;
+  float *vv[3];
+  vv[0] = p0;
+  vv[1] = p1;
+  vv[2] = p2;
 
-	for( int i=0; i<3; i++ ) {
-		int ii = (i+1) % 3;
-		sum[0] += (vv[i][1] * vv[ii][2] - vv[i][2] * vv[ii][1]) ;
-		sum[1] += (vv[i][2] * vv[ii][0] - vv[i][0] * vv[ii][2]) ;
-		sum[2] += (vv[i][0] * vv[ii][1] - vv[i][1] * vv[ii][0]) ;
-	}
+  for( int i=0; i<3; i++ )
+  {
+    int ii = (i+1) % 3;
 
-	float area = sgAbs(sgScalarProductVec3( norm, sum ));
-	return( area / 2.0f );
+    sum[0] += (vv[i][1] * vv[ii][2] - vv[i][2] * vv[ii][1]) ;
+    sum[1] += (vv[i][2] * vv[ii][0] - vv[i][0] * vv[ii][2]) ;
+    sum[2] += (vv[i][0] * vv[ii][1] - vv[i][1] * vv[ii][0]) ;
+  }
+
+  float area = sgAbs ( sgScalarProductVec3 ( norm, sum ) ) ;
+
+  return area / 2.0f ;
 }
 
 /***************************************************\
@@ -203,55 +210,46 @@ SGfloat sgAngleBetweenVec3 ( sgVec3 v1, sgVec3 v2 )
   return sgAngleBetweenNormalizedVec3 ( nv1, nv2 ) ;
 }
 
-SGfloat sgAngleBetweenNormalizedVec3 (sgVec3 first, sgVec3 second, sgVec3 normal) { 
- // result is in the range  0..2*pi
+SGfloat sgAngleBetweenNormalizedVec3 (sgVec3 first, sgVec3 second, sgVec3 normal)
+{ 
+ // result is in the range  0..360 degrees
+ //
  // Attention: first and second have to be normalized
- // the normal is needed to decide between for example 0.123 looking "from one side"
- // and -0.123 looking fomr the other
+ // the normal is needed to decide between for example 0.123
+ // looking "from one side" and -0.123 looking fomr the other
 
   SGfloat myCos, abs1, abs2, SProduct, deltaAngle, myNorm;
 
-#ifdef _DEBUG
-	SGfloat tfA,tfB;
+  if((normal[0]==0) && (normal[1]==0) && (normal[2]==0))
+  {	
+    ulSetError ( UL_WARNING, "sgGetAngleBetweenVectors: Normal is zero.");
+    return 0.0 ;
+  }
 
-	tfA = sgScalarProductVec3 (first, first);
-	tfB = sgScalarProductVec3 (second, second);
-	assert(tfA>0.99);
-	assert(tfA<1.01);
-	assert(tfB>0.99);
-	assert(tfB<1.01);
-#endif
-  
-	if((normal[0]==0) && (normal[1]==0) && (normal[2]==0))
-	{	
-		ulSetError ( UL_WARNING, "sgGetAngleBetweenVectors: Normal is zero.");
-		return 0.0;
-	}
-	sgVec3 temp;
+  sgVec3 temp;
+
   sgVectorProductVec3( temp, first, second);
-  myNorm = sgLengthVec3 ( temp );
-  if ( (sgScalarProductVec3(temp, normal))<0 ) {
-    myNorm = -myNorm;
-  }
 
-  if ( myNorm < -0.99999 ) {
+  myNorm = sgLengthVec3 ( temp );
+
+  if ( (sgScalarProductVec3(temp, normal))<0 )
+    myNorm = -myNorm;
+
+  if ( myNorm < -0.99999 )
     deltaAngle = -SG_PI*0.5;
-  }
   else
-  {   if ( myNorm > 0.99999 ) {
-         deltaAngle = SG_PI*0.5;
-      }
-      else
-      {   deltaAngle = (SGfloat)asin((double)myNorm);
-      }
-  }
-	// deltaAngle is in the range -SG_PI*0.5 to +SG_PI*0.5 here
-	// However, the correct result could also be 
-	// deltaAngleS := pi - deltaAngle
-	// Please note that:
-	// cos(deltaAngleS)=cos(pi-deltaAngle)=-cos(deltaAngle)
-	// So, the question is whether + or - cos(deltaAngle)
-	// is sgScalarProductVec3(first, second)
+  if ( myNorm > 0.99999 )
+    deltaAngle = SG_PI*0.5;
+  else
+    deltaAngle = (SGfloat)asin((double)myNorm);
+
+  // deltaAngle is in the range -SG_PI*0.5 to +SG_PI*0.5 here
+  // However, the correct result could also be 
+  // deltaAngleS := pi - deltaAngle
+  // Please note that:
+  // cos(deltaAngleS)=cos(pi-deltaAngle)=-cos(deltaAngle)
+  // So, the question is whether + or - cos(deltaAngle)
+  // is sgScalarProductVec3(first, second)
   
   if ( deltaAngle < 0 ) 
     deltaAngle = deltaAngle + 2*SG_PI; // unnessecary?
@@ -259,30 +257,34 @@ SGfloat sgAngleBetweenNormalizedVec3 (sgVec3 first, sgVec3 second, sgVec3 normal
   SProduct = sgScalarProductVec3(first, second);
   myCos = (SGfloat) cos(deltaAngle);
   
-	abs1 = SProduct - myCos;
-  if ( abs1 < 0 ) 
-		abs1 = -abs1;
+  abs1 = SProduct - myCos;
+  abs2 = SProduct + myCos;
+
+  if ( abs1 < 0 ) abs1 = -abs1 ;
+  if ( abs2 < 0 ) abs2 = -abs2 ;
   
-	abs2 = SProduct + myCos;
-  if ( abs2 < 0 ) 
-    abs2 = -abs2;
-  
-	assert( (abs1 < 0.1) || (abs2 < 0.1) );
-  if ( abs2 < abs1 ) { // deltaAngleS is the correct result
-    if ( deltaAngle <= SG_PI ) {
-      deltaAngle = SG_PI - deltaAngle;
-    }else {
-      deltaAngle = 3*SG_PI - deltaAngle;
-    }
+  assert( (abs1 < 0.1) || (abs2 < 0.1) ) ;
+
+  if ( abs2 < abs1 )
+  {
+    // deltaAngleS is the correct result
+
+    if ( deltaAngle <= SG_PI )
+      deltaAngle = SG_PI - deltaAngle ;
+    else
+      deltaAngle = 3*SG_PI - deltaAngle ;
   }
-	assert(deltaAngle >= 0.0);
-	assert(deltaAngle <= 2.0*SG_PI);
-  return deltaAngle;
+
+  assert ( deltaAngle >= 0.0 ) ;
+  assert ( deltaAngle <= 2.0*SG_PI ) ;
+
+  return deltaAngle * SG_RADIANS_TO_DEGREES ;
 }
 
+
 SGfloat sgAngleBetweenVec3 ( sgVec3 v1, sgVec3 v2, sgVec3 normal )
-// nornmal has to be normalized.
 {
+  // nornmal has to be normalized.
   sgVec3 nv1, nv2 ;
 
   sgNormalizeVec3 ( nv1, v1 ) ;
@@ -563,95 +565,126 @@ void sgFrustum::update ()
   {
     if ( fabs ( hfov ) < 0.1 || fabs ( vfov ) < 0.1 )
     {
-      ulSetError ( UL_WARNING, "sgFrustum: Can't support fields of view narrower than 0.1 degrees.");
+      ulSetError ( UL_WARNING, ortho ? 
+		   "sgFrustum: Can't support width or height <0.1 units." : 
+		   "sgFrustum: Can't support fields of view narrower than 0.1 degrees." ) ;
       return ;
     }
 
-    /* Corners of screen relative to eye... */
-  
-    right = nnear * (SGfloat) tan ( hfov * SG_DEGREES_TO_RADIANS / SG_TWO ) ;
-    top   = nnear * (SGfloat) tan ( vfov * SG_DEGREES_TO_RADIANS / SG_TWO ) ;
+    if ( ortho )
+    {
+      right = SG_HALF * hfov ;
+      top   = SG_HALF * vfov ;
+    }
+    else
+    {
+      right = nnear * (SGfloat) tan ( hfov * SG_DEGREES_TO_RADIANS / SG_TWO ) ;
+      top   = nnear * (SGfloat) tan ( vfov * SG_DEGREES_TO_RADIANS / SG_TWO ) ;
+    }
+
     left  = -right ;
     bot   = -top   ;
   }
 
+
+  /* Compute the projection matrix */
+
+  SGfloat width  = right - left  ;
+  SGfloat height = top   - bot   ;
+  SGfloat depth  = ffar  - nnear ;
+
+  if ( ortho )
+  {
+    /* orthographic */
+
+    mat[0][0] =  SG_TWO / width ;
+    mat[0][1] =  SG_ZERO ;
+    mat[0][2] =  SG_ZERO ;
+    mat[0][3] =  SG_ZERO ;
+
+    mat[1][0] =  SG_ZERO ;
+    mat[1][1] =  SG_TWO / height ;
+    mat[1][2] =  SG_ZERO ;
+    mat[1][3] =  SG_ZERO ;
+
+    mat[2][0] =  SG_ZERO ;
+    mat[2][1] =  SG_ZERO ;
+    mat[2][2] = -SG_TWO / depth ;
+    mat[2][3] =  SG_ZERO ;
+
+    mat[3][0] = -( left  + right ) / width ;
+    mat[3][1] = -( bot   + top   ) / height ;
+    mat[3][2] = -( nnear + ffar  ) / depth ;
+    mat[3][3] =  SG_ONE ;
+  }
+  else
+  {
+    /* perspective */
+
+    mat[0][0] =  SG_TWO * nnear / width ;
+    mat[0][1] =  SG_ZERO ;
+    mat[0][2] =  SG_ZERO ;
+    mat[0][3] =  SG_ZERO ;
+    
+    mat[1][0] =  SG_ZERO ;
+    mat[1][1] =  SG_TWO * nnear / height ;
+    mat[1][2] =  SG_ZERO ;
+    mat[1][3] =  SG_ZERO ;
+    
+    mat[2][0] =  ( right + left ) / width ;
+    mat[2][1] =  ( top   + bot  ) / height ;
+    mat[2][2] = -( ffar  + nnear ) / depth ;
+    mat[2][3] = -SG_ONE ;
+    
+    mat[3][0] =  SG_ZERO ;
+    mat[3][1] =  SG_ZERO ;
+    mat[3][2] = -SG_TWO * nnear * ffar / depth ;
+    mat[3][3] =  SG_ZERO ;
+  }
+
+
   /*
-    Compute plane equations for the four sloping faces of the frustum.
+   * The clip planes are derived from the projection matrix.
+   *
+   * After projection (in clip coordinates), the clip planes are simply:
+   * 
+   *  left:    (  1,  0,  0,  1 )
+   *  right:   ( -1,  0,  0,  1 )
+   *  bottom:  (  0,  1,  0,  1 )
+   *  top:     (  0, -1,  0,  1 )
+   *  near:    (  0,  0,  1,  1 )
+   *  far:     (  0,  0, -1,  1 )
+   *
+   * These can easily be transformed *backwards* by 
+   * multiplying by the transposed projection matrix, i.e:
+   *
+   *  ( A )            ( A')
+   *  ( B )  =  mat^T  ( B')
+   *  ( C )            ( C')
+   *  ( D )            ( D')
+   *
+   * where (A',B',C',D') represents a plane in clip coordinates,
+   * and (A,B,C,D) is the same plane expressed in eye coordinates.
+   */
 
-    These are useful for FrustContains(sphere) tests.
+  sgSetVec4( plane[ SG_LEFT_PLANE  ],   SG_ONE,  SG_ZERO,  SG_ZERO,  SG_ONE );
+  sgSetVec4( plane[ SG_RIGHT_PLANE ],  -SG_ONE,  SG_ZERO,  SG_ZERO,  SG_ONE );
+  sgSetVec4( plane[ SG_BOT_PLANE   ],  SG_ZERO,   SG_ONE,  SG_ZERO,  SG_ONE );
+  sgSetVec4( plane[ SG_TOP_PLANE   ],  SG_ZERO,  -SG_ONE,  SG_ZERO,  SG_ONE );
+  sgSetVec4( plane[ SG_NEAR_PLANE  ],  SG_ZERO,  SG_ZERO,   SG_ONE,  SG_ONE );
+  sgSetVec4( plane[ SG_FAR_PLANE   ],  SG_ZERO,  SG_ZERO,  -SG_ONE,  SG_ONE );
 
-    Noting that those planes always go through the origin, their 'D'
-    components will always be zero - so the plane equation is really
-    just the normal - which is the cross-product of two edges of each face,
-    and since we can pick two edges that go through the origin, the
-    vectors for the edges are just the normalised corners of the near plane.
-  */
+  for ( int i = 0 ; i < 6 ; i++ )
+  {
+    sgVec4 tmp ;
 
-  sgVec3 v1, v2, v3, v4 ;
+    for ( int j = 0 ; j < 4 ; j++ )
+      tmp[j] = sgScalarProductVec4 ( plane[i], mat[j] ) ;
 
-  sgSetVec3 ( v1, left , top, -nnear ) ;
-  sgSetVec3 ( v2, right, top, -nnear ) ;
-  sgSetVec3 ( v3, left , bot, -nnear ) ;
-  sgSetVec3 ( v4, right, bot, -nnear ) ;
-
-  sgNormaliseVec3 ( v1 ) ;
-  sgNormaliseVec3 ( v2 ) ;
-  sgNormaliseVec3 ( v3 ) ;
-  sgNormaliseVec3 ( v4 ) ;
-
-  /*
-    Take care of the order of the parameters so that all the planes
-    are oriented facing inwards...
-  */
-
-  sgVectorProductVec3 (   top_plane, v1, v2 ) ;
-  sgVectorProductVec3 ( right_plane, v2, v4 ) ;
-  sgVectorProductVec3 (   bot_plane, v4, v3 ) ;
-  sgVectorProductVec3 (  left_plane, v3, v1 ) ;
-
-  /* 
-    At this point, you could call
-
-      glMatrixMode ( GL_PROJECTION ) ;
-      glLoadIdentity () ;
-      glFrustum      ( left, right, bot, top, nnear, ffar ) ;
-
-    Or...
-
-      pfMakePerspFrust ( frust, left, right, bot, top ) ;
-      pfFrustNearFar   ( frust, nnear, ffar ) ;
-
-    Or...
-
-      just use the matrix we generate below:
-  */
-
-  /* Width, height, depth */
-
-  SGfloat w = right - left ;
-  SGfloat h = top   - bot  ;
-  SGfloat d = ffar  - nnear ;
-
-  mat[0][0] =  SG_TWO * nnear / w ;
-  mat[0][1] =  SG_ZERO ;
-  mat[0][2] =  SG_ZERO ;
-  mat[0][3] =  SG_ZERO ;
-
-  mat[1][0] =  SG_ZERO ;
-  mat[1][1] =  SG_TWO * nnear / h ;
-  mat[1][2] =  SG_ZERO ;
-  mat[1][3] =  SG_ZERO ;
-
-  mat[2][0] =  ( right + left ) / w ;
-  mat[2][1] =  ( top   + bot  ) / h ;
-  mat[2][2] = -( ffar  + nnear ) / d ;
-  mat[2][3] = -SG_ONE ;
-
-  mat[3][0] =  SG_ZERO ;
-  mat[3][1] =  SG_ZERO ;
-  mat[3][2] = -SG_TWO * nnear * ffar/ d ;
-  mat[3][3] =  SG_ZERO ;
+    sgScaleVec4 ( plane[i], tmp, SG_ONE / sgLengthVec3 ( tmp ) ) ;
+  }
 }
+
 
 
 #define OC_LEFT_SHIFT   0
@@ -681,7 +714,7 @@ int sgFrustum::getOutcode ( const sgVec3 pt ) const
   /*
     No need to divide by the 'w' component since we are only checking for
     results in the range 0..1
-  */
+  */  
 
   return (( tmp[0] <=  tmp[3] ) << OC_RIGHT_SHIFT ) |
          (( tmp[0] >= -tmp[3] ) << OC_LEFT_SHIFT  ) |
@@ -699,14 +732,17 @@ int sgFrustum::contains ( const sgVec3 pt ) const
 
 int sgFrustum::contains ( const sgSphere *s ) const 
 {
+
+  const SGfloat *center = s->getCenter() ;
+  const SGfloat  radius = s->getRadius() ;
+  
   /*
     Lop off half the database (roughly) with a quick near-plane test - and
     lop off a lot more with a quick far-plane test
   */
 
-  if ( -s->getCenter() [ 2 ] + s->getRadius() < nnear ||
-       -s->getCenter() [ 2 ] - s->getRadius() > ffar )
-    return SG_OUTSIDE ;
+  if ( -center[2] + radius < nnear || -center[2] - radius > ffar )
+    return SG_OUTSIDE ;  
 
   /*
     OK, so the sphere lies between near and far.
@@ -720,13 +756,52 @@ int sgFrustum::contains ( const sgSphere *s ) const
     whole task using only 12 multiplies and 8 adds.
   */
 
-  SGfloat sp1 = sgScalarProductVec3 (  left_plane, s->getCenter() ) ;
-  SGfloat sp2 = sgScalarProductVec3 ( right_plane, s->getCenter() ) ;
-  SGfloat sp3 = sgScalarProductVec3 (   bot_plane, s->getCenter() ) ;
-  SGfloat sp4 = sgScalarProductVec3 (   top_plane, s->getCenter() ) ;
+  /*
+    A few operations are saved by observing that certain values in the plane 
+    equations are zero or one. These are specific to orthographic and perspective 
+    projections respectively.
+  */
 
-  if ( -sp1 >= s->getRadius() || -sp2 >= s->getRadius() ||
-       -sp3 >= s->getRadius() || -sp4 >= s->getRadius() )
+  SGfloat sp1, sp2, sp3, sp4 ;
+  
+  if ( ortho )
+  {
+    /*
+      left:    (  1,  0,  0,  x  )
+      right:   ( -1,  0,  0,  x  )
+      bottom:  (  0,  1,  0,  x  )
+      top:     (  0, -1,  0,  x  )
+    */
+    sp1 = plane[ SG_LEFT_PLANE  ][3] + center[0] ;
+    sp2 = plane[ SG_RIGHT_PLANE ][3] - center[0] ;
+    sp3 = plane[ SG_BOT_PLANE   ][3] + center[1] ;
+    sp4 = plane[ SG_TOP_PLANE   ][3] - center[1] ;
+  }
+  else
+  {
+    /*
+      left:    (  x,  0,  x,  0  )
+      right:   (  x,  0,  x,  0  )
+      bottom:  (  0,  x,  x,  0  )
+      top:     (  0,  x,  x,  0  )
+    */
+    sp1 = plane[ SG_LEFT_PLANE  ][0] * center[0] + plane[ SG_LEFT_PLANE  ][2] * center[2] ;
+    sp2 = plane[ SG_RIGHT_PLANE ][0] * center[0] + plane[ SG_RIGHT_PLANE ][2] * center[2] ;
+    sp3 = plane[ SG_BOT_PLANE   ][1] * center[1] + plane[ SG_BOT_PLANE   ][2] * center[2] ;
+    sp4 = plane[ SG_TOP_PLANE   ][1] * center[1] + plane[ SG_TOP_PLANE   ][2] * center[2] ;
+  }
+
+  /* 
+     Note: in the general case, we would have to do:
+
+     sp1 = sgScalarProductVec3 (  left_plane, center ) +  left_plane[3] ;
+     sp2 = sgScalarProductVec3 ( right_plane, center ) + right_plane[3] ;
+     ...
+     sp6 = sgScalarProductVec3 (   far_plane, center ) +   far_plane[3] ;
+  */
+  
+
+  if ( -sp1 > radius || -sp2 > radius || -sp3 > radius || -sp4 > radius )
     return SG_OUTSIDE ;
   
   /*
@@ -734,13 +809,38 @@ int sgFrustum::contains ( const sgSphere *s ) const
     and we can save time elsewhere if we know that for sure.
   */
 
-  if ( -s->getCenter() [ 2 ] - s->getRadius() > nnear &&
-       -s->getCenter() [ 2 ] + s->getRadius() < ffar &&
-       sp1 >= s->getRadius() && sp2 >= s->getRadius() &&
-       sp3 >= s->getRadius() && sp4 >= s->getRadius() )
+  if ( sp1 >= radius && sp2 >= radius && sp3 >= radius && sp4 >= radius
+       && -center[2] - radius >= nnear && -center[2] + radius <= ffar )
     return SG_INSIDE ;
 
   return SG_STRADDLE ;
+}
+
+
+int sgFrustum::contains ( const sgBox *b ) const 
+{
+  sgVec3 p[8] = {
+    { b->getMin()[0], b->getMin()[1], b->getMin()[2] },
+    { b->getMax()[0], b->getMin()[1], b->getMin()[2] },
+    { b->getMin()[0], b->getMax()[1], b->getMin()[2] },
+    { b->getMax()[0], b->getMax()[1], b->getMin()[2] },
+    { b->getMin()[0], b->getMin()[1], b->getMax()[2] },
+    { b->getMax()[0], b->getMin()[1], b->getMax()[2] },
+    { b->getMin()[0], b->getMax()[1], b->getMax()[2] },
+    { b->getMax()[0], b->getMax()[1], b->getMax()[2] },
+  } ;
+
+  int all = -1 ;
+  int one =  0 ;
+  
+  for (int i = 0 ; i < 8 ; i++ ) 
+  {
+    int tmp = ~ getOutcode ( p[i] ) ;
+    all &= tmp ;
+    one |= tmp ;
+  }
+  
+  return ( all ? SG_OUTSIDE : one ? SG_STRADDLE : SG_INSIDE ) ;
 }
 
 
@@ -748,9 +848,11 @@ int sgFrustum::contains ( const sgSphere *s ) const
 SGfloat sgDistSquaredToLineVec3 ( const sgLine3 line, const sgVec3 pnt )
 {
   sgVec3 r ; sgSubVec3 ( r, pnt, line.point_on_line ) ;
+
+  float projectedDistance = sgScalarProductVec3(r,line.direction_vector);
  
   return sgScalarProductVec3 ( r, r ) -
-         sgScalarProductVec3 ( r, line.direction_vector ) ;
+         projectedDistance * projectedDistance; 
 }
 
 
@@ -760,24 +862,24 @@ SGfloat sgDistSquaredToLineSegmentVec3 ( const sgLineSegment3 line,
 {
   sgLine3 l ; sgLineSegment3ToLine3 ( & l, line ) ;
  
-sgVec3 v ; sgSubVec3 ( v, line.b, line.a ) ;
-  sgVec3 r1 ; sgSubVec3 ( r1, pnt, line.a ) ;
+  sgVec3 v  ; sgSubVec3 ( v , line.b, line.a ) ; sgNormalizeVec3 ( v ) ;
+  sgVec3 r1 ; sgSubVec3 ( r1, pnt   , line.a ) ;
  
-  SGfloat r1_dot_v = sgScalarProductVec3 ( r1, v /*l.direction_vector*/ ) ;
+  SGfloat r1_dot_v = sgScalarProductVec3 ( r1, v ) ;
  
   if ( r1_dot_v <= 0 )  /* Off the "A" end  */
     return sgScalarProductVec3 ( r1, r1 ) ;
  
   sgVec3 r2 ; sgSubVec3 ( r2, pnt, line.b ) ;
 
-  SGfloat r2_dot_v = sgScalarProductVec3 ( r2, v /*l.direction_vector*/ ) ;
+  SGfloat r2_dot_v = sgScalarProductVec3 ( r2, v ) ;
  
   if ( r2_dot_v >= 0 )  /* Off the "B" end */
     return sgScalarProductVec3 ( r2, r2 ) ;
  
   /* Closest point on line is on the line segment */
  
-  return sgScalarProductVec3 ( r1, r1 ) - r1_dot_v ;
+  return sgScalarProductVec3 ( r1, r1 ) - r1_dot_v * r1_dot_v ;
 }
 
 
@@ -793,8 +895,8 @@ void sgMakeCoordMat4 ( sgMat4 m, const SGfloat x, const SGfloat y, const SGfloat
   }
   else
   {
-    sh = (SGfloat) sin( h * SG_DEGREES_TO_RADIANS ) ;
-    ch = (SGfloat) cos( h * SG_DEGREES_TO_RADIANS ) ;
+    sh = sgSin ( h ) ;
+    ch = sgCos ( h ) ;
   }
 
   if ( p == SG_ZERO )
@@ -804,8 +906,8 @@ void sgMakeCoordMat4 ( sgMat4 m, const SGfloat x, const SGfloat y, const SGfloat
   }
   else
   {
-    sp = (SGfloat) sin( p * SG_DEGREES_TO_RADIANS ) ;
-    cp = (SGfloat) cos( p * SG_DEGREES_TO_RADIANS ) ;
+    sp = sgSin ( p ) ;
+    cp = sgCos ( p ) ;
   }
 
   if ( r == SG_ZERO )
@@ -818,8 +920,8 @@ void sgMakeCoordMat4 ( sgMat4 m, const SGfloat x, const SGfloat y, const SGfloat
   }
   else
   {
-    sr   = (SGfloat) sin( r * SG_DEGREES_TO_RADIANS ) ;
-    cr   = (SGfloat) cos( r * SG_DEGREES_TO_RADIANS ) ;
+    sr   = sgSin ( r ) ;
+    cr   = sgCos ( r ) ;
     srsp = sr * sp ;
     crsp = cr * sp ;
     srcp = sr * cp ;
@@ -883,11 +985,11 @@ void sgSetCoord ( sgCoord *dst, const sgMat4 src )
   }
 
   sgScaleMat4 ( mat, src, SG_ONE / s ) ;
-    
-  dst->hpr[1] = (SGfloat) asin ( _sgClampToUnity ( mat[1][2] ) ) ;
 
-  SGfloat cp = (SGfloat) cos ( dst->hpr[1] ) ;
-    
+  dst->hpr[1] = sgASin ( _sgClampToUnity ( mat[1][2] ) ) ;
+
+  SGfloat cp = sgCos ( dst->hpr[1] ) ;
+ 
   /* If pointing nearly vertically up - then heading is ill-defined */
 
   if ( cp > -0.00001 && cp < 0.00001 )
@@ -896,14 +998,15 @@ void sgSetCoord ( sgCoord *dst, const sgMat4 src )
     SGfloat sr = _sgClampToUnity (-mat[2][1] ) ;
 
     dst->hpr[0] = SG_ZERO ;
-    dst->hpr[2] = (SGfloat) atan2 ( sr, cr ) ;
+    dst->hpr[2] = sgATan2 ( sr, cr ) ;
   }
   else
   {
-    SGfloat sr = _sgClampToUnity ( -mat[0][2] / cp ) ;
-    SGfloat cr = _sgClampToUnity (  mat[2][2] / cp ) ;
-    SGfloat sh = _sgClampToUnity ( -mat[1][0] / cp ) ;
-    SGfloat ch = _sgClampToUnity (  mat[1][1] / cp ) ;
+    cp = SG_ONE / cp ;
+    SGfloat sr = _sgClampToUnity ( -mat[0][2] * cp ) ;
+    SGfloat cr = _sgClampToUnity (  mat[2][2] * cp ) ;
+    SGfloat sh = _sgClampToUnity ( -mat[1][0] * cp ) ;
+    SGfloat ch = _sgClampToUnity (  mat[1][1] * cp ) ;
 	
     if ( (sh == SG_ZERO && ch == SG_ZERO) || (sr == SG_ZERO && cr == SG_ZERO) )
     {
@@ -913,12 +1016,18 @@ void sgSetCoord ( sgCoord *dst, const sgMat4 src )
       dst->hpr[0] = SG_ZERO ;
     }
     else
-      dst->hpr[0] = (SGfloat) atan2 ( sh, ch ) ;
+      dst->hpr[0] = sgATan2 ( sh, ch ) ;
 
-    dst->hpr[2] = (SGfloat) atan2 ( sr, cr ) ;
+    dst->hpr[2] = sgATan2 ( sr, cr ) ;
   }
+}
 
-  sgScaleVec3 ( dst->hpr, SG_RADIANS_TO_DEGREES ) ;
+
+void sgMakeNormal(sgVec2 dst, const sgVec2 a, const sgVec2 b )
+{
+  sgSubVec2 ( dst, b, a ) ;
+  float tmp = dst [ 0 ] ; dst [ 0 ] = -dst [ 1 ] ; dst [ 1 ] = tmp ;
+  sgNormaliseVec2 ( dst ) ;
 }
 
 
@@ -1162,10 +1271,9 @@ void sgHPRfromVec3 ( sgVec3 hpr, const sgVec3 src )
   sgVec3 tmp ;
   sgCopyVec3 ( tmp, src ) ;
   sgNormaliseVec3 ( tmp ) ;
-  hpr[0] = -(SGfloat) atan2 ( tmp [ 0 ], tmp [ 1 ] ) * SG_RADIANS_TO_DEGREES ;
-  hpr[1] = -(SGfloat) atan2 ( tmp [ 2 ], sqrt ( sgSquare ( tmp [ 0 ] ) +
-                                                sgSquare ( tmp [ 1 ] ) ) ) *
-                                                SG_RADIANS_TO_DEGREES ;
+  hpr[0] = - sgATan2 ( tmp [ 0 ], tmp [ 1 ] ) ;
+  hpr[1] = - sgATan2 ( tmp [ 2 ], sgSqrt ( sgSquare ( tmp [ 0 ] ) +
+                                           sgSquare ( tmp [ 1 ] ) ) ) ;
   hpr[2] = SG_ZERO ;
 }
 
@@ -1176,6 +1284,7 @@ void sgHPRfromVec3 ( sgVec3 hpr, const sgVec3 src )
   Kevin B. Thompson <kevinbthompson@yahoo.com>
   Modified by Sylvan W. Clebsch <sylvan@stanford.edu>
   Largely rewritten by "Negative0" <negative0@earthlink.net>
+  More added by John Fay.
 */
 
 
@@ -1197,7 +1306,7 @@ void sgQuatToAngleAxis ( SGfloat *angle, sgVec3 axis, const sgQuat src )
 {
   SGfloat a = (SGfloat) acos ( src[SG_W] ) ;
   SGfloat s = (SGfloat) sin  ( a ) ;
-
+ 
   *angle = a * SG_RADIANS_TO_DEGREES * SG_TWO ;
 
   if ( s == SG_ZERO )
@@ -1249,7 +1358,7 @@ void sgMatrixToQuat( sgQuat quat, const sgMat4 m )
   // check the diagonal
   if (tr > SG_ZERO )
   {
-    s = (SGfloat) sqrt (tr + SG_ONE);
+    s = (SGfloat) sgSqrt (tr + SG_ONE);
     quat[SG_W] = s / SG_TWO;
     s = SG_HALF / s;
     quat[SG_X] = (m[1][2] - m[2][1]) * s;
@@ -1264,7 +1373,7 @@ void sgMatrixToQuat( sgQuat quat, const sgMat4 m )
     if (m[2][2] > m[i][i]) i = 2;
     j = nxt[i];
     k = nxt[j];
-    s = (SGfloat) sqrt ((m[i][i] - (m[j][j] + m[k][k])) + SG_ONE);
+    s = (SGfloat) sgSqrt ((m[i][i] - (m[j][j] + m[k][k])) + SG_ONE);
     q[i] = s * SG_HALF;
             
     if (s != SG_ZERO) s = SG_HALF / s;
@@ -1278,6 +1387,9 @@ void sgMatrixToQuat( sgQuat quat, const sgMat4 m )
     quat[SG_Z] = q[2];
     quat[SG_W] = q[3];
   }
+
+  // seems to yield the inverse rotation, so:
+  quat[SG_W] = - quat[SG_W];
 }
 
 
@@ -1357,7 +1469,7 @@ void sgQuatToEuler( sgVec3 hpr, const sgQuat quat )
 {
   SGfloat matrix[3][3];
   SGfloat cx,sx;
-  SGfloat cy,sy,yr;
+  SGfloat cy,sy;
   SGfloat cz,sz;
 
   // CONVERT QUATERNION TO MATRIX - I DON'T REALLY NEED ALL OF IT
@@ -1381,9 +1493,9 @@ void sgQuatToEuler( sgVec3 hpr, const sgQuat quat )
                         - (SG_TWO * quat[SG_Y] * quat[SG_Y]);
 
   sy = -matrix[2][0];
-  cy = (SGfloat)sqrt(SG_ONE - (sy * sy));
-  yr = (SGfloat)atan2(sy,cy);
-  hpr[1] = yr * SG_RADIANS_TO_DEGREES ;
+  cy = (SGfloat)sgSqrt(SG_ONE - (sy * sy));
+
+  hpr[1] = sgATan2 ( sy, cy ) ;
 
   // AVOID DIVIDE BY ZERO ERROR ONLY WHERE Y= +-90 or +-270 
   // NOT CHECKING cy BECAUSE OF PRECISION ERRORS
@@ -1391,11 +1503,11 @@ void sgQuatToEuler( sgVec3 hpr, const sgQuat quat )
   {
     cx = matrix[2][2] / cy;
     sx = matrix[2][1] / cy;
-    hpr[0] = ((SGfloat)atan2(sx,cx)) * SG_RADIANS_TO_DEGREES ;
+    hpr[0] = sgATan2 ( sx, cx ) ;
 
     cz = matrix[0][0] / cy;
     sz = matrix[1][0] / cy;
-    hpr[2] = ((SGfloat)atan2(sz,cz)) * SG_RADIANS_TO_DEGREES ;
+    hpr[2] = sgATan2 ( sz, cz ) ;
   }
   else
   {
@@ -1410,11 +1522,11 @@ void sgQuatToEuler( sgVec3 hpr, const sgQuat quat )
 
     cx =  matrix[1][1];
     sx = -matrix[1][2];
-    hpr[0] = ((SGfloat)atan2(sx,cx)) * SG_RADIANS_TO_DEGREES ;
+    hpr[0] = sgATan2 ( sx, cx ) ;
 
     cz = SG_ONE ;
     sz = SG_ZERO ;
-    hpr[2] = ((SGfloat)atan2(sz,cz)) * SG_RADIANS_TO_DEGREES ;
+    hpr[2] = sgATan2 ( sz, cz ) ;
   }
 }
 
@@ -1530,28 +1642,26 @@ void sgSlerpQuat2( sgQuat dst, const sgQuat from, const sgQuat to, const SGfloat
 
 void sgSlerpQuat( sgQuat dst, const sgQuat from, const sgQuat to, const SGfloat t )
 {
-  SGfloat sign, co, scale0, scale1;
+  SGfloat co, scale0, scale1;
+  bool flip = false ;
 
   /* SWC - Interpolate between to quaternions */
 
-  co = from[SG_X] * to[SG_X] + from[SG_Y] * to[SG_Y] + from[SG_X] * to[SG_Z] + 
-	  from[SG_W] * to[SG_W];
+  co = sgScalarProductVec4 ( from, to ) ;
 
-  if( co < SG_ZERO )
+  if ( co < SG_ZERO )
   {
     co = -co;
-    sign = -SG_ONE;
+    flip = true ;
   }
-  else
-    sign = SG_ONE;
 
-  if( co < SG_ONE )
+  if ( co < SG_ONE - (SGfloat) 1e-6 )
   {
-    SGfloat o = (SGfloat)acos( co );
-    SGfloat so = (SGfloat)sin( o );
+    SGfloat o = (SGfloat) acos ( co );
+    SGfloat so = SG_ONE / (SGfloat) sin ( o );
 
-    scale0 = (SGfloat)sin( (SG_ONE - t) * o ) / so;
-    scale1 = (SGfloat)sin( t * o ) / so;
+    scale0 = (SGfloat) sin ( (SG_ONE - t) * o ) * so;
+    scale1 = (SGfloat) sin ( t * o ) * so;
   }
   else
   {
@@ -1559,10 +1669,111 @@ void sgSlerpQuat( sgQuat dst, const sgQuat from, const sgQuat to, const SGfloat 
     scale1 = t;
   }
 
-  dst[SG_X] = scale0 * from[SG_X] + scale1 * ((sign > SG_ZERO) ? to[SG_X] : -to[SG_X]);
-  dst[SG_Y] = scale0 * from[SG_Y] + scale1 * ((sign > SG_ZERO) ? to[SG_Y] : -to[SG_Y]);
-  dst[SG_Z] = scale0 * from[SG_Z] + scale1 * ((sign > SG_ZERO) ? to[SG_Z] : -to[SG_Z]);
-  dst[SG_W] = scale0 * from[SG_W] + scale1 * ((sign > SG_ZERO) ? to[SG_W] : -to[SG_W]);
+  if ( flip )
+  {
+    scale1 = -scale1 ;
+  }
+
+  dst[SG_X] = scale0 * from[SG_X] + scale1 * to[SG_X] ;
+  dst[SG_Y] = scale0 * from[SG_Y] + scale1 * to[SG_Y] ;
+  dst[SG_Z] = scale0 * from[SG_Z] + scale1 * to[SG_Z] ;
+  dst[SG_W] = scale0 * from[SG_W] + scale1 * to[SG_W] ;
+}
+
+
+
+/* Function to rotate a vector through a given quaternion using the formula
+ * R = Q r Q-1 -- this gives the components of a ROTATED vector in a STATIONARY
+ * coordinate system.  We assume that Q is a unit quaternion.
+ */
+void sgRotateVecQuat ( sgVec3 vec, sgQuat q )
+{
+  sgVec3 rot ;
+  sgFloat qwqw = q[SG_W] * q[SG_W] ;
+  sgFloat qwqx = q[SG_W] * q[SG_X] ;
+  sgFloat qwqy = q[SG_W] * q[SG_Y] ;
+  sgFloat qwqz = q[SG_W] * q[SG_Z] ;
+  sgFloat qxqx = q[SG_X] * q[SG_X] ;
+  sgFloat qxqy = q[SG_X] * q[SG_Y] ;
+  sgFloat qxqz = q[SG_X] * q[SG_Z] ;
+  sgFloat qyqy = q[SG_Y] * q[SG_Y] ;
+  sgFloat qyqz = q[SG_Y] * q[SG_Z] ;
+  sgFloat qzqz = q[SG_Z] * q[SG_Z] ;
+  rot[SG_X] = ( qwqw + qxqx - qyqy - qzqz ) * vec[SG_X] + 2.0f * ( qxqy - qwqz ) * vec[SG_Y] + 2.0f * ( qxqz + qwqy ) * vec[SG_Z] ;
+  rot[SG_Y] = ( qwqw - qxqx + qyqy - qzqz ) * vec[SG_Y] + 2.0f * ( qyqz - qwqx ) * vec[SG_Z] + 2.0f * ( qxqy + qwqz ) * vec[SG_X] ;
+  rot[SG_Z] = ( qwqw - qxqx - qyqy + qzqz ) * vec[SG_Z] + 2.0f * ( qxqz - qwqy ) * vec[SG_X] + 2.0f * ( qyqz + qwqx ) * vec[SG_Y] ;
+  sgCopyVec3 ( vec, rot ) ;
+}
+
+/* Function to rotate a vector through a given quaternion using the formula
+ * R = Q-1 r Q -- this gives the components of a STATIONARY vector in a ROTATED
+ * coordinate system.  We assume that Q is a unit quaternion.
+ */
+void sgRotateCoordQuat ( sgVec3 vec, sgQuat q )
+{
+  sgVec3 rot ;
+  sgFloat qwqw = q[SG_W] * q[SG_W] ;
+  sgFloat qwqx = q[SG_W] * q[SG_X] ;
+  sgFloat qwqy = q[SG_W] * q[SG_Y] ;
+  sgFloat qwqz = q[SG_W] * q[SG_Z] ;
+  sgFloat qxqx = q[SG_X] * q[SG_X] ;
+  sgFloat qxqy = q[SG_X] * q[SG_Y] ;
+  sgFloat qxqz = q[SG_X] * q[SG_Z] ;
+  sgFloat qyqy = q[SG_Y] * q[SG_Y] ;
+  sgFloat qyqz = q[SG_Y] * q[SG_Z] ;
+  sgFloat qzqz = q[SG_Z] * q[SG_Z] ;
+  rot[SG_X] = ( qwqw + qxqx - qyqy - qzqz ) * vec[SG_X] + 2.0f * ( qxqy + qwqz ) * vec[SG_Y] + 2.0f * ( qxqz - qwqy ) * vec[SG_Z] ;
+  rot[SG_Y] = ( qwqw - qxqx + qyqy - qzqz ) * vec[SG_Y] + 2.0f * ( qyqz + qwqx ) * vec[SG_Z] + 2.0f * ( qxqy - qwqz ) * vec[SG_X] ;
+  rot[SG_Z] = ( qwqw - qxqx - qyqy + qzqz ) * vec[SG_Z] + 2.0f * ( qxqz + qwqy ) * vec[SG_X] + 2.0f * ( qyqz - qwqx ) * vec[SG_Y] ;
+  sgCopyVec3 ( vec, rot ) ;
+}
+
+
+sgFloat sgDistSquaredToLineLineSegment ( const sgLineSegment3 seg, const sgLine3 line )
+{
+  /* Convert the line segment to a line.  We will deal with the segment limits later. */
+  sgLine3 line2 ;
+  sgLineSegment3ToLine3 ( &line2, seg ) ;
+
+  /* Get the dot product of the two direction vectors */
+  sgFloat t1_dot_t2 = sgScalarProductVec3 ( line.direction_vector, line2.direction_vector ) ;
+
+  /* If the lines are parallel, distance is just the distance from a point to the other line */
+  if ( fabs ( t1_dot_t2 ) >= 1.0 )
+    return sgDistSquaredToLineVec3 ( line, seg.a ) ;
+
+  /* Get the parametric coordinates of the closest points on the two lines.  The first line
+   * is parameterized by r = r1 + t1 u while the second is parameterized by r = r2 + t2 v.
+   * The square of the distance between them is [ ( r1 + t1 u ) - ( r2 + t2 v ) ] dot
+   * [ ( r1 + t1 u ) - ( r2 + t2 v ) ].  Differentiating this dot product with respect to
+   * u and v and setting the derivatives to zero gives a matrix equation:
+   * [ 1         -(t1 dot t2) ] [ u ] = [  ( r1 - r2 ) dot t1 ]
+   * [ -(t1 dot t2)         1 ] [ v ]   [ -( r1 - r2 ) dot t2 ]
+   * We invert the matrix to get the equations below.
+   */
+  sgVec3 r1_minus_r2 ;
+  sgSubVec3 ( r1_minus_r2, line.point_on_line, line2.point_on_line ) ;
+
+  /* t1_t2_t2_minus_t1 = ( t1 dot t2 ) t2 - t1
+   * t2_minus_t1_t2_t1 = t2 - ( t1 dot t2 ) t1
+   */
+  sgVec3 t1_t2_t2_minus_t1, t2_minus_t1_t2_t1 ;
+  sgAddScaledVec3 ( t1_t2_t2_minus_t1, line.direction_vector, line2.direction_vector, -t1_dot_t2 ) ;
+  sgNegateVec3 ( t1_t2_t2_minus_t1 ) ;
+  sgAddScaledVec3 ( t2_minus_t1_t2_t1, line2.direction_vector, line.direction_vector, -t1_dot_t2 ) ;
+
+  sgFloat u = sgScalarProductVec3 ( r1_minus_r2, t1_t2_t2_minus_t1 ) / ( 1.0f - t1_dot_t2 * t1_dot_t2 ) ;
+  sgFloat v = sgScalarProductVec3 ( r1_minus_r2, t2_minus_t1_t2_t1 ) / ( 1.0f - t1_dot_t2 * t1_dot_t2 ) ;
+
+  /* Since line 2 is a line segment, we limit "v" to between 0 and the distance between the points. */
+  sgFloat length = sgDistanceVec3 ( seg.a, seg.b ) ;
+  if ( v < 0.0 ) v = 0.0 ;
+  if ( v > length ) v = length ;
+
+  sgVec3 point1, point2 ;
+  sgAddScaledVec3 ( point1, line.point_on_line, line.direction_vector, u ) ;
+  sgAddScaledVec3 ( point2, line2.point_on_line, line2.direction_vector, v ) ;
+  return sgDistanceSquaredVec3 ( point1, point2 ) ;
 }
 
 
@@ -1577,4 +1788,278 @@ void sgReflectInPlaneVec3 ( sgVec3 dst, const sgVec3 src, const sgVec4 plane )
 }
 
                                                                                 
+
+int sgClassifyMat4 ( const sgMat4 m )
+{
+  const SGfloat epsilon = 1e-6f ;
+
+  int flags = 0 ;
+
+
+  SGfloat sx, sy, sz ;
+
+  if ( m[0][1] == SG_ZERO && m[0][2] == SG_ZERO &&
+       m[1][0] == SG_ZERO && m[1][2] == SG_ZERO &&
+       m[2][0] == SG_ZERO && m[2][1] == SG_ZERO )
+  {
+
+    int n = ( m[0][0] < 0 ) + ( m[1][1] < 0 ) + ( m[2][2] < 0 ) ;
+
+    if ( n > 1 )
+      flags |= SG_ROTATION ;
+
+    if ( n % 2 != 0 )
+      flags |= SG_MIRROR ;
+
+    sx = m[0][0] * m[0][0] ;
+    sy = m[1][1] * m[1][1] ;
+    sz = m[2][2] * m[2][2] ;
+
+  }
+  else
+  {
+
+    flags |= SG_ROTATION ;
+
+    if ( sgAbs ( sgScalarProductVec3 ( m[1], m[2] ) ) > epsilon ||
+         sgAbs ( sgScalarProductVec3 ( m[2], m[0] ) ) > epsilon ||
+         sgAbs ( sgScalarProductVec3 ( m[0], m[1] ) ) > epsilon )
+    {
+      flags |= SG_NONORTHO ;
+    }
+
+    sgVec3 temp ;
+    sgVectorProductVec3 ( temp, m[0], m[1] ) ;
+    SGfloat det = sgScalarProductVec3 ( temp, m[2] ) ;
+
+    if ( det < 0 )
+      flags |= SG_MIRROR ;
+
+    sx = sgScalarProductVec3 ( m[0], m[0] ) ;
+    sy = sgScalarProductVec3 ( m[1], m[1] ) ;
+    sz = sgScalarProductVec3 ( m[2], m[2] ) ;
+
+  }
+
+
+  if ( sgAbs ( sx - sy ) > epsilon ||
+       sgAbs ( sx - sz ) > epsilon )
+  {
+    flags |= SG_NONORTHO ;
+    flags |= SG_GENERAL_SCALE ; // also set general scale bit, though it may be deleted in the future
+  }
+  else
+  {
+    if ( sgAbs ( sx - SG_ONE ) > epsilon )
+      flags |= SG_SCALE ;
+  }
+
+
+  if ( m[3][0] != SG_ZERO || m[3][1] != SG_ZERO || m[3][2] != SG_ZERO )
+  {
+    flags |= SG_TRANSLATION ;
+  }
+
+
+  if ( m[0][3] != SG_ZERO || m[1][3] != SG_ZERO || m[2][3] != SG_ZERO ||
+       m[3][3] != SG_ONE )
+  {
+    flags |= SG_PROJECTION ;
+  }
+
+
+  return flags ;
+}
+
+ 
+SGfloat sgTriangleSolver_ASAtoArea ( SGfloat angA, SGfloat lenB, SGfloat angC )
+{
+  /* Get the third angle */
+
+  SGfloat angB = SG_180 - (angA + angC) ;
+
+  /* Use Sine Rule to get length of a second side - then use SAStoArea. */
+
+  SGfloat sinB = sgSin ( angB ) ;
+
+  if ( sinB == SG_ZERO )
+    return SG_ZERO ;
+
+  SGfloat lenA = lenB * sgSin(angA) / sinB ;
+
+  return sgTriangleSolver_SAStoArea ( lenA, angC, lenB ) ;
+}
+
+
+SGfloat sgTriangleSolver_SAStoArea ( SGfloat lenA, SGfloat angB, SGfloat lenC )
+{
+  return SG_HALF * lenC * lenA * sgSin ( angB ) ;
+}
+
+
+SGfloat sgTriangleSolver_SSStoArea ( SGfloat lenA, SGfloat lenB, SGfloat lenC )
+{
+  /* Heron's formula */
+
+  SGfloat s = ( lenA + lenB + lenC ) / SG_TWO ;
+  SGfloat q = s * (s-lenA) * (s-lenB) * (s-lenC) ;
+
+  /* Ikky illegal triangles generate zero areas. */
+
+  return ( q <= SG_ZERO ) ? SG_ZERO : sgSqrt ( q ) ;
+}
+
+
+SGfloat sgTriangleSolver_ASStoArea ( SGfloat angB, SGfloat lenA, SGfloat lenB,
+                                     int angA_is_obtuse )
+{
+  SGfloat lenC ;
+
+  sgTriangleSolver_ASStoSAA ( angB, lenA, lenB, angA_is_obtuse,
+                                                         &lenC, NULL, NULL ) ;
+
+  return sgTriangleSolver_SAStoArea ( lenA, angB, lenC ) ;
+}
+
+SGfloat sgTriangleSolver_SAAtoArea ( SGfloat lenA, SGfloat angB, SGfloat angA )
+{
+  SGfloat lenC ;
+
+  sgTriangleSolver_SAAtoASS ( lenA, angB, angA, NULL, NULL, &lenC ) ;
+
+  return sgTriangleSolver_SAStoArea ( lenA, angB, lenC ) ;
+}
+
+void sgTriangleSolver_SSStoAAA ( SGfloat  lenA, SGfloat  lenB, SGfloat  lenC,
+                                 SGfloat *angA, SGfloat *angB, SGfloat *angC )
+{
+  SGfloat aa, bb, cc ;
+
+  int flag =  ( lenA == SG_ZERO )     |
+             (( lenB == SG_ZERO )<<1) |
+             (( lenC == SG_ZERO )<<2) ;
+
+  /* Ikky zero-sized triangles generate zero/90 angles appropriately. */
+  /* Ikky triangles with all lengths zero generate 60 degree angles. */
+  /* Ikky impossible triangles generate all zero angles. */
+
+  switch ( flag )
+  {
+    case 0 :  /* no zero-lengthed sides */
+     /* Cosine law */
+     aa = sgACos (( lenB*lenB + lenC*lenC - lenA*lenA )/(SG_TWO*lenB*lenC)) ;
+     bb = sgACos (( lenA*lenA + lenC*lenC - lenB*lenB )/(SG_TWO*lenA*lenC)) ;
+     cc = sgACos (( lenA*lenA + lenB*lenB - lenC*lenC )/(SG_TWO*lenA*lenB)) ;
+     break ;
+
+    case 1 :  /* lenA is zero */
+     aa = SG_ZERO ;
+     bb = cc = SG_90 ;
+     break ;
+
+    case 2 : /* lenB is zero */
+     bb = SG_ZERO ;
+     aa = cc = SG_90 ;
+     break ;
+
+    case 4 : /* lenC is zero */
+      cc = SG_ZERO ;
+      aa = bb = SG_90 ;
+      break ;
+
+    case 3 : /* Two lengths are zero and the third isn't?!? */
+    case 5 :
+    case 6 :
+      aa = bb = cc = SG_ZERO ;
+      break ;
+
+    default : /* All three sides are zero length */
+      aa = bb = cc = SG_60 ;
+      break ;
+  }
+
+  if ( angA ) *angA = aa ;
+  if ( angB ) *angB = bb ;
+  if ( angC ) *angC = cc ;
+}
+
+void sgTriangleSolver_SAStoASA ( SGfloat  lenA, SGfloat  angB, SGfloat  lenC,
+                                 SGfloat *angA, SGfloat *lenB, SGfloat *angC )
+{
+  /* Get third side using Cosine Rule */
+
+  SGfloat s = lenC * lenC +
+              lenA * lenA - SG_TWO * lenC * lenA * sgCos( angB ) ;
+
+  SGfloat lb = ( s <= SG_ZERO ) ? SG_ZERO : (SGfloat) sqrt ( s ) ;
+
+  if ( lenB ) *lenB = lb ;
+
+  sgTriangleSolver_SSStoAAA ( lenA, lb, lenC, angA, NULL, angC ) ;
+}
+
+
+void sgTriangleSolver_ASAtoSAS ( SGfloat  angA, SGfloat  lenB, SGfloat  angC,
+                                 SGfloat *lenA, SGfloat *angB, SGfloat *lenC )
+{
+  /* Find the missing angle */
+
+  SGfloat bb = SG_180 - (angA + angC) ;
+
+  if ( angB ) *angB = bb ;
+
+  /* Use Sine Rule */
+
+  SGfloat sinB = sgSin ( bb ) ;
+
+  if ( sinB == SG_ZERO )
+  {
+    if ( lenA ) *lenA = lenB / SG_TWO ;  /* One valid interpretation */
+    if ( lenC ) *lenC = lenB / SG_TWO ;
+  }
+  else
+  {
+    if ( lenA ) *lenA = lenB * sgSin(angA) / sinB ;
+    if ( lenC ) *lenC = lenB * sgSin(angC) / sinB ;
+  }
+}
+
+
+void sgTriangleSolver_ASStoSAA ( SGfloat angB, SGfloat lenA, SGfloat lenB,
+                                 int angA_is_obtuse,
+                                 SGfloat *lenC, SGfloat *angA, SGfloat *angC )
+{
+  /* Sine law */
+
+  SGfloat aa = (lenB == SG_ZERO ) ? SG_ZERO : sgASin (lenA * sgSin(angB)/lenB) ;
+
+  if ( angA_is_obtuse )
+    aa = SG_180 - aa ;
+
+  if ( angA ) *angA = aa ;
+
+  /* Find the missing angle */
+
+  SGfloat cc = SG_180 - (aa + angB) ;
+
+  if ( angC ) *angC = cc ;
+
+  /* Use SAStoASA to get the last length */
+
+  sgTriangleSolver_SAStoASA ( lenA, cc, lenB, NULL, lenC, NULL ) ;
+}
+
+
+void sgTriangleSolver_SAAtoASS ( SGfloat  lenA, SGfloat  angB, SGfloat  angA,
+                                 SGfloat *angC, SGfloat *lenB, SGfloat *lenC )
+{
+  /* Find the missing angle */
+
+  SGfloat cc = SG_180 - (angB + angA) ;
+
+  if ( angC ) *angC = cc ;
+
+  sgTriangleSolver_ASAtoSAS ( cc, lenA, angB, lenC, NULL, lenB ) ;
+}
+
 

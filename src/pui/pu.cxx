@@ -1,135 +1,119 @@
 /*
      PLIB - A Suite of Portable Game Libraries
-     Copyright (C) 2001  Steve Baker
- 
+     Copyright (C) 1998,2002  Steve Baker
+
      This library is free software; you can redistribute it and/or
      modify it under the terms of the GNU Library General Public
      License as published by the Free Software Foundation; either
      version 2 of the License, or (at your option) any later version.
- 
+
      This library is distributed in the hope that it will be useful,
      but WITHOUT ANY WARRANTY; without even the implied warranty of
      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
      Library General Public License for more details.
- 
+
      You should have received a copy of the GNU Library General Public
-     License along with this library; if not, write to the Free
+     License along with this library; if not, write to the Free Software
      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
- 
+
      For further information visit http://plib.sourceforge.net
 
-     $Id: pu.cxx,v 1.20 2001/06/19 02:42:18 sjbaker Exp $
+     $Id: pu.cxx,v 1.67 2004/02/16 22:09:34 stromberg Exp $
 */
 
 #include "puLocal.h"
 
-#ifndef WIN32
-#  ifndef macintosh
-#    include <GL/glx.h>
-#  else
-#    include <agl.h>
-#  endif
+#if defined(UL_AGL)
+#  include <agl.h>
+#elif defined(UL_CGL)
+#  include <OpenGL/CGLCurrent.h>
+#elif defined(UL_GLX)
+#  include <GL/glx.h>
 #endif
 
-#ifdef PU_NOT_USING_GLUT
-#include <iostream.h>
-#endif
-
-#define PU_STRING_X_FUDGE 6
-#define PU_STRING_Y_FUDGE 6
 
 int puRefresh = TRUE ;
 
-static int puWindowWidth  = 400 ;
-static int puWindowHeight = 400 ;
 
-#ifdef PU_NOT_USING_GLUT
+static puGetWindowCallback     cbGetWindow;
+static puSetWindowCallback     cbSetWindow;
+static puGetWindowSizeCallback cbGetWindowSize;
+static puSetWindowSizeCallback cbSetWindowSize;
 
-int puGetWindow       () { return 0              ; }
-int puGetWindowHeight () { return puWindowHeight ; }
-int puGetWindowWidth  () { return puWindowWidth  ; }
 
-void puSetWindowSize ( int width, int height )
+void puSetWindowFuncs ( puGetWindowCallback   getWindow,
+			puSetWindowCallback   setWindow,
+			puGetWindowSizeCallback getWindowSize,
+			puSetWindowSizeCallback setWindowSize )
 {
-  puWindowWidth  = width  ;
-  puWindowHeight = height ;
-}
-
-static int fontBase = 0;
-static int fontSize[257];
-#else
-
-static int openGLSize = 0 ;
-
-
-void puSetResizeMode ( int mode ) {
-  openGLSize = mode ;
+    cbGetWindow     = getWindow;
+    cbSetWindow     = setWindow;
+    cbGetWindowSize = getWindowSize;
+    cbSetWindowSize = setWindowSize;
 }
 
 
 int puGetWindow ()
 {
-  return glutGetWindow () ;
+    if ( !cbGetWindow )
+	ulSetError ( UL_FATAL, "puGetWindow: Callbacks not initialized." ) ;
+    return ( *cbGetWindow ) () ;
 }
 
-
-int puGetWindowHeight ()
+void puSetWindow ( int window )
 {
-  if ( ! openGLSize )
-        return glutGet ( (GLenum) GLUT_WINDOW_HEIGHT ) ;
-  else
-        return puWindowHeight ;
+    if ( !cbSetWindow )
+	ulSetError ( UL_WARNING, "puSetWindow: Cannot set window (null callback)." ) ;
+    else
+	( *cbSetWindow ) ( window ) ;
 }
 
-
-int puGetWindowWidth ()
+void puGetWindowSize ( int *width, int *height )
 {
-  if ( ! openGLSize )
-        return glutGet ( (GLenum) GLUT_WINDOW_WIDTH ) ;
-  else
-        return puWindowWidth ;
+    if ( !cbGetWindowSize )
+	ulSetError ( UL_FATAL, "puGetWindowSize: Callbacks not initialized." ) ;
+    ( *cbGetWindowSize ) ( width, height ) ;
 }
-
 
 void puSetWindowSize ( int width, int height )
 {
-  if ( ! openGLSize )
-    ulSetError ( UL_WARNING, "PUI: puSetWindowSize shouldn't be used with GLUT." ) ;
-  else
-  {
-    puWindowWidth  = width  ;
-    puWindowHeight = height ;
-  }
+    if ( !cbSetWindowSize )
+	ulSetError ( UL_WARNING, "puSetWindowSize: Cannot change size (null callback)." ) ;
+    else
+	( *cbSetWindowSize ) ( width, height ) ;
 }
 
-#endif
-
-puColour _puDefaultColourTable[] =
+int puGetWindowWidth ()
 {
-  { 0.5f, 0.5f, 0.5f, 1.0f }, /* PUCOL_FOREGROUND */
-  { 0.3f, 0.3f, 0.3f, 1.0f }, /* PUCOL_BACKGROUND */
-  { 0.7f, 0.7f, 0.7f, 1.0f }, /* PUCOL_HIGHLIGHT  */
-  { 0.0f, 0.0f, 0.0f, 1.0f }, /* PUCOL_LABEL      */
-  { 1.0f, 1.0f, 1.0f, 1.0f }, /* PUCOL_TEXT       */
+    int w, h ;
+    puGetWindowSize ( &w, &h ) ;
+    return w ;
+}
 
-  { 0.0f, 0.0f, 0.0f, 0.0f }  /* ILLEGAL */
-} ;
- 
-
-static int glIsValidContext ()
+int puGetWindowHeight ()
 {
-#if defined(CONSOLE)
-  return true ;
-#elif defined(WIN32)
+    int w, h ;
+    puGetWindowSize ( &w, &h ) ;
+    return h ;
+}
+
+
+
+static bool glIsValidContext ( void )
+{
+#if defined(UL_WGL)
   return ( wglGetCurrentContext () != NULL ) ;
-#elif defined(macintosh)
-  return ( aglGetCurrentContext() != NULL ) ;
+#elif defined(UL_AGL)
+  return ( aglGetCurrentContext () != NULL ) ;
+#elif defined(UL_CGL)
+  return ( CGLGetCurrentContext () != NULL ) ;
+#elif defined(UL_GLX)
+  return ( glXGetCurrentContext () != NULL ) ;
 #else
-  return ( glXGetCurrentContext() != NULL ) ;
+  return true ;
 #endif
 }
 
-puValue::~puValue () {}  
 
 static int _puCursor_enable = FALSE ;
 static int _puCursor_x      = 0 ;
@@ -192,31 +176,54 @@ static puObject *objects_to_delete = NULL;
 
 void puDeleteObject ( puObject *ob )
 {
+  if ( ob == NULL )
+    return ;
+
   puGroup *parent = ob->getParent () ;
-  
-  // Remove from parent interface
+
+  /* Add object to linked list to be deleted */
+  if ( objects_to_delete == NULL )
+    objects_to_delete = ob ;
+  else
+  {
+    /* Ensure that objects are deleted in the order of puDeleteObject calls */
+
+    puObject *last ;
+
+    for ( last = objects_to_delete ;
+          last -> getNextObject() != NULL ;
+          last = last -> getNextObject() )
+      /* Find last object. */ ;
+
+    last -> setNextObject ( ob ) ;
+  }
+
+  /* Remove from parent interface */
+ 
   if ( parent != ob && parent != NULL )
-    parent -> remove ( ob ) ;
-
-  // Pop live interface
-  if ( ob -> getType () & PUCLASS_INTERFACE )
-    puPopLiveInterface ( (puInterface*)ob ) ;
-
-  ob -> prev = NULL ;                       // Add to linked list to be deleted
-  ob -> next = objects_to_delete ;
-  objects_to_delete = ob ;
-  ob -> setParent ( NULL ) ;
+     parent -> remove ( ob ) ;  /* Sets object's next and previous pointers to null as well */
 }
 
 
-static void puCleanUpJunk ()
+void puCleanUpJunk ( void )
 {
+  puObject * local_objects_to_delete = objects_to_delete ;
+  objects_to_delete = NULL ;
   /* Step through the linked list of objects to delete, removing them. */
-  while ( objects_to_delete != NULL )
+  while ( local_objects_to_delete != NULL )
   {
-    puObject *next_ob = objects_to_delete ->next ;
-    delete objects_to_delete ;
-    objects_to_delete = next_ob ;
+    puObject *next_ob = local_objects_to_delete -> getNextObject() ;
+    delete local_objects_to_delete ;
+    local_objects_to_delete = next_ob ;
+
+    /* If we've reached the end of the list, start over (in case we've deleted a group and
+     * it has put new widgets on the delete list)
+     */
+    if ( local_objects_to_delete == NULL )
+    {
+      local_objects_to_delete = objects_to_delete ;
+      objects_to_delete = NULL ;
+    }
   }
 }
 
@@ -224,85 +231,56 @@ static void puCleanUpJunk ()
 static puObject *active_widget ;   /* Widget which is currently receiving user input */
 static char *input_paste_buffer ;  /* Cut/Copy/Paste buffer for input widgets */
 
-void puInit ( void )
-{
-  static int firsttime = TRUE ;
+static int firsttime = TRUE ;
 
+void puRealInit ( void )
+{
   if ( firsttime )
   {
-    if ( glIsValidContext () == 0 )
+    if ( ! glIsValidContext () )
     {
       ulSetError ( UL_FATAL,
         "puInit called without a valid OpenGL context.");
     }
 
-    puInterface *base_interface = new puInterface ( 0, 0 ) ;
-    puPushGroup         ( base_interface ) ;
-    puPushLiveInterface ( base_interface ) ;
+    new puInterface ( 0, 0 ) ;
 
     active_widget = NULL ;
     input_paste_buffer = NULL ;
 
     firsttime = FALSE ;
-#ifdef PU_NOT_USING_GLUT
-
-    /* Create bitmaps for the device context font's first 256 glyphs */
-
-    fontBase = glGenLists(256);
-    assert(fontBase);
-    HDC hdc = wglGetCurrentDC();
-
-    /* Make the system font the device context's selected font */
-
-    SelectObject (hdc, GetStockObject (SYSTEM_FONT)); 
-
-    int *tempSize = &fontSize[1];
-
-    if ( ! GetCharWidth32 ( hdc, 1, 255, tempSize ) &&
-         ! GetCharWidth   ( hdc, 1, 255, tempSize ) )
-    {
-      LPVOID lpMsgBuf ;
-
-      FormatMessage ( FORMAT_MESSAGE_ALLOCATE_BUFFER |
-                      FORMAT_MESSAGE_FROM_SYSTEM,
-                      NULL,
-                      GetLastError(),
-                      MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-                      (LPTSTR) &lpMsgBuf,
-                      0, NULL ) ;
-
-      ulSetError ( UL_WARNING, "PUI: Error: %s", (char *)lpMsgBuf ) ;
-      LocalFree ( lpMsgBuf ) ;
-    }
-
-    wglUseFontBitmaps ( hdc, 0, 256, fontBase ) ;
-#endif
   }
+}
+
+void puExit ( void )
+{
+  if ( firsttime )
+    ulSetError ( UL_FATAL, "puExit called without a previous call to puInit." ) ;
+
+  delete puGetBaseLiveInterface () ;
+  firsttime = TRUE ;
 }
 
 static void puSetOpenGLState ( void )
 {
-  int w = puGetWindowWidth  () ;
-  int h = puGetWindowHeight () ;
+  int w, h ;
 
-  if ( ! openGLSize )
-    glPushAttrib   ( GL_ENABLE_BIT | GL_TRANSFORM_BIT | GL_LIGHTING_BIT ) ;
-  else
-  glPushAttrib   ( GL_ENABLE_BIT | GL_VIEWPORT_BIT | GL_TRANSFORM_BIT | GL_LIGHTING_BIT ) ;
+  puGetWindowSize ( &w, &h ) ;
+
+  glPushAttrib ( GL_ENABLE_BIT | GL_VIEWPORT_BIT  | GL_TRANSFORM_BIT | GL_LIGHTING_BIT ) ;
 
   glDisable      ( GL_LIGHTING   ) ;
   glDisable      ( GL_FOG        ) ;
   glDisable      ( GL_TEXTURE_2D ) ;
   glDisable      ( GL_DEPTH_TEST ) ;
   glDisable      ( GL_CULL_FACE  ) ;
- 
-  if ( ! openGLSize )
-  glViewport     ( 0, 0, w, h ) ;
- 
+
+  glViewport ( 0, 0, w, h ) ;
+
   glMatrixMode   ( GL_PROJECTION ) ;
   glPushMatrix   () ;
   glLoadIdentity () ;
-  gluOrtho2D     ( 0, w, 0, h ) ;
+  glOrtho        ( 0, w, 0, h, -1, 1 ) ;
   glMatrixMode   ( GL_MODELVIEW ) ;
   glPushMatrix   () ;
   glLoadIdentity () ;
@@ -332,40 +310,30 @@ void  puDisplay ( void )
                    h - _puCursor_y ) ;
 
   puRestoreOpenGLState () ;
+
+  puRefresh = FALSE ;
 }
 
 
-void  puDisplay ( int window_number )  /* Redraw only the current window */
+void  puDisplay ( int window_number )  /* Deprecated */
 {
-  puCleanUpJunk () ;
+  if ( window_number == puGetWindow () )
+    puDisplay () ;
+}
 
-  puSetOpenGLState () ;
-  puInterface *base_interface = puGetUltimateLiveInterface () ;
-  puObject *ob = base_interface -> getFirstChild () ;
-  while ( ob )
-  {
-    if ( ob -> getWindow () == window_number )
-      ob -> draw ( 0, 0 ) ;
 
-    ob = ob -> getNextObject () ;
-  }
-
-  int h = puGetWindowHeight () ;
-
-  if ( _puCursor_enable )
-    puDrawCursor ( _puCursor_x,
-                   h - _puCursor_y ) ;
-
-  puRestoreOpenGLState () ;
+int puKeyboard ( int key, int updown, int, int )
+{
+  return puKeyboard ( key, updown ) ;
 }
 
 
 int puKeyboard ( int key, int updown )
 {
   int return_value = puGetBaseLiveInterface () -> checkKey ( key, updown ) ;
-  
+
   puCleanUpJunk () ;
-  
+
   return return_value ;
 }
 
@@ -376,12 +344,17 @@ static int pu_mouse_y = 0 ;
 static int pu_mouse_offset_x = 0 ;
 static int pu_mouse_offset_y = 0 ;
 
+int puGetPressedButton ()
+{
+  return last_buttons ;
+}
+
 int puMouse ( int button, int updown, int x, int y )
 {
   puCursor ( x, y ) ;
-  
+
   int h = puGetWindowHeight () ;
-  
+
   if ( updown == PU_DOWN )
     last_buttons |=  ( 1 << button ) ;
   else
@@ -391,9 +364,26 @@ int puMouse ( int button, int updown, int x, int y )
   pu_mouse_y = h - y ;
   int return_value =  puGetBaseLiveInterface () -> checkHit ( button,
     updown, pu_mouse_x, pu_mouse_y ) ;
-  
+
   puCleanUpJunk () ;
-  
+
+  puObject *active = puActiveWidget () ;
+
+  if ( ( last_buttons == 0 ) && ( active != NULL ) )
+  {
+    int x_offset, y_offset ;
+    active -> getAbsolutePosition ( &x_offset, &y_offset ) ;
+
+    x_offset -= active -> getABox () -> min [0] ;
+    y_offset -= active -> getABox () -> min [1] ;
+
+    if ( ! active -> isHit ( pu_mouse_x - x_offset, pu_mouse_y - y_offset ) )
+    {
+      active -> invokeDownCallback () ;
+      puDeactivateWidget () ;
+    }
+  }
+
   return return_value ;
 }
 
@@ -401,14 +391,11 @@ int puMouse ( int button, int updown, int x, int y )
 int puMouse ( int x, int y )
 {
   puCursor ( x, y ) ;
-  
-  if ( last_buttons == 0 )
-    return FALSE ;
 
   int button =
     (last_buttons & (1<<PU_LEFT_BUTTON  )) ?  PU_LEFT_BUTTON   :
     (last_buttons & (1<<PU_MIDDLE_BUTTON)) ?  PU_MIDDLE_BUTTON :
-    (last_buttons & (1<<PU_RIGHT_BUTTON )) ?  PU_RIGHT_BUTTON  : 0 ;
+    (last_buttons & (1<<PU_RIGHT_BUTTON )) ?  PU_RIGHT_BUTTON  : PU_NOBUTTON ;
 
   int h = puGetWindowHeight () ;
 
@@ -420,7 +407,6 @@ int puMouse ( int x, int y )
     affect any other widgets until you release the
     mouse button.
   */
-
   if ( puActiveWidget () )
   {
     puActiveWidget()->doHit(button, PU_DRAG, pu_mouse_x - pu_mouse_offset_x,
@@ -429,10 +415,10 @@ int puMouse ( int x, int y )
   }
 
   int return_value = puGetBaseLiveInterface () -> checkHit ( button,
-    PU_DRAG, x, h - y ) ;
-  
+    PU_DRAG, pu_mouse_x, pu_mouse_y ) ;
+
   puCleanUpJunk () ;
-  
+
   return return_value ;
 }
 
@@ -460,7 +446,7 @@ void puMoveToLast (puObject *ob)
   puMoveToLast ( parent );
 }
 
-void puDeactivateWidget ()  {  active_widget = NULL ; }
+void puDeactivateWidget ( void )  {  active_widget = NULL ; }
 void puSetActiveWidget ( puObject *w, int x, int y )
 {
   active_widget = w ;
@@ -468,14 +454,24 @@ void puSetActiveWidget ( puObject *w, int x, int y )
   pu_mouse_offset_y = pu_mouse_y - y ;
 }
 
-puObject *puActiveWidget () {   return active_widget ; }
+puObject *puActiveWidget ( void ) {   return active_widget ; }
 
-void puSetPasteBuffer ( char *ch )
+void puSetPasteBuffer ( const char *ch )
 {
-  if ( input_paste_buffer ) delete input_paste_buffer ;
-  input_paste_buffer = new char [ strlen(ch) + 1 ] ;
-  strcpy ( input_paste_buffer, ch ) ;
+  delete [] input_paste_buffer ;
+  input_paste_buffer = ulStrDup ( ch ) ;
 }
 
-char *puGetPasteBuffer ()  {  return input_paste_buffer ;  }
+char *puGetPasteBuffer ( void )  {  return input_paste_buffer ;  }
 
+int  puNeedRefresh ( void )  {  return puRefresh ;  }
+void puPostRefresh ( void )  {  puRefresh = TRUE ;  }
+
+
+void puSetResizeMode ( int mode )
+{
+    static int last = 0;
+    if ( last == 0 && mode != 0 )
+	ulSetError ( UL_WARNING, "puSetResizeMode is deprecated!" ) ;
+    last = mode ;
+}

@@ -1,7 +1,7 @@
 /*
      PLIB - A Suite of Portable Game Libraries
-     Copyright (C) 2001  Steve Baker
- 
+     Copyright (C) 1998,2002  Steve Baker
+
      This library is free software; you can redistribute it and/or
      modify it under the terms of the GNU Library General Public
      License as published by the Free Software Foundation; either
@@ -13,12 +13,12 @@
      Library General Public License for more details.
  
      You should have received a copy of the GNU Library General Public
-     License along with this library; if not, write to the Free
+     License along with this library; if not, write to the Free Software
      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgLocal.h,v 1.16 2001/04/12 03:38:15 deca Exp $
+     $Id: ssgLocal.h,v 1.23 2004/02/02 01:35:15 sjbaker Exp $
 */
 
 
@@ -26,11 +26,16 @@
 
 #include "ssg.h"
 
+void _ssgStartOfFrameInit  () ;
+void _ssgEndOfFrameCleanup () ;
+
+
 extern void (*__ssgEnableTable[64])() ;
 extern void (*__ssgDisableTable[64])() ;
 
 extern sgMat4 _ssgOpenGLAxisSwapMatrix ;
 extern int    _ssgIsHotTest ;
+extern int    _ssgIsLosTest ;
 extern int    _ssgFileVersionNumber ;
 
 void _ssgForceLineState () ;
@@ -60,6 +65,13 @@ extern int stats_hot_no_trav     ;
 extern int stats_hot_radius_reject ;
 extern int stats_hot_triv_accept ;
 extern int stats_hot_straddle    ;
+
+extern int stats_los_triangles   ;
+extern int stats_los_test        ;
+extern int stats_los_no_trav     ;
+extern int stats_los_radius_reject ;
+extern int stats_los_triv_accept ;
+extern int stats_los_straddle    ;
 
 extern ssgState *( *_ssgGetAppState)( char *) ;
 
@@ -103,12 +115,20 @@ void _ssgWriteMat4   ( FILE *fd, const sgMat4 var ) ;
 int _ssgReadError    ( void ) ;
 int _ssgWriteError   ( void ) ;
 
+float _ssgGetCurrentTweenState () ;
+void  _ssgSetCurrentTweenState ( float tweenstate ) ;
+int   _ssgGetCurrentTweenMode  () ;
+void  _ssgSetCurrentTweenMode  ( int   tweenmode  ) ;
 
 /*
-  Routines for storing arbitrary ssgBase derived objects within SSG files. 
+  Routines for storing arbitrary ssgBase derived objects within SSG files.
   Both functions return 1 on success, and 0 on failure.
   If an object is encountered that is not derived from type_mask, then
   the loading is aborted and 0 returned.
 */
 int _ssgSaveObject ( FILE * , ssgBase * ) ;
 int _ssgLoadObject ( FILE * , ssgBase ** , int type_mask = 0 ) ;
+
+extern ssgStatistics _ssgCurrStatistics ;
+
+

@@ -1,6 +1,6 @@
 /*
      PLIB - A Suite of Portable Game Libraries
-     Copyright (C) 2001  Steve Baker
+     Copyright (C) 1998,2002  Steve Baker
  
      This library is free software; you can redistribute it and/or
      modify it under the terms of the GNU Library General Public
@@ -13,12 +13,12 @@
      Library General Public License for more details.
  
      You should have received a copy of the GNU Library General Public
-     License along with this library; if not, write to the Free
+     License along with this library; if not, write to the Free Software
      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgLoadATG.cxx,v 1.8 2001/06/22 11:31:20 wolfram_kuss Exp $
+     $Id: ssgLoadATG.cxx,v 1.18 2002/09/15 01:29:11 ude Exp $
 */
 /* 
  .scenery loader for SSG/PLIB
@@ -113,7 +113,7 @@ static int Ascii2Int(int &retVal, const char *token, const char* name )
 
 
 
-#define MAX_NO_VERTICES_PER_FACE 1000
+#define MAX_NO_VERTICES_PER_FACE 10000
 
 static class ssgLoaderWriterMesh _theMesh;
 
@@ -124,7 +124,7 @@ static int _ssgNoFaces, _ssgNoVertices, _ssgNoVertexNormals, _ssgNoVertexTC; //l
 static char * _current_usemtl = NULL, * _last_usemtl = NULL;
 static int _current_material_index = -1;
 
-double _ssg_gbs_x = 0.0, _ssg_gbs_y = 0.0, _ssg_gbs_z = 1.0, _ssg_gbs_r = 0.0;
+static double _ssg_gbs_x = 0.0, _ssg_gbs_y = 0.0, _ssg_gbs_z = 1.0, _ssg_gbs_r = 0.0;
 
 void ssgGetValuesFromLastATGFile(double *x, double *y, double *z, double *r)
 // These values are the values from the "# gbs" line from the last loaded
@@ -154,9 +154,8 @@ static char* parser_getLine()
 				if ( 0 != usemtl[0] )
 				{
 					if ( _current_usemtl  != NULL )
-						delete _current_usemtl ;
-					_current_usemtl = new char [ strlen ( usemtl ) + 1 ] ;
-					strcpy ( _current_usemtl, usemtl ) ;
+						delete [] _current_usemtl ;
+					_current_usemtl = ulStrDup ( usemtl ) ;
 				}
 		}
     //# gbs -2710586.16105 -4275323.15743 3867065.62925 7623.60
@@ -178,6 +177,12 @@ static char* parser_getLine()
 	return token;
 }
 
+static int reduce_numbers; // some ATG files (from BTG converted ones?) have vertex coordinates that include gbs, for example
+									// 2713547.89986. Others have coordinates excluding gbs, for example 2961.50684
+// I need to reduce the big numbers beacuse float a,b; a-b is dangerous if a large and b small.
+// Therefore I reduce the numbers by gbs while I have vertex coords and gbs as double and add it back in using double in PPE
+
+
 static int parse()
 {
 	// ************* Init ************************
@@ -187,12 +192,12 @@ static int parse()
 	_ssgNoVertexNormals = 0;
 	_ssgNoVertexTC = 0;
 
-	_theMesh.ReInit ();
-	_theMesh.ThereAreNVertices(); 
-	_theMesh.ThereAreNFaces(); 
-	_theMesh.ThereAreNTCPFAV();
-	_theMesh.ThereAreNMaterials();
-	_theMesh.ThereAreNMaterialIndexes() ;
+	_theMesh.reInit ();
+	_theMesh.createVertices(); 
+	_theMesh.createFaces(); 
+	_theMesh.createPerFaceAndVertexTextureCoordinates2();
+	_theMesh.createMaterials();
+	_theMesh.createMaterialIndices() ;
   
 	token = parser_getLine();
 	if ( token == NULL )
@@ -200,16 +205,33 @@ static int parse()
 		return FALSE;
 	}
 	// ****** read vertices ************
-
+	int first = TRUE;
 	while ( 0 == strcmp( token, "v") ) 
-	{ sgVec3 vert;
-		
-		if (! parser.parseFloat( vert[0], "vertex.x") )
+	{ 
+		double vx, vy, vz;
+		if (! parser.parseDouble( vx, "vertex.x") )
 	    return FALSE;
-		if (! parser.parseFloat( vert[1], "vertex.y") )
+		if (! parser.parseDouble( vy, "vertex.y") )
 	    return FALSE;
-		if (! parser.parseFloat( vert[2], "vertex.z") )
+		if (! parser.parseDouble( vz, "vertex.z") )
 	    return FALSE;
+		if (first)
+		{	first = FALSE;
+			
+#ifndef ABS
+#define ABS(x) (((x)>0)?(x):-(x))
+#endif
+		// Mega-kludge:
+			reduce_numbers = (ABS(vx)>50000);
+		}
+		if (reduce_numbers)
+		{ assert( _ssg_gbs_x != 0.0); // kludge
+			vx += _ssg_gbs_x;
+			vy += _ssg_gbs_y;
+			vz += _ssg_gbs_z;
+		}
+		sgVec3 vert;
+		sgSetVec3( vert, (float) vx, (float) vy, (float) vz);
 		_theMesh.addVertex(vert); // add to mesh
 		_ssgNoVertices++;
 		token = parser_getLine();
@@ -274,9 +296,8 @@ static int parse()
 		{ 
 			// bring _last_usemtl up to date
 			if ( _last_usemtl != NULL )
-				delete _last_usemtl;
-			_last_usemtl= new char [ strlen ( _current_usemtl ) + 1 ] ;
-			strcpy ( _last_usemtl, _current_usemtl ) ;
+				delete [] _last_usemtl;
+			_last_usemtl= ulStrDup ( _current_usemtl ) ;
 
 
 			// create SimpleState
@@ -354,7 +375,34 @@ static int parse()
 		_ssgNoFaces++;
 ////////////////////
 		// use array aiVertices
-		
+// Wk: Its is not clear to me, whether DOTRIANGLES always has to be on.
+#define DOTRIANGLES 1
+#ifdef DOTRIANGLES
+		unsigned int j, k, l;
+		k = nNoOfVerticesForThisFace / 3;
+		assert( 3*k==nNoOfVerticesForThisFace);
+		for(l=0;l<k;l++)
+		{	ssgTexCoordArray * sca = new ssgTexCoordArray (3);
+			sca->ref();
+			for(j=0;j<3;j++)
+			{
+				if ( ! linearListTCPFAV->get(aiTCs[l*3+j]) )
+				{	parser.error("Internal error while reading *.atg-file: aiTCs[j] == NULL \n");
+					return FALSE;
+				}
+				sca->add(linearListTCPFAV->get(aiTCs[l*3+j]));
+			}
+
+			// ****** add face to mesh *****
+			_theMesh.addPerFaceAndVertexTextureCoordinate2( &sca ) ;
+			int carray[3];
+			carray[0]=aiVertices[3*l+0];
+			carray[1]=aiVertices[3*l+1];
+			carray[2]=aiVertices[3*l+2];
+			_theMesh.addFaceFromIntegerArray(3, carray); 
+			_theMesh.addMaterialIndex ( _current_material_index ) ;
+		}
+#else		
 		unsigned int j;
 		ssgTexCoordArray * sca = new ssgTexCoordArray (nNoOfVerticesForThisFace);
 		sca->ref();
@@ -368,23 +416,21 @@ static int parse()
 		}
 
 		// ****** add face to mesh *****
-		_theMesh.addTCPFAV ( &sca ) ;
-		_theMesh.AddFaceFromCArray(nNoOfVerticesForThisFace, aiVertices); 
+		_theMesh.addPerFaceAndVertexTextureCoordinate2 ( &sca ) ;
+		_theMesh.addFaceFromIntegerArray(nNoOfVerticesForThisFace, aiVertices); 
 		_theMesh.addMaterialIndex ( _current_material_index ) ;
 		
-
+#endif
 
 		token = parser_getLine();
 		if ( token == NULL )
 			break;
 	} // ******* end of reading faces *****
 	if ( token != NULL )
-		// Fixme
-		printf("f expected, got %s\n", token);
+		ulSetError ( UL_WARNING, "f expected, got %s\n", token);
 	
 	if (! parser.eof )
-		// Fixme
-		printf("Warning: no eof\n");
+		ulSetError ( UL_WARNING, "Warning: no eof\n");
 	
 	
 	// kludge. We need a state for add2SSG:
@@ -410,7 +456,7 @@ static int parse()
 
 	ss -> disable( GL_TEXTURE_2D );
   _theMesh.checkMe(); //lint !e534 // For debug
-	_theMesh.add2SSG(
+	_theMesh.addToSSG(
 		ss, // super kludge. NIV135
 		current_options,
 		top_branch);

@@ -1,6 +1,6 @@
 /*
      PLIB - A Suite of Portable Game Libraries
-     Copyright (C) 2001  Steve Baker
+     Copyright (C) 1998,2002  Steve Baker
  
      This library is free software; you can redistribute it and/or
      modify it under the terms of the GNU Library General Public
@@ -13,12 +13,12 @@
      Library General Public License for more details.
  
      You should have received a copy of the GNU Library General Public
-     License along with this library; if not, write to the Free
+     License along with this library; if not, write to the Free Software
      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: netMonitor.cxx,v 1.5 2001/04/12 03:35:05 deca Exp $
+     $Id: netMonitor.cxx,v 1.8 2002/09/02 06:05:44 sjbaker Exp $
 */
 
 #include "netMonitor.h"
@@ -41,7 +41,7 @@ public:
 
   virtual void handleClose (void)
   {
-    printf("%d: Client disconnected.\n",getHandle());
+    ulSetError(UL_DEBUG, "%d: Client disconnected.",getHandle());
     shouldDelete () ;
     netChat::handleClose () ;
     server -> active = 0 ;
@@ -145,7 +145,7 @@ void netMonitorChannel::foundTerminator (void)
     }
     else
     {
-      printf("echo: %s\n",line);
+      ulSetError(UL_DEBUG,"echo: %s",line);
 
       push(line);
       push(getTerminator());
@@ -164,7 +164,7 @@ void netMonitorServer::handleAccept (void)
     netAddress addr ;
     int s = accept ( &addr ) ;
 
-    printf("%d: Client %s:%d connected\n",s,addr.getHost(),addr.getPort());
+    ulSetError(UL_DEBUG, "%d: Client %s:%d connected",s,addr.getHost(),addr.getPort());
 
     active = new netMonitorChannel ( this ) ;
     active -> setHandle (s);

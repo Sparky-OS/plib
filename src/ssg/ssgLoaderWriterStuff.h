@@ -1,6 +1,6 @@
 /*
      PLIB - A Suite of Portable Game Libraries
-     Copyright (C) 2001  Steve Baker
+     Copyright (C) 1998,2002  Steve Baker
  
      This library is free software; you can redistribute it and/or
      modify it under the terms of the GNU Library General Public
@@ -13,24 +13,23 @@
      Library General Public License for more details.
  
      You should have received a copy of the GNU Library General Public
-     License along with this library; if not, write to the Free
+     License along with this library; if not, write to the Free Software
      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgLoaderWriterStuff.h,v 1.15 2001/05/25 09:41:29 wolfram_kuss Exp $
+     $Id: ssgLoaderWriterStuff.h,v 1.22 2002/09/02 06:05:48 sjbaker Exp $
 */
 
 //#include  "ssgLocal.h"
 
 // ********************  small utility functions  ************************
 
-void ssgFindOptConvertTexture( char * filepath, char * tfname ) ;
 void ssgAccumVerticesAndFaces( ssgEntity* node, sgMat4 transform, ssgVertexArray* vertices,
-																ssgIndexArray*  indices, SGfloat epsilon, 
-																ssgSimpleStateArray* ssa = NULL,
-																ssgIndexArray*  materialIndices = NULL,
-																ssgTexCoordArray *texCoordArray = NULL);
+			       ssgIndexArray*  indices, SGfloat epsilon, 
+			       ssgSimpleStateArray* ssa = NULL,
+			       ssgIndexArray*  materialIndices = NULL,
+			       ssgTexCoordArray *texCoordArray = NULL);
 
 /*
   ssgTriangulate -
@@ -51,13 +50,13 @@ class ssgListOfLists : public ssgSimpleList
 {
 public:
 
-  virtual ssgBase *clone ( int clone_flags = 0 ) { return NULL; }; // Fixme NIV14: 2do
-  ssgListOfLists ( int init = 3 ) : ssgSimpleList ( sizeof(class ssgSimpleList*), init ) {} 
-  class ssgSimpleList **get ( unsigned int n ) { return (class ssgSimpleList **) raw_get ( n ) ; }
-  void   add ( class ssgSimpleList **thing ) { raw_add ( (char *) thing ) ; } ;
-	void   set ( class ssgSimpleList **thing, unsigned int n ) { raw_set ( (char *) thing, n ) ; } ;
+   virtual ssgBase *clone ( int clone_flags = 0 ) { return NULL; }; // Fixme NIV14: 2do
+   ssgListOfLists ( int init = 3 ) : ssgSimpleList ( sizeof(class ssgSimpleList*), init ) {} 
+   class ssgSimpleList **get ( unsigned int n ) { return (class ssgSimpleList **) raw_get ( n ) ; }
+   void   add ( class ssgSimpleList **thing ) { raw_add ( (char *) thing ) ; } ;
+   void   set ( class ssgSimpleList **thing, unsigned int n ) { raw_set ( (char *) thing, n ) ; } ;
   
-  virtual void print ( FILE *fd = stderr, char *indent = "", int how_much = 2 ) {}; // Fixme NIV14: 2do
+   virtual void print ( FILE *fd = stderr, char *indent = "", int how_much = 2 ) {}; // Fixme NIV14: 2do
 } ;
 
 //ssgSimpleState* 
@@ -77,84 +76,86 @@ public:
 
 class ssgLoaderWriterMesh
 {
-	// ***** general ****
-	// array of Vec3s:
-  class ssgVertexArray *theVertices; 
-	// one index per face:
-	class ssgIndexArray *materialIndexes; 
+   // ***** general ****
+	 char *name;
+   // array of Vec3s:
+   class ssgVertexArray *theVertices;
+   // one index per face:
+   class ssgIndexArray *materialIndices; 
 
-	// Each sublist is of type ssgIndexArray and contains the indexes of the vertices:
-	class ssgListOfLists *theFaces; 
-  // material list: 
-	class ssgSimpleStateList *theMaterials;
+   // Each sublist is of type ssgIndexArray and contains the indexes of the vertices:
+   class ssgListOfLists *theFaces; 
+   // material list: 
+   class ssgSimpleStateList *theMaterials;
 
-	// ***** mode switches *****
-	int bTCs_are_per_vertex; // and not per vertex and face
-	// ***** complicated mode *****
-	// Each sublist is of type ssgTexCoordArray and contains the texture coordinates
-	class ssgListOfLists *tCPFAV; // TCPFAV = TextureCoordinatesPerFaceAndVertex
+   // ***** mode switches *****
+   int textureCoordinatesArePerVertex; // and not per vertex and face (bTCs_are_per_vertex)
+   // ***** complicated (texture coordinates are per face and vertex) mode *****
+   // Each sublist is of type ssgTexCoordArray and contains the texture coordinates
+   class ssgListOfLists *perFaceAndVertexTextureCoordinate2Lists; // was: tCPFAV = TextureCoordinatesPerFaceAndVertex
 	
-	// ***** easy mode *********
-	class ssgTexCoordArray *tCPV; // TCPV = TextureCoordinatesPerVertex
+   // ***** easy (texture coordinates are per vertex) mode *********
+   class ssgTexCoordArray *perVertexTextureCoordinates2; // was: tCPV = TextureCoordinatesPerVertex
+   
+   void addOneNodeToSSGFromPerVertexTextureCoordinates2( class ssgVertexArray *theVertices, 
+							class ssgTexCoordArray *theTextureCoordinates2,
+							class ssgListOfLists *theFaces,
+							class ssgSimpleState *currentState,// Pfusch, kludge. NIV135
+							class ssgLoaderOptions* current_options,
+							class ssgBranch *curr_branch_ ); // was: AddOneNode2SSGFromCPV
+   void addOneNodeToSSGFromPerFaceAndVertexTextureCoordinates2( class ssgVertexArray *theVertices, 
+							       class ssgListOfLists *theTextureCoordinate2Lists,
+							       class ssgListOfLists *theFaces,
+							       class ssgSimpleState *currentState,// Pfusch, kludge. NIV135
+							       class ssgLoaderOptions* current_options,
+							       class ssgBranch *curr_branch_ ); // was: AddOneNodeToSSGFromCPFAV
+   
+ public:
+   
+   class ssgVertexArray *getVertices(void) { return theVertices; }
+   void setVertices( class ssgVertexArray *vertexArray );
+   class ssgTexCoordArray *getPerVertexTextureCoordinates2(void) { return perVertexTextureCoordinates2; }
+   void setPerVertexTextureCoordinates2( class ssgTexCoordArray *texCoordArray );
+	 void setName( const char *meshName ); 
+
+   void addToSSG(
+		 class ssgSimpleState *currentstate, 
+		 class ssgLoaderOptions* currentOptions,
+		 class ssgBranch *curr_branch_ );
 	
-	void AddOneNode2SSGFromCPV(class ssgVertexArray *theVertices, 
-		class ssgTexCoordArray *theTC,
-		class ssgListOfLists *theFaces,
-		class ssgSimpleState *currentState,// Pfusch, kludge. NIV135
-		class ssgLoaderOptions* current_options,
-		class ssgBranch *curr_branch_);
-	void AddOneNode2SSGFromCPFAV(class ssgVertexArray *theVertices, 
-		class ssgListOfLists *theTCPFAV,
-		class ssgListOfLists *theFaces,
-		class ssgSimpleState *currentState,// Pfusch, kludge. NIV135
-		class ssgLoaderOptions* current_options,
-		class ssgBranch *curr_branch_);
-
-public:
-	class ssgVertexArray *PfuschGetTheVertices(void) { return theVertices; }; 
-	class ssgTexCoordArray *PfuschGettCPV(void) { return tCPV; } ;
-	void AddFaceFromCArray(int nNoOfVerticesForThisFace, 
-																						int *vertices);
-  
-	void add2SSG(
-		class ssgSimpleState *currentstate, 
-		class ssgLoaderOptions* current_options,
-		class ssgBranch *curr_branch_);
-
-
-	
-	// construction/destruction:
-	ssgLoaderWriterMesh();
-	~ssgLoaderWriterMesh();
-	void ReInit(void);
-	void deleteTCPFAV();
+   // construction/destruction:
+   ssgLoaderWriterMesh();
+   ~ssgLoaderWriterMesh();
+   void reInit(void);
+   void deletePerFaceAndVertexTextureCoordinates2(); // was: deleteTCPFAV
 
   // creation:
-	void ThereAreNVertices( int n = 8 ) ;
-	void addVertex ( sgVec3 v ) ;
+   void createVertices( int numReservedVertices = 8 ) ; // was: ThereAreNVertices
+   void addVertex( sgVec3 v ) ;
+   
+   void createFaces( int numReservedFaces = 3 ) ; // was: ThereAreNFaces
+   void addFace( ssgIndexArray **indexArray ) ;
+   void addFaceFromIntegerArray( int numVertices, int *vertices );// AddFaceFromCArray
 
-	void ThereAreNFaces( int n = 3 ) ;
-	void addFace ( ssgIndexArray **ia ) ;
+   void createPerFaceAndVertexTextureCoordinates2( int numReservedTextureCoordinate2Lists = 3 ) ; // ThereAreNTCPFAV
+   void addPerFaceAndVertexTextureCoordinate2( ssgTexCoordArray **textureCoordinateArray ) ; // addTCPFAV
 
-	void ThereAreNTCPFAV( int n = 3 ) ;
-	void addTCPFAV ( ssgTexCoordArray **tca ) ;
+   void createPerVertexTextureCoordinates2( int numReservedTextureCoordinates2 = 3 ); // was: ThereAreNTCPV
+   void addPerVertexTextureCoordinate2( sgVec2 textureCoordinate ); // was; addTCPV
+   
+   void createMaterialIndices( int numReservedMaterialIndices = 3 ); // ThereAreNMaterialIndexes
+   void addMaterialIndex( short materialIndex ) ;
 
-	void ThereAreNTCPV( int n = 3 ) ;
-	void addTCPV ( sgVec2 tc ) ;
+   void createMaterials( int numReservedMaterials = 3 ); // was: ThereAreNMaterials
+   void addMaterial( class ssgSimpleState **simpleState ) ;
 
-	void ThereAreNMaterialIndexes( int n = 3 ) ;
-	void addMaterialIndex ( short mi ) ;
-
-	void ThereAreNMaterials( int n = 3 ) ;
-	void addMaterial ( class ssgSimpleState **ss ) ;
-
-  unsigned int getNumVertices(void) { return theVertices->getNum(); } ;
-	unsigned int getNumFaces   (void) { return theFaces->getNum(); } ;
-	unsigned int getNumMaterials(void) { return theMaterials->getNum(); } ;
+   unsigned int getNumVertices(void) { return theVertices->getNum(); } ;
+   unsigned int getNumFaces   (void) { return theFaces->getNum(); } ;
+   unsigned int getNumMaterials(void) { return theMaterials->getNum(); } ;
 
 
-	// tools:
-	int checkMe();
+   // tools:
+   int checkMe();
 };
 
 

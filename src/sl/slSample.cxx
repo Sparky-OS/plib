@@ -1,6 +1,6 @@
 /*
      PLIB - A Suite of Portable Game Libraries
-     Copyright (C) 2001  Steve Baker
+     Copyright (C) 1998,2002  Steve Baker
  
      This library is free software; you can redistribute it and/or
      modify it under the terms of the GNU Library General Public
@@ -13,19 +13,19 @@
      Library General Public License for more details.
  
      You should have received a copy of the GNU Library General Public
-     License along with this library; if not, write to the Free
+     License along with this library; if not, write to the Free Software
      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: slSample.cxx,v 1.3 2001/04/12 03:37:36 deca Exp $
+     $Id: slSample.cxx,v 1.10 2004/02/08 18:41:15 stromberg Exp $
 */
 
 
 #include "sl.h"
 #include <math.h>
 
-void slSample::autoMatch ( slDSP *dsp )
+void slSample::autoMatch ( const slDSP *dsp )
 {
   if ( dsp == NULL  || dsp->notWorking () ) return ;
 
@@ -50,13 +50,15 @@ void slSample::changeRate   ( int r )
 {
   if ( r == rate ) return ;
 
-  int    length1 = length / (getBps ()/8) ;
-  int    length2 = (int) ( (float) length1 * ( (float) r / (float) rate ) ) ;
+  int length2 = (int) ( (float) length * ( (float) r / (float) rate ) ) ;
   Uchar *buffer2 = new Uchar [ length2 ] ;
 
-  float step = (float) length1 / (float) length2 ;
+  int samps  = length / (getBps() / 8) ;
+  int samps2 = length2 / (getBps() / 8) ;
 
-  for ( int i = 0 ; i < length2 / (getBps()/8); i++ )
+  float step = (float) length / (float) length2 ;
+
+  for ( int i = 0 ; i < samps2 ; i++ )
   {
     float pos = (float) i * step ;
 
@@ -72,11 +74,11 @@ void slSample::changeRate   ( int r )
     float ratio = pos - (float) p1 ;
 
     float b1 = (getBps()==8) ?
-        (float)           buffer [(p1<0)?0:(p1>=length1)?length1-1:p1] :
-        (float) ((Ushort*)buffer)[(p1<0)?0:(p1>=length1)?length1-1:p1] ;
+        (float)           buffer [(p1<0)?0:(p1>=samps)?samps-1:p1] :
+        (float) ((Ushort*)buffer)[(p1<0)?0:(p1>=samps)?samps-1:p1] ;
     float b2 = (getBps()==8) ?
-        (float)           buffer [(p2<0)?0:(p2>=length1)?length1-1:p2] :
-        (float) ((Ushort*)buffer)[(p2<0)?0:(p2>=length1)?length1-1:p2] ;
+        (float)           buffer [(p2<0)?0:(p2>=samps)?samps-1:p2] :
+        (float) ((Ushort*)buffer)[(p2<0)?0:(p2>=samps)?samps-1:p2] ;
 
     float res = b1 * (1.0f-ratio) + b2 * ratio ;
 
@@ -89,7 +91,7 @@ void slSample::changeRate   ( int r )
 
   rate   = r ;
   length = length2 ;
-  delete buffer ;
+  delete [] buffer ;
   buffer = buffer2 ;
 }
 
@@ -126,7 +128,7 @@ void slSample::changeBps    ( int b )
     for ( int i = 0 ; i < length ; i++ )
       buffer2 [ i ] = ((Ushort *)buffer) [ i ] >> 8 ;
 
-    delete buffer ;
+    delete [] buffer ;
     buffer = buffer2 ;
     setBps ( b ) ;
   }
@@ -138,7 +140,7 @@ void slSample::changeBps    ( int b )
     for ( int i = 0 ; i < length ; i++ )
       buffer2 [ i ] = buffer [ i ] << 8 ;
 
-    delete buffer ;
+    delete [] buffer ;
     buffer = (Uchar *) buffer2 ;
     length *= 2 ;
     setBps ( b ) ;
@@ -159,7 +161,7 @@ void slSample::changeStereo ( int s )
        for ( int i = 0 ; i < length ; i++ )
          buffer2 [ i*2 ] = buffer2 [ i*2+1 ] = buffer [ i ] ;
 
-       delete buffer ;
+       delete [] buffer ;
        buffer = buffer2 ;
        length *= 2 ;
        setStereo ( SL_TRUE ) ;
@@ -171,7 +173,7 @@ void slSample::changeStereo ( int s )
        for ( int i = 0 ; i < length / 2 ; i++ )
          buffer2 [ i*2 ] = buffer2 [ i*2+1 ] = ((Ushort *) buffer) [ i ] ;
 
-       delete buffer ;
+       delete [] buffer ;
        buffer = (Uchar *)buffer2 ;
        length *= 2 ;
        setStereo ( SL_TRUE ) ;
@@ -186,7 +188,7 @@ void slSample::changeStereo ( int s )
        for ( int i = 0 ; i < (length-1)/2 ; i++ )
          buffer2 [ i ] = ((int)buffer [ i*2 ] + (int)buffer [ i*2 + 1 ] ) / 2 ;
 
-       delete buffer ;
+       delete [] buffer ;
        buffer = buffer2 ;
        length /= 2 ;
        setStereo ( SL_FALSE ) ;
@@ -199,7 +201,7 @@ void slSample::changeStereo ( int s )
          buffer2 [ i ] = ((int)((Ushort *)buffer) [ i*2 ] +
                           (int)((Ushort *)buffer) [ i*2 + 1 ] ) / 2 ;
 
-       delete buffer ;
+       delete [] buffer ;
        buffer = (Uchar *)buffer2 ;
        length /= 4 ;
        setStereo ( SL_FALSE ) ;
@@ -222,49 +224,16 @@ static void swap_int ( int *i )
        ((*i >> 24) & 0x000000FF) ;
 }
 
-/*
-  I'm sick of half the machines on the planet supporting
-  strcasecmp and the other half stricmp - so here is my own
-  offering:
-*/
 
-static int _slStrEqual ( char *s1, char *s2 )
+int slSample::loadFile ( const char *fname )
 {
-  int l1 = (s1==NULL)? 0 : strlen ( s1 ) ;
-  int l2 = (s2==NULL)? 0 : strlen ( s2 ) ;
-
-  if ( l1 != l2 ) return SL_FALSE ;
-
-  for ( int i = 0 ; i < l1 ; i++ )
-  {
-    char c1 = s1[i] ;
-    char c2 = s2[i] ;
-
-    if ( c1 == c2 )
-     continue ;
-
-    if ( c1 >= 'a' && c1 <= 'z' )
-      c1 = c1 - ('a'-'A') ;
-
-    if ( c2 >= 'a' && c2 <= 'z' )
-      c2 = c2 - ('a'-'A') ;
-
-    if ( c1 != c2 )
-     return SL_FALSE ;
-  }
-
-  return SL_TRUE ;
-}
-
-int slSample::loadFile ( char *fname )
-{
-  if ( _slStrEqual ( & fname [ strlen ( fname ) - 4 ], ".wav" ) )
+  if ( ulStrEqual ( & fname [ strlen ( fname ) - 4 ], ".wav" ) )
     return loadWavFile ( fname ) ;
 
-  if ( _slStrEqual ( & fname [ strlen ( fname ) - 3 ], ".au" ) )
+  if ( ulStrEqual ( & fname [ strlen ( fname ) - 3 ], ".au" ) )
     return loadAUFile ( fname ) ;
 
-  if ( _slStrEqual ( & fname [ strlen ( fname ) - 3 ], ".ub" ) )
+  if ( ulStrEqual ( & fname [ strlen ( fname ) - 3 ], ".ub" ) )
     return loadRawFile ( fname ) ;
 
   ulSetError ( UL_WARNING,
@@ -273,12 +242,12 @@ int slSample::loadFile ( char *fname )
 }
 
 
-int slSample::loadWavFile ( char *fname )
+int slSample::loadWavFile ( const char *fname )
 {
   int found_header   = SL_FALSE ;
   int needs_swabbing = SL_FALSE ;
 
-  delete buffer ;
+  delete [] buffer ;
   buffer = NULL ;
   length = 0 ;
 
@@ -354,7 +323,7 @@ int slSample::loadWavFile ( char *fname )
       fread ( & header, sizeof(header), 1, fd ) ;
 
       for ( int junk = sizeof(header) ; junk < leng1 ; junk++ )
-        fgetc ( fd ) ;
+        getc ( fd ) ;
 
       if ( needs_swabbing )
       {
@@ -404,11 +373,6 @@ int slSample::loadWavFile ( char *fname )
 
       if ( getBps () == 16 )
       {
-        Ushort *b = (Ushort*) buffer ;
-
-        for ( int i = 0 ; i < length/2 ; i++ )
-          b [ i ] = (Ushort) ( (int)((short) b [ i ]) + 32768 ) ;
-
         changeToUnsigned () ;
       }
 
@@ -416,14 +380,16 @@ int slSample::loadWavFile ( char *fname )
       return SL_TRUE ;
     }
   }
-
+  
+  ulSetError ( UL_WARNING, "slSample: Premature EOF in '%s'.", fname ) ;
+  
   fclose ( fd ) ;
   return SL_FALSE ;
 }
 
-int slSample::loadAUFile ( char *fname )
+int slSample::loadAUFile ( const char *fname )
 {
-  delete buffer ;
+  delete [] buffer ;
   buffer = NULL ;
   length = 0 ;
 
@@ -494,7 +460,7 @@ int slSample::loadAUFile ( char *fname )
 
   if ( hdr_length > 24 )
   {
-    delete comment ;
+    delete [] comment ;
     comment = new char [ hdr_length - 24 + 1 ] ;
 
     fread ( comment, 1, hdr_length - 24, fd ) ;
@@ -515,9 +481,9 @@ int slSample::loadAUFile ( char *fname )
 }
 
 
-int slSample::loadRawFile ( char *fname )
+int slSample::loadRawFile ( const char *fname )
 {
-  delete buffer ;
+  delete [] buffer ;
   buffer = NULL ;
   length = 0 ;
 

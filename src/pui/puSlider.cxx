@@ -1,35 +1,38 @@
 /*
      PLIB - A Suite of Portable Game Libraries
-     Copyright (C) 2001  Steve Baker
- 
+     Copyright (C) 1998,2002  Steve Baker
+
      This library is free software; you can redistribute it and/or
      modify it under the terms of the GNU Library General Public
      License as published by the Free Software Foundation; either
      version 2 of the License, or (at your option) any later version.
- 
+
      This library is distributed in the hope that it will be useful,
      but WITHOUT ANY WARRANTY; without even the implied warranty of
      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
      Library General Public License for more details.
- 
+
      You should have received a copy of the GNU Library General Public
-     License along with this library; if not, write to the Free
+     License along with this library; if not, write to the Free Software
      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
- 
+
      For further information visit http://plib.sourceforge.net
 
-     $Id: puSlider.cxx,v 1.12 2001/06/19 02:42:18 sjbaker Exp $
+     $Id: puSlider.cxx,v 1.26 2002/09/21 15:59:56 ude Exp $
 */
 
 
 #include "puLocal.h"
 
-void puSlider::draw_slider_box ( int dx, int dy, float val, char *box_label )
+UL_RTTI_DEF2(puSlider,puRange,puObject)
+
+
+void puSlider::draw_slider_box ( int dx, int dy, const puBox &box, float val, const char *box_label )
 {
   int sd, od ;
   if ( isVertical() ) { sd = 1 ; od = 0 ; } else { sd = 0 ; od = 1 ; }
 
-  int sz = abox.max [sd] - abox.min [sd] ;  // Size of slider box, in pixels
+  int sz = box.max [sd] - box.min [sd] ;  // Size of slider box, in pixels
 
   if ( val < 0.0f ) val = 0.0f ;
   if ( val > 1.0f ) val = 1.0f ;
@@ -38,31 +41,39 @@ void puSlider::draw_slider_box ( int dx, int dy, float val, char *box_label )
 
   puBox bx ;
     
-  bx.min [ sd ] = abox.min [ sd ] + (int) val ;
+  bx.min [ sd ] = box.min [ sd ] + (int) val ;
   bx.max [ sd ] = (int) ( (float) bx.min [ sd ] + (float) sz * slider_fraction ) ;
-  bx.min [ od ] = abox.min [ od ] + 2 ;
-  bx.max [ od ] = abox.max [ od ] - 2 ;
+  bx.min [ od ] = box.min [ od ] + 2 ;
+  bx.max [ od ] = box.max [ od ] - 2 ;
 
-  bx.draw ( dx, dy, PUSTYLE_SMALL_SHADED, colour, FALSE ) ;
+  bx.draw ( dx, dy, PUSTYLE_SMALL_SHADED, colour, FALSE, 2 ) ;
 
   if ( box_label )
   {
-    glColor4fv ( colour [ PUCOL_LEGEND ] ) ;
-
     int xx ;
     int yy ;
     if ( isVertical () )  // Vertical slider, text goes to the right of it
     {
       xx = bx.max[0] + PUSTR_LGAP ;
-      yy = ( bx.max[1] + bx.min[1] - puGetStringHeight ( legendFont ) ) / 2 ;
+      yy = ( bx.max[1] + bx.min[1] - legendFont.getStringHeight ( box_label ) ) / 2 ;
     }
     else  // Horizontal slider, text goes above it
     {
-      xx = ( bx.max[0] + bx.min[0] - puGetStringWidth ( legendFont, box_label ) ) / 2 ;
+      xx = ( bx.max[0] + bx.min[0] - legendFont.getStringWidth ( box_label ) ) / 2 ;
       yy = bx.max[1] + PUSTR_BGAP ;
     }
 
-    puDrawString ( legendFont, box_label, dx + xx, dy + yy ) ;
+    /* If greyed out then halve the opacity when drawing the label */
+
+    if ( active )
+      glColor4fv ( colour [ PUCOL_LABEL ] ) ;
+    else
+      glColor4f ( colour [ PUCOL_LABEL ][0],
+                  colour [ PUCOL_LABEL ][1],
+                  colour [ PUCOL_LABEL ][2],
+                  colour [ PUCOL_LABEL ][3] / 2.0f ) ; /* 50% more transparent */
+
+    legendFont.drawString ( box_label, dx + xx, dy + yy ) ;
   }
 }
 
@@ -70,37 +81,21 @@ void puSlider::draw ( int dx, int dy )
 {
   if ( !visible || ( window != puGetWindow () ) ) return ;
 
-  abox . draw ( dx, dy,
-                (style==PUSTYLE_BEVELLED||
-                 style==PUSTYLE_SHADED) ? -PUSTYLE_BOXED : -style,
-                colour, FALSE ) ;
+  if ( ( style == PUSTYLE_BEVELLED ) ||
+       ( style == PUSTYLE_SHADED ) )
+    abox.draw ( dx, dy, -PUSTYLE_BOXED, colour, FALSE, 2 ) ;
+  else
+    abox.draw ( dx, dy, -style, colour, FALSE, border_thickness ) ;
 
   if ( r_cb )
     r_cb ( this, dx, dy, render_data ) ;
   else
   {
-    float val ;
+    float val = getFloatValue () ;
 
-    getValue ( & val ) ;
+    draw_slider_box ( dx, dy, abox, ( val - minimum_value ) / ( maximum_value - minimum_value ) ) ;
 
-    draw_slider_box ( dx, dy, val ) ;
-
-    /* If greyed out then halve the opacity when drawing the label and legend */
-
-    if ( active )
-      glColor4fv ( colour [ PUCOL_LEGEND ] ) ;
-    else
-      glColor4f ( colour [ PUCOL_LEGEND ][0],
-                  colour [ PUCOL_LEGEND ][1],
-                  colour [ PUCOL_LEGEND ][2],
-                  colour [ PUCOL_LEGEND ][3] / 2.0f ) ; /* 50% more transparent */
-
-    int xx = ( abox.max[0] - abox.min[0] - puGetStringWidth(legendFont,legend) ) / 2 ;
-    int yy = ( abox.max[1] - abox.min[1] - puGetStringHeight(legendFont) ) / 2 ;
-
-    puDrawString ( legendFont, legend,
-                    dx + abox.min[0] + xx,
-                    dy + abox.min[1] + yy ) ;
+    draw_legend ( dx, dy ) ;
   }
 
   draw_label ( dx, dy ) ;
@@ -141,9 +136,10 @@ void puSlider::doHit ( int button, int updown, int x, int y )
     }
 
     next_value = (next_value < 0.0f) ? 0.0f : (next_value > 1.0f) ? 1.0f : next_value ;
+    next_value = next_value * ( maximum_value - minimum_value ) + minimum_value ;
 
-    setValue ( next_value ) ;
-
+    setValue ( checkStep (next_value) );
+    
     switch ( cb_mode )
     {
       case PUSLIDER_CLICK :
@@ -155,7 +151,7 @@ void puSlider::doHit ( int button, int updown, int x, int y )
         }
         break ;
 
-      case PUSLIDER_DELTA :
+      case PUSLIDER_DELTA : /* Deprecated! */
         if ( fabs ( last_cb_value - next_value ) >= cb_delta )
         {
 	  last_cb_value = next_value ;

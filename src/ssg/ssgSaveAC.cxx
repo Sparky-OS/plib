@@ -1,6 +1,6 @@
 /*
      PLIB - A Suite of Portable Game Libraries
-     Copyright (C) 2001  Steve Baker
+     Copyright (C) 1998,2002  Steve Baker
  
      This library is free software; you can redistribute it and/or
      modify it under the terms of the GNU Library General Public
@@ -13,12 +13,12 @@
      Library General Public License for more details.
  
      You should have received a copy of the GNU Library General Public
-     License along with this library; if not, write to the Free
+     License along with this library; if not, write to the Free Software
      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgSaveAC.cxx,v 1.14 2001/06/16 16:27:37 stromberg Exp $
+     $Id: ssgSaveAC.cxx,v 1.19 2002/09/02 06:05:48 sjbaker Exp $
 */
 
 
@@ -39,7 +39,7 @@ static sgVec3       *vlist ;
 static saveTriangle *tlist ;
 
 
-int ssgSaveLeaf ( ssgEntity *ent )
+static int ssgSaveLeaf ( ssgEntity *ent )
 { int i;
   assert ( ent -> isAKindOf ( ssgTypeLeaf() ) ) ;
 
@@ -135,15 +135,15 @@ int ssgSaveLeaf ( ssgEntity *ent )
 
   fprintf ( save_fd, "kids 0\n" ) ;
 
-  delete[] vlist ;
-  delete   tlist ;
+  delete [] vlist ;
+  delete [] tlist ;
 
   return TRUE ;
 }
 
 
 
-int ssgSaveACInner ( ssgEntity *ent )
+static int ssgSaveACInner ( ssgEntity *ent )
 {
   /* WARNING - RECURSIVE! */
 
@@ -243,7 +243,7 @@ int ssgSaveAC ( const char *filename, ssgEntity *ent )
   }
 
   fprintf ( save_fd, "OBJECT world\n" ) ;
-  fprintf ( save_fd, "kids %d\n", ent->getNumKids () ) ;
+  fprintf ( save_fd, "kids 1\n" ) ;
 
   int bReturn = ssgSaveACInner ( ent ) ;
   

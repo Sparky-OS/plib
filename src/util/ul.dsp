@@ -1,30 +1,28 @@
 # Microsoft Developer Studio Project File - Name="ul" - Package Owner=<4>
 # Microsoft Developer Studio Generated Build File, Format Version 6.00
-# ** NICHT BEARBEITEN **
+# ** DO NOT EDIT **
 
 # TARGTYPE "Win32 (x86) Static Library" 0x0104
 
 CFG=ul - Win32 Debug
-!MESSAGE Dies ist kein gültiges Makefile. Zum Erstellen dieses Projekts mit NMAKE
-!MESSAGE verwenden Sie den Befehl "Makefile exportieren" und führen Sie den Befehl
+!MESSAGE This is not a valid makefile. To build this project using NMAKE,
+!MESSAGE use the Export Makefile command and run
 !MESSAGE 
 !MESSAGE NMAKE /f "ul.mak".
 !MESSAGE 
-!MESSAGE Sie können beim Ausführen von NMAKE eine Konfiguration angeben
-!MESSAGE durch Definieren des Makros CFG in der Befehlszeile. Zum Beispiel:
+!MESSAGE You can specify a configuration when running NMAKE
+!MESSAGE by defining the macro CFG on the command line. For example:
 !MESSAGE 
 !MESSAGE NMAKE /f "ul.mak" CFG="ul - Win32 Debug"
 !MESSAGE 
-!MESSAGE Für die Konfiguration stehen zur Auswahl:
+!MESSAGE Possible choices for configuration are:
 !MESSAGE 
-!MESSAGE "ul - Win32 Release" (basierend auf  "Win32 (x86) Static Library")
-!MESSAGE "ul - Win32 Debug" (basierend auf  "Win32 (x86) Static Library")
+!MESSAGE "ul - Win32 Release" (based on "Win32 (x86) Static Library")
+!MESSAGE "ul - Win32 Debug" (based on "Win32 (x86) Static Library")
 !MESSAGE 
 
 # Begin Project
 # PROP AllowPerConfigDependencies 0
-# PROP Scc_ProjName "ul"
-# PROP Scc_LocalPath "."
 CPP=cl.exe
 RSC=rc.exe
 
@@ -41,7 +39,8 @@ RSC=rc.exe
 # PROP Intermediate_Dir "Release"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
-# ADD CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
+# ADD CPP /nologo /MT /W3 /GX /Zi /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /FD /c
+# SUBTRACT CPP /YX
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -50,19 +49,10 @@ BSC32=bscmake.exe
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
 # ADD LIB32 /nologo
-# Begin Custom Build - 'ul' gets installed
-ProjDir=.
-InputPath=.\Release\ul.lib
-SOURCE="$(InputPath)"
-
-"$(ProjDir)\..\..\ul.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy $(ProjDir)\ul.h $(ProjDir)\..\..\ul.h
-
-# End Custom Build
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
 PostBuild_Desc=Copy Library to plib directory
-PostBuild_Cmds=copy release\*.lib ..\..\*.*
+PostBuild_Cmds=copy release\*.lib ..\..\*.*	copy ul.h ..\..\ul.h	copy ulRTTI.h ..\..\ulRTTI.h
 # End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "ul - Win32 Debug"
@@ -78,7 +68,8 @@ PostBuild_Cmds=copy release\*.lib ..\..\*.*
 # PROP Intermediate_Dir "Debug"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
-# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /GX /Zi /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /FD /GZ /c
+# SUBTRACT CPP /YX
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -86,20 +77,11 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
-# ADD LIB32 /nologo
-# Begin Custom Build - 'ul' gets installed
-ProjDir=.
-InputPath=.\Debug\ul.lib
-SOURCE="$(InputPath)"
-
-"$(ProjDir)\..\..\ul.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy $(ProjDir)\ul.h $(ProjDir)\..\..\ul.h
-
-# End Custom Build
+# ADD LIB32 /nologo /out:"Debug\ul_d.lib"
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
 PostBuild_Desc=Copy Library to plib directory
-PostBuild_Cmds=copy debug\*.lib ..\..\*.*
+PostBuild_Cmds=copy debug\*.lib ..\..\*.*	copy ul.h ..\..\ul.h	copy ulRTTI.h ..\..\ulRTTI.h
 # End Special Build Tool
 
 !ENDIF 
@@ -123,6 +105,26 @@ SOURCE=.\ulClock.cxx
 # Begin Source File
 
 SOURCE=.\ulError.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=.\ulLinkedList.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=.\ulList.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=.\ulLocal.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ulRTTI.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=.\ulRTTI.h
 # End Source File
 # End Target
 # End Project

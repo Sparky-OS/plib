@@ -1,6 +1,6 @@
 /*
      PLIB - A Suite of Portable Game Libraries
-     Copyright (C) 2001  Steve Baker
+     Copyright (C) 1998,2002  Steve Baker
  
      This library is free software; you can redistribute it and/or
      modify it under the terms of the GNU Library General Public
@@ -13,12 +13,12 @@
      Library General Public License for more details.
  
      You should have received a copy of the GNU Library General Public
-     License along with this library; if not, write to the Free
+     License along with this library; if not, write to the Free Software
      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgIO.cxx,v 1.33 2001/04/12 03:38:15 deca Exp $
+     $Id: ssgIO.cxx,v 1.38 2002/09/15 01:29:11 ude Exp $
 */
 
 
@@ -203,7 +203,7 @@ void _ssgReadString ( FILE *fd, char **var )
 
   for ( i = 0 ; i < MAX_ENTITY_NAME_LENGTH ; i++ )
   {
-    int c = fgetc ( fd ) ;
+    int c = getc ( fd ) ;
     s [ i ] = c ;
 
     if ( c == '\0' )
@@ -217,10 +217,7 @@ void _ssgReadString ( FILE *fd, char **var )
   if ( s[0] == '\0' )
     *var = NULL ;
   else
-  {
-    *var = new char [ strlen(s)+1 ] ;
-    strcpy ( *var, s ) ;
-  }
+    *var = ulStrDup ( s ) ;
 }
 
 
@@ -229,7 +226,7 @@ void _ssgWriteString ( FILE *fd, const char *var )
   if ( var != NULL )
     fputs ( var, fd ) ;
 
-  fputc ( '\0', fd ) ;
+  putc ( '\0', fd ) ;
 }
 
 

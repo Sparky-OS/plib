@@ -1,6 +1,6 @@
 /*
      PLIB - A Suite of Portable Game Libraries
-     Copyright (C) 2001  Steve Baker
+     Copyright (C) 1998,2002  Steve Baker
  
      This library is free software; you can redistribute it and/or
      modify it under the terms of the GNU Library General Public
@@ -13,16 +13,18 @@
      Library General Public License for more details.
  
      You should have received a copy of the GNU Library General Public
-     License along with this library; if not, write to the Free
+     License along with this library; if not, write to the Free Software
      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgaShapes.cxx,v 1.17 2001/06/16 16:28:38 stromberg Exp $
+     $Id: ssgaShapes.cxx,v 1.23 2002/09/02 06:05:49 sjbaker Exp $
 */
 
 
 #include "ssgAux.h"
+#include <string.h>
+
 #define SIN(x) ((float)(sin(x)))
 #define COS(x) ((float)(cos(x)))
 #define ATAN2(x, y) ((float)(atan2(x, y)))
@@ -45,6 +47,9 @@ void ssgaShape::copy_from ( ssgaShape *src, int clone_flags )
 void ssgaCube    ::copy_from ( ssgaCube     *src, int clone_flags ) { ssgaShape::copy_from ( src, clone_flags ) ;} 
 void ssgaSphere  ::copy_from ( ssgaSphere   *src, int clone_flags ) { ssgaShape::copy_from ( src, clone_flags ) ;}
 void ssgaCylinder::copy_from ( ssgaCylinder *src, int clone_flags ) { ssgaShape::copy_from ( src, clone_flags ) ;}
+void ssgaPatch   ::copy_from ( ssgaPatch    *src, int clone_flags ) { ssgaShape::copy_from ( src, clone_flags ) ;}
+void ssgaTeapot  ::copy_from ( ssgaTeapot   *src, int clone_flags ) { ssgaShape::copy_from ( src, clone_flags ) ;}
+
 
 
 ssgBase *ssgaShape   ::clone ( int clone_flags )
@@ -69,6 +74,22 @@ ssgBase *ssgaCube    ::clone ( int clone_flags )
 ssgBase *ssgaSphere  ::clone ( int clone_flags )
 {
   ssgaSphere *b = new ssgaSphere ;
+  b -> copy_from ( this, clone_flags ) ;
+  return b ;
+}
+
+
+ssgBase *ssgaTeapot::clone ( int clone_flags )
+{
+  ssgaTeapot *b = new ssgaTeapot ;
+  b -> copy_from ( this, clone_flags ) ;
+  return b ;
+}
+
+
+ssgBase *ssgaPatch::clone ( int clone_flags )
+{
+  ssgaPatch *b = new ssgaPatch ;
   b -> copy_from ( this, clone_flags ) ;
   return b ;
 }
@@ -106,16 +127,19 @@ void ssgaShape::init ()
   kidPostDrawCB = NULL ;
 } 
 
-ssgaCube    ::ssgaCube     ( void ) : ssgaShape ()     { type = ssgaTypeCube () ; regenerate () ; } 
-ssgaCube    ::ssgaCube     (int nt) : ssgaShape ( nt ) { type = ssgaTypeCube () ; regenerate () ; } 
-
+ssgaCube ::ssgaCube ( void ):ssgaShape ()  {type=ssgaTypeCube ();regenerate();} 
+ssgaCube ::ssgaCube (int nt):ssgaShape (nt){type=ssgaTypeCube ();regenerate();} 
+ssgaPatch::ssgaPatch( void ):ssgaShape ()  {type=ssgaTypePatch();regenerate();} 
+ssgaPatch::ssgaPatch(int nt):ssgaShape (nt){type=ssgaTypePatch();regenerate();} 
+ssgaTeapot::ssgaTeapot( void ):ssgaShape ()  {type=ssgaTypeTeapot();regenerate();} 
+ssgaTeapot::ssgaTeapot(int nt):ssgaShape (nt){type=ssgaTypeTeapot();regenerate();} 
 
 ssgaSphere  ::ssgaSphere   ( void ) : ssgaShape ()
 {
  type = ssgaTypeSphere () ;
  latlong_style = TRUE ;
  regenerate () ;
-} 
+}
 
 
 ssgaSphere  ::ssgaSphere   (int nt) : ssgaShape ( nt )
@@ -123,7 +147,7 @@ ssgaSphere  ::ssgaSphere   (int nt) : ssgaShape ( nt )
  type = ssgaTypeSphere () ;
  latlong_style = TRUE ;
  regenerate () ;
-} 
+}
 
 
 ssgaCylinder::ssgaCylinder ( void ) : ssgaShape ()
@@ -144,28 +168,39 @@ ssgaCylinder::ssgaCylinder (int nt) : ssgaShape ( nt )
 
 ssgaShape   ::~ssgaShape    (void) {}
 ssgaCube    ::~ssgaCube     (void) {}
+ssgaPatch   ::~ssgaPatch    (void) {}
+ssgaTeapot  ::~ssgaTeapot   (void) {}
 ssgaSphere  ::~ssgaSphere   (void) {}
 ssgaCylinder::~ssgaCylinder (void) {}
 
-char *ssgaShape   ::getTypeName(void) { return "ssgaShape"    ; }
-char *ssgaCube    ::getTypeName(void) { return "ssgaCube"     ; }
-char *ssgaSphere  ::getTypeName(void) { return "ssgaSphere"   ; }
-char *ssgaCylinder::getTypeName(void) { return "ssgaCylinder" ; }
+const char *ssgaShape   ::getTypeName(void) { return "ssgaShape"    ; }
+const char *ssgaCube    ::getTypeName(void) { return "ssgaCube"     ; }
+const char *ssgaSphere  ::getTypeName(void) { return "ssgaSphere"   ; }
+const char *ssgaCylinder::getTypeName(void) { return "ssgaCylinder" ; }
+const char *ssgaPatch   ::getTypeName(void) { return "ssgaPatch"    ; }
+const char *ssgaTeapot  ::getTypeName(void) { return "ssgaTeapot"   ; }
 
 
 void ssgaCube    ::regenerate ()
 {
+  if ( kidState != NULL ) kidState -> ref () ;
   removeAllKids () ;
+  if ( kidState != NULL ) kidState -> deRef () ;
 
   if ( ntriangles == 0 )
     return ;
 
-  ssgVtxTable     *vt0 = new ssgVtxTable () ;         ssgVtxTable     *vt1 = new ssgVtxTable () ;
+  ssgVtxTable     *vt0 = new ssgVtxTable () ;
+  ssgVtxTable     *vt1 = new ssgVtxTable () ;
 
-  ssgVertexArray   *v0 = new ssgVertexArray   ( 8 ) ; ssgVertexArray   *v1 = new ssgVertexArray   ( 8 ) ;
-  ssgNormalArray   *n0 = new ssgNormalArray   ( 8 ) ; ssgNormalArray   *n1 = new ssgNormalArray   ( 8 ) ;
-  ssgColourArray   *c0 = new ssgColourArray   ( 8 ) ; ssgColourArray   *c1 = new ssgColourArray   ( 8 ) ;
-  ssgTexCoordArray *t0 = new ssgTexCoordArray ( 8 ) ; ssgTexCoordArray *t1 = new ssgTexCoordArray ( 8 ) ;
+  ssgVertexArray   *v0 = new ssgVertexArray   ( 8 ) ;
+  ssgVertexArray   *v1 = new ssgVertexArray   ( 8 ) ;
+  ssgNormalArray   *n0 = new ssgNormalArray   ( 8 ) ;
+  ssgNormalArray   *n1 = new ssgNormalArray   ( 8 ) ;
+  ssgColourArray   *c0 = new ssgColourArray   ( 8 ) ;
+  ssgColourArray   *c1 = new ssgColourArray   ( 8 ) ;
+  ssgTexCoordArray *t0 = new ssgTexCoordArray ( 8 ) ;
+  ssgTexCoordArray *t1 = new ssgTexCoordArray ( 8 ) ;
 
   vt0 -> setPrimitiveType ( GL_TRIANGLE_STRIP ) ;
   vt1 -> setPrimitiveType ( GL_TRIANGLE_STRIP ) ;
@@ -277,7 +312,6 @@ void ssgaCube    ::regenerate ()
 
   recalcBSphere () ;
 }
-
 
 
 /*
@@ -477,9 +511,11 @@ void ssgaSphere::regenerateTessellatedIcosahedron ()
 void ssgaSphere::regenerateLatLong ()
 {
   int stacks = (int) sqrt ( (double) ntriangles / 2.0f ) ;
-  int slices = ntriangles / stacks ;
 
   if ( stacks < 2 ) stacks = 2 ;
+
+  int slices = ntriangles / stacks ;
+
   if ( slices < 3 ) slices = 3 ;
 
   for ( int i = 0 ; i < stacks ; i++ )
@@ -600,7 +636,9 @@ void ssgaSphere::regenerateLatLong ()
 
 void ssgaSphere::regenerate ()
 {
+  if ( kidState != NULL ) kidState -> ref () ;
   removeAllKids () ;
+  if ( kidState != NULL ) kidState -> deRef () ;
 
   if ( ntriangles == 0 )
     return ;
@@ -615,7 +653,9 @@ void ssgaSphere::regenerate ()
 
 void ssgaCylinder::regenerate ()
 {
+  if ( kidState != NULL ) kidState -> ref () ;
   removeAllKids () ;
+  if ( kidState != NULL ) kidState -> deRef () ;
 
   if ( ntriangles == 0 )
     return ;
@@ -734,7 +774,6 @@ void ssgaCylinder::regenerate ()
 }
 
 
-
 // XXX really need these (and ssgLocal.h is not accessible):
 extern int _ssgLoadObject ( FILE *, ssgBase **, int ) ;
 extern int _ssgSaveObject ( FILE *, ssgBase * ) ;
@@ -780,6 +819,33 @@ int ssgaSphere::save ( FILE *fp )
 }
 
 
+int ssgaTeapot::load ( FILE *fp )
+{
+   return ssgaShape::load ( fp ) ;
+}
+
+int ssgaTeapot::save ( FILE *fp )
+{
+   return ssgaShape::save ( fp ) ;
+}
+
+
+
+int ssgaPatch::load ( FILE *fp )
+{
+   return ( load_field ( fp, levels ) &&
+      fread(control_points, 1, 16*9*sizeof(float), fp) == 16*9*sizeof(float) &&
+            ssgaShape::load ( fp ) ) ;
+}
+
+int ssgaPatch::save ( FILE *fp )
+{
+   return ( save_field ( fp, levels ) &&
+      fwrite(control_points, 1, 16*9*sizeof(float), fp) == 16*9*sizeof(float) &&
+            ssgaShape::save ( fp ) ) ;
+}
+
+
 int ssgaCylinder::load ( FILE *fp )
 {
    return ( load_field ( fp, capped ) &&
@@ -791,3 +857,5 @@ int ssgaCylinder::save ( FILE *fp )
    return ( save_field ( fp, capped ) &&
 	    ssgaShape::save ( fp ) ) ;
 }
+
+
