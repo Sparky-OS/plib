@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgEntity.cxx,v 1.26 2003/11/20 13:58:35 stromberg Exp $
+     $Id: ssgEntity.cxx,v 1.28 2004/09/13 11:49:36 wolfram_kuss Exp $
 */
 
 
@@ -114,7 +114,7 @@ void ssgEntity::print ( FILE *fd, char *indent, int how_much )
   Get the entity whos name equals match (case sensitive) or 0 if there isn't 
    This will be overridden by descendant classes to search trees, etc.
    This makes recovery of tagged parts of objects simple.
-   I envisage it being used to find axles, gimbles etc and to seperate many objects
+   I envisage it being used to find axles, gimbals etc and to separate many objects
    from a single loaded model file.  The base version in ssgEntity returns the
    ssgEntity if the name refers to this entity or 0 if not.
 */
@@ -128,7 +128,7 @@ ssgEntity* ssgEntity::getByName ( char *match )
 
 /*
   Get the entity specified by the path.  A path is a series of names
-  seperated by '/'.  Each sub-unit is searched so long as the path matches.
+  separated by '/'.  Each sub-unit is searched so long as the path matches.
   A single leading '/' on the path is ignored.
 */
 
@@ -429,7 +429,7 @@ ssgCullResult ssgEntity::los_test ( sgVec3 s, sgMat4 m, int test_needed )
 
 int ssgEntity::load ( FILE *fd )
 {
-  bsphere_is_invalid = TRUE ;
+  dirtyBSphere();
   _ssgReadInt    ( fd, &traversal_mask ) ;
   return ssgBase::load(fd) ;
 }

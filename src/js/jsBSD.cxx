@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: jsBSD.cxx,v 1.3 2004/03/20 00:21:53 sjbaker Exp $
+     $Id: jsBSD.cxx,v 1.6 2005/01/12 01:22:26 driehuis Exp $
 */
 
 /*
@@ -35,16 +35,21 @@
  * an API extension, and to be useful for my devious purposes, FlightGear
  * would need to understand that.
  */
+
 #include "js.h"
 
-#if defined(UL_BSD)
+#if defined (UL_BSD)
 
 #if defined(__NetBSD__) || defined(__FreeBSD__)
 #define HAVE_USB_JS	1
 #endif
 
 #include <sys/ioctl.h>
-#include <machine/joystick.h>		// For analog joysticks
+#if defined(__FreeBSD__)
+# include <sys/joystick.h>
+#else
+# include <machine/joystick.h>		// For analog joysticks
+#endif
 #ifdef HAVE_USB_JS
 #if defined(__NetBSD__)
 #ifdef HAVE_USBHID_H
@@ -54,7 +59,12 @@
 #endif
 #elif defined(__FreeBSD__)
 extern "C" {
-#include <libusbhid.h>
+#  if __FreeBSD_version < 500000
+#    include <libusbhid.h>
+#  else
+#    define HAVE_USBHID_H 1
+#    include <usbhid.h>
+#  endif
 }
 #endif
 #include <dev/usb/usb.h>
@@ -494,5 +504,7 @@ void jsJoystick::rawRead ( int *buttons, float *axes )
     memcpy ( axes, os->cache_axes, sizeof(float) * num_axes ) ;
 #endif
 }
+
+void jsInit () {}
 
 #endif

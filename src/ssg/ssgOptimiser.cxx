@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgOptimiser.cxx,v 1.34 2004/01/20 22:21:02 smokydiamond Exp $
+     $Id: ssgOptimiser.cxx,v 1.37 2005/01/09 13:10:08 bram Exp $
 */
 
 
@@ -28,7 +28,7 @@
 
 static float optimise_vtol [3] =
 {
-  0.001f,  /* DISTANCE_SLOP = One millimeter */
+  0.001f,   /* DISTANCE_SLOP = One millimeter */
   0.04f,   /* COLOUR_SLOP = Four percent */
   0.004f,  /* TEXCOORD_SLOP = One texel on a 256 map */
 } ;
@@ -869,7 +869,7 @@ static void strip ( ssgEntity *ent )
   switch ( b_ent -> getNumKids () )
   {
   case 0:
-    if ( b_ent -> getUserData() == NULL )
+    if ( b_ent -> getUserData() == NULL && b_ent -> getName () == NULL )
       safe_replace_kid ( NULL, b_ent, NULL ) ;
     break;
 
@@ -877,7 +877,13 @@ static void strip ( ssgEntity *ent )
     if ( b_ent -> isA ( ssgTypeBranch () ) &&
 	 b_ent -> getUserData () == NULL )
     {
-      safe_replace_kid ( NULL, b_ent, b_ent -> getKid ( 0 ) ) ;
+      ssgEntity *k = b_ent -> getKid ( 0 ) ;
+      if ( b_ent -> getName () != NULL && k -> getName () != NULL )
+        break;
+      if ( b_ent -> getName () != NULL )
+        k -> setName ( b_ent -> getName () ) ;
+         
+      safe_replace_kid ( NULL, b_ent, k ) ;
     }
     else if ( ! b_ent -> isAKindOf ( ssgTypeSelector () ) &&
 	      b_ent -> getKid ( 0 ) -> isA ( ssgTypeBranch () ) &&
@@ -898,7 +904,7 @@ static void strip ( ssgEntity *ent )
   }
 }
 
-static void flatten ( ssgBranch *parent, ssgEntity *ent, sgMat4 mat )
+void flatten ( ssgBranch *parent, ssgEntity *ent, sgMat4 mat )
 {
   /*
     Move all transforms down to the leaf nodes and

@@ -19,7 +19,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgLoaderWriterStuff.cxx,v 1.29 2002/09/15 01:29:12 ude Exp $
+     $Id: ssgLoaderWriterStuff.cxx,v 1.31 2004/10/06 14:25:11 wolfram_kuss Exp $
 */
 
 // ssgLoaderWriterStuff.cxx
@@ -660,7 +660,6 @@ void ssgLoaderWriterMesh::addOneNodeToSSGFromPerVertexTextureCoordinates2( class
 	     colours -> add ( currentDiffuse ) ;
 	  }
      }
-   
    ssgVtxArray* leaf = new ssgVtxArray ( GL_TRIANGLES, theVertices, normalList, theTextureCoordinates2, colours, indexList ) ;
    leaf -> setCullFace ( TRUE ) ;
    leaf -> setState ( currentState ) ;
@@ -711,7 +710,7 @@ void ssgLoaderWriterMesh::addToSSG(
 		}
 	}
 #endif
-   if ( theMaterials == NULL )
+  if ( theMaterials == NULL )
 	{ 
 	   if ( perFaceAndVertexTextureCoordinate2Lists == NULL )
 	     addOneNodeToSSGFromPerVertexTextureCoordinates2( theVertices, perVertexTextureCoordinates2 /* may be NULL */, theFaces, currentState, current_options, curr_branch_);
@@ -719,12 +718,12 @@ void ssgLoaderWriterMesh::addToSSG(
 	     addOneNodeToSSGFromPerFaceAndVertexTextureCoordinates2(theVertices, perFaceAndVertexTextureCoordinate2Lists, theFaces, currentState, 
 				     current_options, curr_branch_);
 	}
-   else
-     {	
-	assert( theVertices != NULL );
-	assert( theFaces != NULL );
-	// FixMe: What about faces without state? They should have material -1
-	for( i=0; i < theMaterials->getNum(); i++ )
+  else
+  {	
+		assert( theVertices != NULL );
+		assert( theFaces != NULL );
+		// FixMe: What about faces without state? They should have material -1
+		for( i=0; i < theMaterials->getNum(); i++ )
 	  {	
 	     // I often allocate too much; This is wastefull on memory, but fast since it never "resizes":
 	     class ssgVertexArray *newVertices = new ssgVertexArray ( theVertices->getNum() );
@@ -772,9 +771,10 @@ void ssgLoaderWriterMesh::addToSSG(
 			      newVertexIndex = newVertices->getNum();
 			      newVertices->add( theVertices->get( oldVertexIndex ) );
 			      oldVertexIndexToNewVertexIndex->set( newVertexIndex, oldVertexIndex );
-			   }
+			   
 			 if ( perVertexTextureCoordinates2 != NULL )
 			   newPerVertexTextureCoordinates2 -> add( perVertexTextureCoordinates2->get( oldVertexIndex ) );
+			 }
 			 // From here on the indexes in thisFace are only valid in relation to
 			 // newVertices and newtextureCoordinatePerVertex. Since this face will not be used for any 
 			 // further material, this doesn't lead to problems.
@@ -810,7 +810,7 @@ void ssgLoaderWriterMesh::addToSSG(
 					    current_options, curr_branch_);
 	       }
 	  }
-     }
+  }
 }
 	
 int ssgLoaderWriterMesh::checkMe()

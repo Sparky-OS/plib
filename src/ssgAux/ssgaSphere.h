@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgaSphere.h,v 1.1 2003/07/26 06:16:19 nmcevoy Exp $
+     $Id: ssgaSphere.h,v 1.2 2005/01/09 13:13:12 bram Exp $
 */
 
 
@@ -30,3 +30,4 @@ ssgBranch *ssgaMakeSphere(
   ssgSimpleState *state, ssgColourArray *cl, 
   float radius, int slices, int stacks,
   ssgCallback predraw, ssgCallback postdraw );
+

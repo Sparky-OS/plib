@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgLoadOFF.cxx,v 1.11 2002/09/02 06:05:48 sjbaker Exp $
+     $Id: ssgLoadOFF.cxx,v 1.12 2004/10/04 08:11:26 wolfram_kuss Exp $
 */
 
 //
@@ -62,6 +62,7 @@ static _ssgParserSpec parser_spec =
 {
    "\r\n\t ",  // delim_chars_skipable
    ",;",       // delim_chars_non_skipable
+   NULL,      // pre_processor
    "",          // open_brace_chars
    "",          // close_brace_chars
    '"',        // quote_char. not used for OFF

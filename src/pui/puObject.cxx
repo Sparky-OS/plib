@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: puObject.cxx,v 1.49 2002/09/19 23:32:58 ude Exp $
+     $Id: puObject.cxx,v 1.50 2004/08/05 01:05:48 puggles Exp $
 */
 
 
@@ -337,9 +337,9 @@ void puObject::draw_legend ( int dx, int dy )
   case PUPLACE_LOWER_LEFT        : /* Backwards compatibility to PUPLACE_LEFT */
   case PUPLACE_LOWER_RIGHT       : /* Backwards compatibility to PUPLACE_RIGHT */
   default :
-    yy = ( abox.max[1] - abox.min[1] +
-      legendFont.getStringHeight ( legend ) ) / 2 -
-      legendFont.getStringHeight () ;
+    yy = ( abox.max[1] - abox.min[1] 
+           - legendFont.getStringHeight ( legend ) ) / 2 
+      + legendFont.getStringDescender () ;
     break ;
 
   case PUPLACE_BOTTOM_LEFT     :
@@ -427,9 +427,9 @@ void puObject::draw_label ( int dx, int dy )
   case PUPLACE_CENTERED_LEFT  :
   case PUPLACE_CENTERED_RIGHT :
   default :
-    yy = ( bbox.max[1] - bbox.min[1] +
-      labelFont.getStringHeight ( label ) ) / 2 -
-      labelFont.getStringHeight () ;
+    yy = ( bbox.max[1] - bbox.min[1] -
+      labelFont.getStringHeight ( label ) ) / 2 +
+      labelFont.getStringDescender () ;
     break ;
 
   case PUPLACE_LOWER_LEFT  :

@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: pslProgram.cxx,v 1.17 2003/01/06 05:10:14 sjbaker Exp $
+     $Id: pslProgram.cxx,v 1.18 2004/08/05 00:57:38 puggles Exp $
 */
 
 
@@ -86,9 +86,8 @@ pslProgram::~pslProgram ()
   /* We need ref-counting on code/compiler */
   /* DEBUG-ME! */
   delete [] progName ;
-  delete    compiler ;
   delete    context  ;
-  delete [] code     ;
+  compiler -> ref();
 }
 
 

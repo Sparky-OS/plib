@@ -19,7 +19,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgTween.cxx,v 1.12 2002/12/04 19:12:35 sjbaker Exp $
+     $Id: ssgTween.cxx,v 1.14 2004/12/29 07:19:40 sjbaker Exp $
 */
 
 
@@ -34,8 +34,20 @@ const char *ssgTween::getTypeName (void) { return "ssgTween" ; }
 int   _ssgGetCurrentTweenMode  () { return current_tween_mode  ; }
 float _ssgGetCurrentTweenState () { return current_tween_state ; }
 
-void  _ssgSetCurrentTweenMode  ( int   mode   ) { current_tween_mode = mode ; }
-void  _ssgSetCurrentTweenState ( float tstate ) { current_tween_state= tstate ;}
+
+void  _ssgSetCurrentTweenSettings ( float state, int mode )
+{
+  _ssgSetRealCurrentTweenSettings ( state, mode ) ;
+  _ssgSetTweenState ( state, mode ) ;  /* Add it into the Dlist for later */
+}
+
+
+void  _ssgSetRealCurrentTweenSettings ( float state, int mode )
+{
+   current_tween_mode = mode ;
+   current_tween_state = state ;
+}
+
 
 void ssgTween::copy_from ( ssgTween *src, int clone_flags )
 {
@@ -147,7 +159,6 @@ int ssgTween::newBank ( ssgVertexArray   *vl, ssgNormalArray   *nl,
   colours   -> ref () ;
 
   dirtyBSphere () ;  /* Cause parents to redo their bspheres */
-  bsphere_is_invalid = TRUE ;
   return bank ;
 }
 
@@ -181,7 +192,6 @@ void ssgTween::setVertices ( ssgVertexArray *vl )
   banked_vertices -> replaceEntity ( curr_bank, vl ) ;
   ssgVtxTable::setVertices ( vl ) ;
   dirtyBSphere () ;  /* Cause parents to redo their bspheres */
-  bsphere_is_invalid = TRUE ;
 }
 
 void ssgTween::setNormals ( ssgNormalArray *nl )
@@ -189,7 +199,6 @@ void ssgTween::setNormals ( ssgNormalArray *nl )
   banked_normals -> replaceEntity ( curr_bank, nl ) ;
   ssgVtxTable::setNormals ( nl ) ;
   dirtyBSphere () ;  /* Cause parents to redo their bspheres */
-  bsphere_is_invalid = TRUE ;
 }
 
 void ssgTween::setTexCoords ( ssgTexCoordArray *tl )
@@ -197,7 +206,6 @@ void ssgTween::setTexCoords ( ssgTexCoordArray *tl )
   banked_texcoords -> replaceEntity ( curr_bank, tl ) ;
   ssgVtxTable::setTexCoords ( tl ) ;
   dirtyBSphere () ;  /* Cause parents to redo their bspheres */
-  bsphere_is_invalid = TRUE ;
 }
 
 void ssgTween::setColours ( ssgColourArray *cl )
@@ -205,7 +213,6 @@ void ssgTween::setColours ( ssgColourArray *cl )
   banked_colours -> replaceEntity ( curr_bank, cl ) ;
   ssgVtxTable::setColours ( cl ) ;
   dirtyBSphere () ;  /* Cause parents to redo their bspheres */
-  bsphere_is_invalid = TRUE ;
 }
 
 ssgTween::~ssgTween ()
@@ -253,7 +260,6 @@ void ssgTween::recalcBSphere ()
 
   extendBSphere ( & bbox ) ;
   dirtyBSphere () ;  /* Cause parents to redo their bspheres */
-  bsphere_is_invalid = FALSE ;
 }
 
 

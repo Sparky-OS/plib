@@ -1,3 +1,10 @@
+plib (1.8.4-1) unstable; urgency=low
+
+  * New upstream release: accumulated small bug fixes, minor enhancements.
+  * Changed debian/watch file.
+
+ -- Philipp Frauenfelder <pfrauenf@debian.org>  Tue, 25 Jan 2005 16:34:05 +0100
+
 plib (1.8.3-2) unstable; urgency=low
 
   * Corrected C++ syntax in ssgAux/ssgaSky.h. Thanks to

@@ -18,12 +18,12 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgLoadX.cxx,v 1.21 2003/07/26 09:33:18 wolfram_kuss Exp $
+     $Id: ssgLoadX.cxx,v 1.23 2004/12/02 21:26:39 wolfram_kuss Exp $
 */
 
 //
 // .X loader for SSG/PLIB
-// .X is the 3D file format for Micro$ofts directX retained mode.
+// .X is the 3D file format for Micro$ofts directX.
 // Written by Wolfram Kuss (Wolfram.Kuss@t-online.de) in Oct/Nov of 2000
 //
 #include  "ssgLocal.h"
@@ -55,6 +55,7 @@ static _ssgParserSpec parser_spec =
 {
    "\r\n\t ",  // delim_chars_skipable
    ",;",       // delim_chars_non_skipable
+   NULL,      // pre_processor
    "{",          // open_brace_chars
    "}",          // close_brace_chars
    '"',        // quote_char
@@ -133,14 +134,14 @@ static void IgnoreEntity(int startLevel)
 	while ( TRUE)
 	{ token = parser.getNextToken(0);
 		if ( parser.eof ) 
-		{ parser.error("unexpected end fo file\n");
+		{ parser.error("unexpected end of file\n");
 			return ; //FALSE;
 		}
         
 		assert(token!=NULL); 
-    if ( strcmp(token,"{") == 0 )
+    if ( ulStrEqual (token,"{") )
 			Level++;
-		else if ( strcmp(token,"}") == 0 )
+		else if ( ulStrEqual (token,"}") )
 		{ assert(Level>0); // Fixme, NIV14: Handle this gracefully.
 			if (Level==1) 
 		    return; // found THE closing brace of entitiy
@@ -195,14 +196,15 @@ static int ParseEntity(char *token)
 { int i=0;
 
 	while(aEntities[i].sName!=NULL)
-	{ if (!strcmp(token,aEntities[i].sName))
+	{ if (ulStrEqual (token,aEntities[i].sName))
 		{	if (aEntities[i].HandleEntity)
 			{	char *sNextToken, *sName=globEmpty;
 				sNextToken=parser.getNextToken(0);
 				if ( parser.eof ) 
-				{ parser.error("unexpected end fo file\n");
+				{ parser.error("unexpected end of file\n");
 					return FALSE;
 				}
+        // if entity is named, read the name. skip "{":
         sName = NULL;
 				if (0 != strcmp(sNextToken, "{"))
 				{ sName = new char[ strlen(sNextToken) + 1 ];
@@ -217,7 +219,7 @@ static int ParseEntity(char *token)
 				if(sNextToken[0] == '<') // UUID
 					sNextToken = parser.getNextToken(0);
 				if ( parser.eof ) 
-				{ parser.error("unexpected end fo file\n");
+				{ parser.error("unexpected end of file\n");
 					return FALSE;
 				}
         
@@ -231,7 +233,7 @@ static int ParseEntity(char *token)
 					IgnoreEntity ( 0 );
 				else
 				{
-					parser.error("I am sorry, but Entity-typ '%s' is not yet implemented.", aEntities[i].sName);
+					parser.error("I am sorry, but Entity-type '%s' is not yet implemented.", aEntities[i].sName);
 					return FALSE ;
 				}
 				
@@ -281,6 +283,7 @@ static int HandleTextureFileName(const char * /*sName*/, const char *firstToken)
 	return TRUE;
 }
 
+static class ssgSimpleStateList *globalMaterialList;
 static int HandleMaterial(const char * /*sName*/, const char *firstToken)
 // return TRUE on success
 { SGfloat power;
@@ -356,11 +359,21 @@ static int HandleMaterial(const char * /*sName*/, const char *firstToken)
 	while(TRUE)
 	{ char *nextToken =parser.getNextToken(0);
 	  if (0==strcmp("}", nextToken))
-		{ currentMesh.addMaterial( &currentState );
+		{ 
+			
+			/*if(currentMesh.theMaterialsExists())
+				currentMesh.addMaterial( &currentState );
+			else*/
+			{
+				if(!globalMaterialList)
+					globalMaterialList = new ssgSimpleStateList(3);
+				
+				globalMaterialList->add(&currentState);
+			}
 			return TRUE; // Material is finished. success
 		}
 		
-		if ( 0!= strcmp("TextureFilename", nextToken) )
+		if (! ulStrEqual ( "TextureFilename", nextToken) )
 		{ parser.error("TextureFilename expected!\n");
 			return FALSE; 
 		}
@@ -469,16 +482,36 @@ static int HandleMeshMaterialList(const char * /* sName */, const char *firstTok
 			//else	parser.error("Success! MeshMaterialList!\n");
 			return TRUE; // Mesh is finished. success
 		}
-		if ( 0!= strcmp("Material", nextToken) )
-		{ parser.error("Material expected!\n");
-			return FALSE; 
+		if(ulStrEqual ("{", nextToken) )
+		{ // reference to global material
+			nextToken =parser.getNextToken(0); // name of material
+			parser.expectNextToken("}");
+			// search for "name" in global list
+			if(globalMaterialList == NULL)
+			{
+				parser.error("No global materials defined, but used!\n");
+				return FALSE; 
+			}
+			for(int i=0; i<globalMaterialList->getNum(); i++)
+			{
+				ssgSimpleState * ss = *(globalMaterialList->get(i));
+				if(ulStrEqual(nextToken, ss->getName()))
+					break;
+			}
 		}
-		if ( nMaterialsRead >= nMaterials )
-		{ parser.error("Too many Materials!\n");
-			return FALSE; 
+		else
+		{
+			if ( !ulStrEqual ("Material", nextToken) )
+			{ parser.error("Material expected!\n");
+				return FALSE; 
+			}
+			if ( nMaterialsRead >= nMaterials )
+			{ parser.error("Too many Materials!\n");
+				return FALSE; 
+			}
+			if (!ParseEntity(nextToken)) // read "Material"
+				return FALSE;
 		}
-		if (!ParseEntity(nextToken)) // read "Material"
-			return FALSE;
 		nMaterialsRead++;
 	}
 	return TRUE; //lint !e527
@@ -562,7 +595,7 @@ static int HandleMesh(const char * sName, const char *firstToken)
 	while(TRUE)
 	{ char *nextToken =parser.getNextToken(0);
 	  if ( parser.eof ) 
-		{ parser.error("unexpected end fo file\n");
+		{ parser.error("unexpected end of file\n");
 			return FALSE;
 		}
     
@@ -622,7 +655,7 @@ inline int TwoCharsToInt(char char1, char char2)
 
 static int HeaderIsValid(char *firstToken)
 {	// xof 0302txt 0064
-  if (strcmp(firstToken,"xof"))
+  if (!ulStrEqual (firstToken,"xof"))
   {
     parser.error("not X format, invalid Header");
     return FALSE ;
@@ -634,9 +667,9 @@ static int HeaderIsValid(char *firstToken)
     return FALSE ;
   }
 	char *sp=&(token[4]);
-	if (strcmp(sp,"txt"))
+	if (!ulStrEqual (sp,"txt"))
   {
-    if (strcmp(sp,"bin"))
+    if (!ulStrEqual (sp,"bin"))
 			parser.error("not X format, invalid Header");
 		else
 			parser.error("Binary X format files are not supported. If you have access to Windows, "
@@ -652,7 +685,7 @@ static int HeaderIsValid(char *firstToken)
 					TwoCharsToInt(token[0], token[1]),
 					TwoCharsToInt(token[2], token[3]));
 	token = parser.getNextToken("3rd Header field");
-	if (strcmp(token,"0032") && strcmp(token,"0064"))
+	if (!ulStrEqual(token,"0032") && !ulStrEqual (token,"0064"))
   {
     parser.error("not X format, invalid Header");
     return FALSE ;
@@ -690,6 +723,7 @@ ssgEntity *ssgLoadX ( const char *fname, const ssgLoaderOptions* options )
   current_options = ssgGetCurrentOptions () ;
 
 	currentState = NULL; 
+	globalMaterialList = NULL;
   top_branch = new ssgBranch ;
 	curr_branch_ = top_branch;
 	if ( !parser.openFile( fname, &parser_spec ))
@@ -705,5 +739,6 @@ ssgEntity *ssgLoadX ( const char *fname, const ssgLoaderOptions* options )
 //  parse_free();
   parser.closeFile();
 
+	delete globalMaterialList;
   return top_branch ;
 }

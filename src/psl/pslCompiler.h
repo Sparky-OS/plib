@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: pslCompiler.h,v 1.33 2003/01/06 05:10:13 sjbaker Exp $
+     $Id: pslCompiler.h,v 1.34 2004/08/05 00:57:37 puggles Exp $
 */
 
 
@@ -51,6 +51,8 @@ class pslProgram ;
 
 class pslCompiler
 {
+  int ref_count; // reference count.  Clean up when this reaches zero
+
   /* File I/O and preprocessor */
 
   int  getChar               () ;
@@ -313,6 +315,7 @@ public:
                 const pslExtension *_extn,
                 const char   *_progName )
   {
+    ref_count = 1;
     program  = prog ;
     progName = ulStrDup ( _progName ) ;
 
@@ -341,6 +344,21 @@ public:
       delete [] symtab      [ i ] . symbol ; symtab      [ i ] . symbol = NULL ;
       delete [] code_symtab [ i ] . symbol ; code_symtab [ i ] . symbol = NULL ;
       delete [] forward_ref [ i ] . symbol ; forward_ref [ i ] . symbol = NULL ;
+    }
+  }
+
+  void ref()
+  {
+    ref_count++;
+  }
+
+  void deref()
+  {
+    ref_count--;
+    if(ref_count < 1)
+    {
+      delete [] code;
+      delete this;
     }
   }
 

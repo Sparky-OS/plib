@@ -23,6 +23,8 @@ CFG=ssg - Win32 Debug
 
 # Begin Project
 # PROP AllowPerConfigDependencies 0
+# PROP Scc_ProjName ""
+# PROP Scc_LocalPath ""
 CPP=cl.exe
 RSC=rc.exe
 
@@ -110,6 +112,10 @@ SOURCE=.\ssgAnimation.cxx
 # End Source File
 # Begin Source File
 
+SOURCE=.\ssgAnimTransform.cxx
+# End Source File
+# Begin Source File
+
 SOURCE=.\ssgAxisTransform.cxx
 # End Source File
 # Begin Source File
@@ -179,6 +185,10 @@ SOURCE=.\ssgLoad3ds.cxx
 # Begin Source File
 
 SOURCE=.\ssgLoadAC.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=.\ssgLoadASC.cxx
 # End Source File
 # Begin Source File
 
@@ -347,6 +357,10 @@ SOURCE=.\ssgSaveDXF.cxx
 # Begin Source File
 
 SOURCE=.\ssgSaveFLT.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=.\ssgSaveIV.cxx
 # End Source File
 # Begin Source File
 

@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ulError.cxx,v 1.7 2002/09/02 06:05:49 sjbaker Exp $
+     $Id: ulError.cxx,v 1.8 2004/10/02 12:20:43 wolfram_kuss Exp $
 */
 
 
@@ -51,7 +51,14 @@ void ulSetError ( enum ulSeverity severity, const char *fmt, ... )
     fprintf ( stderr, "%s: %s\n",
        _ulSeverityText[ severity ], _ulErrorBuffer ) ;
     if ( severity == UL_FATAL )
+    {
+#ifdef WIN32
+      // A Windows user that does not start the program from the command line
+      // will not see output to stderr
+      ::MessageBox(0, _ulErrorBuffer, "fatal error!:", 0);
+#endif
       exit (1) ;
+    }
   }
 }
  

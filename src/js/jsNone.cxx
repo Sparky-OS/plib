@@ -17,21 +17,21 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: jsNone.cxx,v 1.2 2003/01/04 02:55:54 sjbaker Exp $
+     $Id: jsNone.cxx,v 1.4 2004/09/21 11:45:55 smokydiamond Exp $
 */
 
 #include "js.h"
 
-#if defined(UL_IRIX) || defined(UL_SOLARIS) || defined(UL_HPUX)
+#if defined(UL_IRIX) || defined(UL_SOLARIS) || defined (UL_HPUX)
 
-/* check the joystick driver version */
+struct os_specific_s ;
+
 
 void jsJoystick::open ()
 {
   error = TRUE ;
   num_axes = num_buttons = 0 ;
 }
-
 
 
 void jsJoystick::close ()
@@ -44,6 +44,7 @@ jsJoystick::jsJoystick ( int ident )
 {
   error = TRUE ;
   num_axes = num_buttons = 0 ;
+  os = NULL;
 }
 
 
@@ -51,6 +52,8 @@ void jsJoystick::rawRead ( int *buttons, float *axes )
 {
   if ( buttons != NULL ) *buttons = 0 ;
 }
+
+void jsInit ()  {}
 
 #endif
 

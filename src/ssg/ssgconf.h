@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgconf.h,v 1.12 2003/12/12 18:23:55 wolfram_kuss Exp $
+     $Id: ssgconf.h,v 1.14 2004/09/14 12:19:05 wolfram_kuss Exp $
 */
 
 #ifndef _INCLUDED_SSGCONF_H_
@@ -32,15 +32,15 @@
  * library that you will not be using.  I wish I could figure out how to
  * automate this, but I can't do that without making it seriously hard
  * on the users.  So if you are not using an ability, change the #define
- * to and #undef, and that part of the library will not be compiled.  If
+ * to an #undef, and that part of the library will not be compiled.  If
  * your linker can't find a function, you may want to make sure the
  * ability is defined here.
  */
 
 /*
   For optional use of PNG textures, download the glpng library from
-  http://www.wyatt100.freeserve.co.uk/download.htm and un-comment
-  the following line.
+  http://www.wyatt100.freeserve.co.uk/download.htm and 
+  change the #undef to a #define in the following line.
  */
 
 #undef  SSG_LOAD_PNG_SUPPORTED

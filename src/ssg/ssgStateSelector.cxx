@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgStateSelector.cxx,v 1.20 2002/09/02 06:05:49 sjbaker Exp $
+     $Id: ssgStateSelector.cxx,v 1.21 2004/09/13 11:28:34 wolfram_kuss Exp $
 */
 
 
@@ -41,9 +41,9 @@ void ssgStateSelector::copy_from ( ssgStateSelector *src, int clone_flags )
     else
       statelist [ i ] = s ;
 
-	//~~ T.G. needs ref count incremented
-	if (statelist [ i ] != NULL )      
-	   statelist [ i ] -> ref();   
+  //~~ T.G. needs ref count incremented
+  if (statelist [ i ] != NULL )      
+     statelist [ i ] -> ref();   
 
   }
 }
@@ -80,7 +80,7 @@ ssgStateSelector::~ssgStateSelector (void)
 {
   //~~ T.G. deref states before deleting list
   for ( int i = 0 ; i < nstates ; i++ )    
-	  ssgDeRefDelete( statelist [ i ] );  
+    ssgDeRefDelete( statelist [ i ] );  
   delete [] statelist ;
 }
 

@@ -5,7 +5,7 @@ Maintainer: Philipp Frauenfelder <pfrauenf@debian.org>
 Standards-Version: 3.6.1
 Build-Depends: xlibmesa-gl-dev | libgl-dev, libglut3-dev, m4, autoconf, automake | automake1.7, libx11-dev, libxmu-dev, debhelper (>= 4)
 
-Package: plib1.8.3
+Package: plib1.8.4
 Section: libs
 Architecture: any
 Conflicts: plib1c102, plib1
@@ -19,12 +19,12 @@ Description: Portability Libraries: Run-time package, stable release
  This package provides the shared libraries. It should be installed
  automatically by packages which need it.
 
-Package: plib1.8.3-dev
+Package: plib1.8.4-dev
 Section: libdevel
 Architecture: any
-Depends: plib1.8.3 (= ${Source-Version}), libglut3-dev, xlibmesa-gl-dev | libgl-dev
-Conflicts: plib1.5-dev, plib1.7-dev, plib-pic, plib1.8-pic, plib1.8.3-pic, plib-dev, plib1.8-dev
-Replaces: plib1.5-dev, plib1.7-dev, plib-pic, plib1.8-pic, plib1.8.3-pic, plib-dev, plib1.8-dev
+Depends: plib1.8.4 (= ${Source-Version}), libglut3-dev, xlibmesa-gl-dev | libgl-dev
+Conflicts: plib1.5-dev, plib1.7-dev, plib-pic, plib1.8-pic, plib1.8.3-pic, plib-dev, plib1.8-dev, plib1.8.4-pic
+Replaces: plib1.5-dev, plib1.7-dev, plib-pic, plib1.8-pic, plib1.8.3-pic, plib-dev, plib1.8-dev, plib1.8.4-pic
 Provides: plib-dev
 Description: Portability Libraries: Development package, stable release
  Provides a Joystick interface, a simple GUI built on top of OpenGL,
@@ -39,12 +39,12 @@ Description: Portability Libraries: Development package, stable release
  -fPIC. If you need to link the static libraries of plib into shared objects,
  use plib-pic. Otherwise, this package is a safe choice.
 
-Package: plib1.8.3-pic
+Package: plib1.8.4-pic
 Section: libdevel
 Architecture: any
-Depends: plib1.8.3 (= ${Source-Version}), libglut3-dev, xlibmesa-gl-dev | libgl-dev
-Conflicts: plib1.5-dev, plib1.7-dev, plib-dev, plib1.8-dev, plib1.8.3-dev
-Replaces: plib1.5-dev, plib1.7-dev, plib-dev, plib1.8-dev, plib1.8.3-dev
+Depends: plib1.8.4 (= ${Source-Version}), libglut3-dev, xlibmesa-gl-dev | libgl-dev
+Conflicts: plib1.5-dev, plib1.7-dev, plib-dev, plib1.8-dev, plib1.8.3-dev, plib1.8.4-dev
+Replaces: plib1.5-dev, plib1.7-dev, plib-dev, plib1.8-dev, plib1.8.3-dev, plib1.8.4-dev
 Provides: plib-dev
 Description: Portability Libraries: Dev. package (with PIC code), stable rel.
  Provides a Joystick interface, a simple GUI built on top of OpenGL,

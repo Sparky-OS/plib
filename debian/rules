@@ -8,7 +8,7 @@
 
 version=$(shell expr `pwd` : '.*-\([0-9.]*\)')
 # version_major=$(shell expr `pwd` : '.*-\([0-9]\.[0-9]\)\.[0-9.]*')
-soname=1.8.3
+soname=1.8.4
 package=plib$(soname)
 
 # Uncomment this to turn on verbose mode. 
@@ -92,7 +92,7 @@ binary-arch: build install
 	dh_testdir -a
 	dh_testroot -a
 	dh_installdirs -a
-	dh_installdocs -A AUTHORS NOTICE README README.GLUT README.mac README.win32 TODO-1.6 TODO-2.0 TODO_AFTER135 KNOWN_BUGS
+	dh_installdocs -A AUTHORS NOTICE README README.GLUT TODO-1.6 TODO-2.0 TODO_AFTER135 KNOWN_BUGS
 	dh_installchangelogs -a ChangeLog
 	dh_link -a
 	dh_strip -a

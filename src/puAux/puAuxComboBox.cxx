@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: puAuxComboBox.cxx,v 1.3 2004/03/21 19:03:23 sjbaker Exp $
+     $Id: puAuxComboBox.cxx,v 1.4 2004/09/22 21:09:35 smokydiamond Exp $
 */
 
 
@@ -267,5 +267,13 @@ puaComboBox::puaComboBox ( int minx, int miny, int maxx, int maxy,
   close () ;
 
   newList ( entries ) ;
+}
+
+void puaComboBox::setSize ( int w, int h )
+{
+  int arrow_width = (int) ( float(h) / 1.5f ) ;
+  input->setSize ( w - arrow_width, h ) ;
+  arrow_btn->setPosition ( w - arrow_width, 0 ) ;
+  arrow_btn->setSize ( arrow_width, h ) ;
 }
 

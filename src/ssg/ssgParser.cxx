@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgParser.cxx,v 1.26 2002/09/02 06:05:48 sjbaker Exp $
+     $Id: ssgParser.cxx,v 1.28 2004/10/04 08:10:00 wolfram_kuss Exp $
 */
 
 //
@@ -42,6 +42,7 @@ static _ssgParserSpec default_spec =
 {
    "\r\n\t ",  // delim_chars_skipable
    0,          // delim_chars_non_skipable
+   NULL,      // pre_processor
    0,          // open_brace_chars
    0,          // close_brace_chars
    '"',        // quote_char
@@ -145,7 +146,7 @@ static char *EOF_string = "EOF reached";
 static char *EOL_string = "EOL reached";
 
 char* _ssgParser::getNextToken( const char* name )
-// Fetches next token, even if it has to read over some empty or commant-only lines to get to it.
+// Fetches next token, even if it has to read over some empty or comment-only lines to get to it.
 // Never returns NULL. Returns EOF_string on EOF.
 {
 	while(!( curtok < numtok ))
@@ -166,7 +167,7 @@ char* _ssgParser::getNextToken( const char* name )
 }
 
 char *_ssgParser::peekAtNextToken( const char* name )
-// Like getNextToken, but doesnÄt remove the token from the input stream
+// Like getNextToken, but doesn't remove the token from the input stream
 {
 	while(!( curtok < numtok ))
 	{	//int startLevel = level;
@@ -276,7 +277,11 @@ static char *mystrchr( const char *string, int c )
 	if (string == NULL )
 		return NULL;
 	else
+#ifdef UL_BB
+		return strchr( (char*)string, c );
+#else
 		return strchr( string, c );
+#endif
 }
 
 
@@ -323,6 +328,8 @@ char* _ssgParser::getLine( int startLevel )
 			eof = TRUE;
 			return(0) ;
 		}
+    if(spec.pre_processor != NULL)
+      spec.pre_processor (linebuf);
 		memcpy( tokbuf, linebuf, sizeof(linebuf) ) ;
 		ptr = tokbuf ;
 

@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgVtxArray.cxx,v 1.27 2004/02/02 01:35:15 sjbaker Exp $
+     $Id: ssgVtxArray.cxx,v 1.29 2004/12/01 08:28:05 wolfram_kuss Exp $
 */
 
 
@@ -195,13 +195,13 @@ void ssgVtxArray::removeUnusedVertices()
     return;
   }
   if(normals)
-    if(normals->getNum() != 0)
+    if(1 < normals->getNum())
       doNormals = TRUE;
   if(texcoords)
-    if(texcoords->getNum() != 0)
+    if(1 < texcoords->getNum())
       doTexCoords = TRUE;
   if(colours)
-    if(colours->getNum() != 0)
+    if(1 < colours->getNum())
       doColours = TRUE;
   
   long * oldIndex2NewIndex = new long[vertices->getNum()];
@@ -259,6 +259,7 @@ void ssgVtxArray::removeUnusedVertices()
     colours = newCL;
     newCL->ref();
   }
+  delete [] oldIndex2NewIndex;
 }
 
 void ssgVtxArray::draw_geometry ()
