@@ -1,22 +1,90 @@
+/*
+     PLIB - A Suite of Portable Game Libraries
+     Copyright (C) 2001  Steve Baker
+ 
+     This library is free software; you can redistribute it and/or
+     modify it under the terms of the GNU Library General Public
+     License as published by the Free Software Foundation; either
+     version 2 of the License, or (at your option) any later version.
+ 
+     This library is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+     Library General Public License for more details.
+ 
+     You should have received a copy of the GNU Library General Public
+     License along with this library; if not, write to the Free
+     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+ 
+     For further information visit http://plib.sourceforge.net
+
+     $Id: ssgLeaf.cxx,v 1.16 2001/06/16 16:27:37 stromberg Exp $
+*/
+
 
 #include "ssgLocal.h"
+
+//~~ T.G. moved hee from header amd ref counting accounted for
+ 
+void ssgLeaf::setState ( ssgState *st )
+{
+    ssgDeRefDelete ( state ) ;
+
+    state = st ;
+
+    if ( state != NULL )
+      state->ref() ;
+}
+
+void ssgLeaf::copy_from ( ssgLeaf *src, int clone_flags )
+{
+  ssgEntity::copy_from ( src, clone_flags ) ;
+
+  cull_face = src -> getCullFace () ;
+
+  ssgState *s = src -> getState () ;
+
+  //~~ T.G. Deref
+  ssgDeRefDelete(state); 
+
+  if ( s != NULL && ( clone_flags & SSG_CLONE_STATE ) )
+    state = (ssgState *)( s -> clone ( clone_flags ) ) ;
+  else
+    state = s ;
+
+   //~~ T.G. increment ref counter 
+   if (state != NULL)  
+       state->ref(); 
+}
+
+
 
 ssgLeaf::ssgLeaf (void)
 {
   cull_face = TRUE ;
   state = NULL ;
-  type |= SSG_TYPE_LEAF ;
+  type = ssgTypeLeaf () ;
+
+#ifdef _SSG_USE_DLIST
   dlist = 0 ;
-   preDrawCB = NULL ;
+#endif
+
+  preDrawCB = NULL ;
   postDrawCB = NULL ;
 }
 
 ssgLeaf::~ssgLeaf (void)
 {
+  //~~ T.G. ssgDeRefDelete checks for null case
+  ssgDeRefDelete ( state ) ;
+
+#ifdef _SSG_USE_DLIST
   deleteDList () ;
+#endif
 }
 
 
+#ifdef _SSG_USE_DLIST
 void ssgLeaf::deleteDList ()
 {
   if ( dlist != 0 )
@@ -24,7 +92,6 @@ void ssgLeaf::deleteDList ()
 
   dlist = 0 ;
 }
-
 
 void ssgLeaf::makeDList ()
 {
@@ -34,6 +101,8 @@ void ssgLeaf::makeDList ()
     draw_geometry () ;
   glEndList () ; 
 }
+#endif // #ifdef _SSG_USE_DLIST
+
 
 void ssgLeaf::cull ( sgFrustum *f, sgMat4 m, int test_needed )
 {
@@ -75,12 +144,28 @@ void ssgLeaf::isect ( sgSphere *s, sgMat4 m, int test_needed )
 }
 
 
-void ssgLeaf::print ( FILE *fd, char *indent )
+void ssgLeaf::print ( FILE *fd, char *indent, int how_much )
 {
-  ssgEntity::print ( fd, indent ) ;
+  if ( how_much == 0 ) 
+    return ;
+
+  ssgEntity::print ( fd, indent, how_much  ) ;
 
   if ( getNumParents () != getRef () )
     fprintf ( fd, "****** WARNING: Ref count doesn't equal parent count!\n" ) ;
+
+  if ( state != NULL )
+  {
+    char in [ 100 ] ;
+    sprintf ( in, "%s  ", indent );
+
+    if ( how_much == 1 )
+      fprintf ( fd, "%s  %s: %p\n", indent , state->getTypeName(), state) ;
+    else
+      state -> print ( fd, in, how_much ) ;
+  }
+  else
+    fprintf ( fd, "%s  No State assigned to this node\n", indent ) ;
 }
 
 
@@ -88,16 +173,8 @@ int ssgLeaf::preDraw ()
 {
   if ( preDrawCB != NULL && ! (*preDrawCB)(this) )
     return FALSE ;
-    
-  if ( cull_face != _ssgCurrentCullFace && ! _ssgOverrideCullface )
-  {
-    _ssgCurrentCullFace = cull_face ;
 
-    if ( cull_face )
-      glEnable ( GL_CULL_FACE ) ;
-    else
-      glDisable ( GL_CULL_FACE ) ;
-  }
+  _ssgCurrentContext->setCullface ( getCullFace() ) ;
 
   return TRUE ;
 }
@@ -105,42 +182,14 @@ int ssgLeaf::preDraw ()
 
 int ssgLeaf::load ( FILE *fd )
 {
-  int key, t ;
-
   _ssgReadInt ( fd, &cull_face ) ;
-  _ssgReadInt ( fd, & t ) ;
 
-  if ( t == SSG_BACKWARDS_REFERENCE )
-  {
-    _ssgReadInt ( fd, & key ) ;
+  ssgState *st;
 
-    if ( key == 0 )
-      state = NULL ;
-    else
-      state = (ssgState *) _ssgGetFromList ( key ) ;
-  }
-  else
-  if ( t == ssgTypeSimpleState() )
-  {
-    state = new ssgSimpleState ;
+  if ( ! _ssgLoadObject ( fd, (ssgBase **) &st, ssgTypeState () ) )
+     return FALSE ;
 
-    if ( ! state -> load ( fd ) )
-      return FALSE ;
-  }
-  else
-  if ( t == ssgTypeStateSelector() )
-  {
-    state = new ssgStateSelector ;
-
-    if ( ! state -> load ( fd ) )
-      return FALSE ;
-  }
-  else
-  {
-    fprintf ( stderr,
-       "ssgLeaf::load - Unrecognised ssgState type 0x%08x\n", t ) ;
-    state = NULL ;
-  }
+  setState ( st ) ;
 
   return ssgEntity::load(fd) ;
 }
@@ -148,26 +197,10 @@ int ssgLeaf::load ( FILE *fd )
 
 int ssgLeaf::save ( FILE *fd )
 {
-  _ssgWriteInt   ( fd, cull_face ) ;
+  _ssgWriteInt ( fd, cull_face ) ;
 
-  if ( state == NULL )
-  {
-    _ssgWriteInt ( fd, SSG_BACKWARDS_REFERENCE ) ;
-    _ssgWriteInt ( fd, 0 ) ;
-  }
-  else
-  if ( state -> getSpare () > 0 )
-  {
-    _ssgWriteInt ( fd, SSG_BACKWARDS_REFERENCE ) ;
-    _ssgWriteInt ( fd, state -> getSpare () ) ;
-  }
-  else
-  {
-    _ssgWriteInt ( fd, state->getType() ) ;
-
-    if ( ! state -> save ( fd ) )
-      return FALSE ;
-  }
+  if ( ! _ssgSaveObject ( fd, getState () ) )
+     return FALSE ;
 
   return ssgEntity::save(fd) ;
 }

@@ -1,3 +1,26 @@
+/*
+     PLIB - A Suite of Portable Game Libraries
+     Copyright (C) 2001  Steve Baker
+ 
+     This library is free software; you can redistribute it and/or
+     modify it under the terms of the GNU Library General Public
+     License as published by the Free Software Foundation; either
+     version 2 of the License, or (at your option) any later version.
+ 
+     This library is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+     Library General Public License for more details.
+ 
+     You should have received a copy of the GNU Library General Public
+     License along with this library; if not, write to the Free
+     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+ 
+     For further information visit http://plib.sourceforge.net
+
+     $Id: puObject.cxx,v 1.10 2001/06/19 02:42:18 sjbaker Exp $
+*/
+
 
 #include "puLocal.h"
 
@@ -14,7 +37,7 @@ static void load_colour_scheme ( float col[][4], float r, float g,
   puSetColour ( col [ PUCOL_HIGHLIGHT  ], clamp01(r*1.3f), clamp01(g*1.3f),
                                              clamp01(b*1.3f), a ) ;
 
-  if ( 4.0f * g + 3.0f * r + b > 0.5f )
+  if ( 4.0f * g + 3.0f * r + b > 4.0f )
     puSetColour ( col [ PUCOL_LEGEND ], 0.0f, 0.0f, 0.0f, a ) ;
   else
     puSetColour ( col [ PUCOL_LEGEND ], 1.0f, 1.0f, 1.0f, a ) ;
@@ -71,6 +94,7 @@ void puObject::setColourScheme ( float r, float g, float b, float a )
 puObject::puObject ( int minx, int miny, int maxx, int maxy ) : puValue ()
 {
   type |= PUCLASS_OBJECT ;
+
   bbox.min[0] = abox.min[0] = minx ;
   bbox.min[1] = abox.min[1] = miny ;
   bbox.max[0] = abox.max[0] = maxx ;
@@ -81,8 +105,11 @@ puObject::puObject ( int minx, int miny, int maxx, int maxy ) : puValue ()
   visible = active  = TRUE  ;
   highlighted       = FALSE ;
   am_default        = FALSE ;
+  window            = puGetWindow () ;
 
   cb          = NULL ;
+  active_cb   = NULL ;
+  down_cb     = NULL ;
   r_cb        = NULL ;
   render_data = NULL ;
   user_data   = NULL ;
@@ -92,6 +119,7 @@ puObject::puObject ( int minx, int miny, int maxx, int maxy ) : puValue ()
   labelFont   = defaultLabelFont  ;
   legend      = NULL ;
   legendFont  = defaultLegendFont ;
+  legendPlace = PUPLACE_CENTERED  ;
 
   for ( int i = 0 ; i < PUCOL_MAX ; i++ )
     puSetColour ( colour[i], _puDefaultColourTable[i] ) ;
@@ -110,6 +138,9 @@ puObject::~puObject ()
 {
   if ( parent != this && parent != NULL )
     parent -> remove ( this ) ;
+
+  if ( this == puActiveWidget () )
+    puDeactivateWidget () ;
 }
 
 void puObject::recalc_bbox ( void )
@@ -119,18 +150,37 @@ void puObject::recalc_bbox ( void )
   if ( label != NULL )
     switch ( labelPlace )
     {
-      case PUPLACE_ABOVE : bbox.max[1] += 
+      case PUPLACE_ABOVE         : bbox.max[1] += 
               puGetStringHeight    ( getLabelFont (), getLabel () ) +
               puGetStringDescender ( getLabelFont () ) +
               PUSTR_TGAP + PUSTR_BGAP ; break ;
-      case PUPLACE_BELOW : bbox.min[1] -=
+      case PUPLACE_TOP_CENTER    :  bbox.min[0] -=
+            ( puGetStringWidth  ( getLabelFont(), getLabel() ) - abox.max[0] + abox.min[0] ) / 2 ;
+                                    bbox.max[0] +=
+            ( puGetStringWidth  ( getLabelFont(), getLabel() ) - abox.max[0] + abox.min[0] ) / 2 ;
+                                    bbox.max[1] +=
+              puGetStringHeight    ( getLabelFont (), getLabel () ) +
+              puGetStringDescender ( getLabelFont () ) +
+              PUSTR_TGAP + PUSTR_BGAP ; break ;
+      case PUPLACE_BELOW         : bbox.min[1] -=
               puGetStringHeight ( getLabelFont() ) +
               puGetStringDescender ( getLabelFont () ) +
               PUSTR_TGAP + PUSTR_BGAP ; break ;
-      case PUPLACE_LEFT  : bbox.min[0] -=
+      default                    :
+      case PUPLACE_BOTTOM_CENTER :  bbox.min[0] -=
+            ( puGetStringWidth  ( getLabelFont(), getLabel() ) - abox.max[0] + abox.min[0] ) / 2 ;
+                                    bbox.max[0] +=
+            ( puGetStringWidth  ( getLabelFont(), getLabel() ) - abox.max[0] + abox.min[0] ) / 2 ;
+                                    bbox.min[1] -=
+              puGetStringHeight ( getLabelFont() ) +
+              puGetStringDescender ( getLabelFont () ) +
+              PUSTR_TGAP + PUSTR_BGAP ; break ;
+      case PUPLACE_LEFT_CENTER   :
+      case PUPLACE_LEFT          : bbox.min[0] -=
               puGetStringWidth  ( getLabelFont(), getLabel() ) +
               PUSTR_LGAP + PUSTR_RGAP ; break ;
-      case PUPLACE_RIGHT : bbox.max[0] +=
+      case PUPLACE_RIGHT_CENTER  :
+      case PUPLACE_RIGHT         : bbox.max[0] +=
               puGetStringWidth  ( getLabelFont(), getLabel() ) +
               PUSTR_LGAP + PUSTR_RGAP ; break ;
     }
@@ -155,10 +205,15 @@ void puObject::draw_label ( int dx, int dy )
 
   switch ( labelPlace )
   {
-    case PUPLACE_ABOVE : puDrawString ( labelFont, label, dx + abox.min[0] + PUSTR_LGAP, dy + abox.max[1] + puGetStringDescender(labelFont) + PUSTR_BGAP ) ; break ;
-    case PUPLACE_BELOW : puDrawString ( labelFont, label, dx + abox.min[0] + PUSTR_LGAP, dy + bbox.min[1] + puGetStringDescender(labelFont) + PUSTR_BGAP ) ; break ;
-    case PUPLACE_LEFT  : puDrawString ( labelFont, label, dx + bbox.min[0] + PUSTR_LGAP, dy + abox.min[1] + puGetStringDescender(labelFont) + PUSTR_BGAP ) ; break ;
-    case PUPLACE_RIGHT : puDrawString ( labelFont, label, dx + abox.max[0] + PUSTR_LGAP, dy + abox.min[1] + puGetStringDescender(labelFont) + PUSTR_BGAP ) ; break ;
+    case PUPLACE_ABOVE         : puDrawString ( labelFont, label, dx + abox.min[0] + PUSTR_LGAP, dy + abox.max[1] + puGetStringDescender(labelFont) + PUSTR_BGAP ) ; break ;
+    default                    :
+    case PUPLACE_BELOW         : puDrawString ( labelFont, label, dx + abox.min[0] + PUSTR_LGAP, dy + bbox.min[1] + puGetStringDescender(labelFont) + PUSTR_BGAP ) ; break ;
+    case PUPLACE_LEFT          : puDrawString ( labelFont, label, dx + bbox.min[0] + PUSTR_LGAP, dy + abox.min[1] + puGetStringDescender(labelFont) + PUSTR_BGAP ) ; break ;
+    case PUPLACE_RIGHT         : puDrawString ( labelFont, label, dx + abox.max[0] + PUSTR_LGAP, dy + abox.min[1] + puGetStringDescender(labelFont) + PUSTR_BGAP ) ; break ;
+    case PUPLACE_TOP_CENTER    : puDrawString ( labelFont, label, dx + bbox.min[0] + PUSTR_LGAP, dy + abox.max[1] + puGetStringDescender(labelFont) + PUSTR_BGAP ) ; break ;
+    case PUPLACE_BOTTOM_CENTER : puDrawString ( labelFont, label, dx + bbox.min[0] + PUSTR_LGAP, dy + bbox.min[1] + puGetStringDescender(labelFont) + PUSTR_BGAP ) ; break ;
+    case PUPLACE_LEFT_CENTER   : puDrawString ( labelFont, label, dx + bbox.min[0] + PUSTR_LGAP, dy + ( abox.max[1] + abox.min[1] - puGetStringHeight(labelFont) ) / 2 ) ; break ;
+    case PUPLACE_RIGHT_CENTER  : puDrawString ( labelFont, label, dx + abox.max[0] + PUSTR_LGAP, dy + ( abox.max[1] + abox.min[1] - puGetStringHeight(labelFont) ) / 2 ) ; break ;
   }
 }
 
@@ -168,8 +223,14 @@ int puObject::checkKey ( int key, int updown )
   if ( updown == PU_UP )
     return FALSE ;
 
-  if ( isReturnDefault() && ( key == '\r' || key == '\n' ) )
+  if ( isReturnDefault() && ( key == '\r' || key == '\n' ) && ( window == puGetWindow () ) )
   {
+    if ( puActiveWidget() && ( this != puActiveWidget() ) )
+    {
+      puActiveWidget() -> invokeDownCallback () ;
+      puDeactivateWidget () ;
+    }
+
     checkHit ( PU_LEFT_BUTTON, PU_DOWN, (abox.min[0]+abox.max[0])/2,
                                         (abox.min[1]+abox.max[1])/2 ) ;
     checkHit ( PU_LEFT_BUTTON, PU_UP  , (abox.min[0]+abox.max[0])/2,
@@ -181,13 +242,23 @@ int puObject::checkKey ( int key, int updown )
 }
 
 
-void puObject::doHit ( int button, int updown, int /* x */, int /* y */ )
+void puObject::doHit ( int button, int updown, int x, int y )
 {
+  if ( puActiveWidget() && ( this != puActiveWidget() ) )
+  {
+    puActiveWidget() -> invokeDownCallback () ;
+    puDeactivateWidget () ;
+  }
+
+  if ( updown != PU_DRAG )
+    puMoveToLast ( this );
+
   if ( button == PU_LEFT_BUTTON )
   {
     if ( updown == active_mouse_edge || active_mouse_edge == PU_UP_AND_DOWN )
     {
       lowlight () ;
+      puSetActiveWidget ( this, x, y ) ;
       invokeCallback () ;
     }
     else
@@ -210,27 +281,3 @@ int puObject::checkHit ( int button, int updown, int x, int y )
 }
 
  
-char *puValue::getTypeString ( void )
-{
-  int i = getType () ;
-
-  if ( i & PUCLASS_DIALOGBOX   ) return "puDialogBox" ;
-  if ( i & PUCLASS_SLIDER      ) return "puSlider" ;
-  if ( i & PUCLASS_BUTTONBOX   ) return "puButtonBox" ;
-  if ( i & PUCLASS_INPUT       ) return "puInput" ;
-  if ( i & PUCLASS_MENUBAR     ) return "puMenuBar" ;
-  if ( i & PUCLASS_POPUPMENU   ) return "puPopupMenu" ;
-  if ( i & PUCLASS_POPUP       ) return "puPopup" ;
-  if ( i & PUCLASS_ONESHOT     ) return "puOneShot" ;
-  if ( i & PUCLASS_BUTTON      ) return "puButton" ;
-  if ( i & PUCLASS_TEXT        ) return "puText" ;
-  if ( i & PUCLASS_FRAME       ) return "puFrame" ;
-  if ( i & PUCLASS_GROUP       ) return "puGroup" ;
-  if ( i & PUCLASS_INTERFACE   ) return "puInterface" ;
-  if ( i & PUCLASS_OBJECT      ) return "puObject" ;
-  if ( i & PUCLASS_VALUE       ) return "puValue" ;
-
-  return "Unknown Object type." ;
-}
-
-

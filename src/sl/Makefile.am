@@ -10,8 +10,10 @@ libplibsl_a_SOURCES = \
 
 libplibsm_a_SOURCES = slPortability.h smMixer.cxx
 
+INCLUDES += -I$(top_srcdir)/src/util
+
 EXTRA_DIST = Makefile.msc README.freebsd README.linux \
 	README.openbsd README.sgi README.unix README.win \
-        sl.dsp
+        sl.dsp libsm.bpr libsl.bpr
 
 

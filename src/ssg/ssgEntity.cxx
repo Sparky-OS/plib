@@ -1,38 +1,59 @@
+/*
+     PLIB - A Suite of Portable Game Libraries
+     Copyright (C) 2001  Steve Baker
+ 
+     This library is free software; you can redistribute it and/or
+     modify it under the terms of the GNU Library General Public
+     License as published by the Free Software Foundation; either
+     version 2 of the License, or (at your option) any later version.
+ 
+     This library is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+     Library General Public License for more details.
+ 
+     You should have received a copy of the GNU Library General Public
+     License along with this library; if not, write to the Free
+     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+ 
+     For further information visit http://plib.sourceforge.net
+
+     $Id: ssgEntity.cxx,v 1.17 2001/06/16 16:27:37 stromberg Exp $
+*/
+
 
 #include "ssgLocal.h" 
 
+void ssgEntity::copy_from ( ssgEntity *src, int clone_flags )
+{
+  ssgBase::copy_from ( src, clone_flags ) ;
+
+  traversal_mask = src -> getTraversalMask () ;
+
+  dirtyBSphere () ;
+}
+
+
 ssgEntity::ssgEntity (void)
 {
-  user_data = NULL ;
   traversal_mask = 0xFFFFFFFF ;
-  name  = NULL ;
-  type |= SSG_TYPE_ENTITY ;
+  type = ssgTypeEntity () ;
+  bsphere_is_invalid = TRUE ;
+
+  preTravCB = NULL ;
+  postTravCB = NULL ;
 }
 
 
 ssgEntity::~ssgEntity (void)
 {
-  delete name ;
-  ssgDeRefDelete ( user_data ) ;
-}
-
-
-void ssgEntity::setName ( char *nm )
-{
-  delete name ;
-
-  if ( nm == NULL )
-    name = NULL ;
-  else
-  {
-    name = new char [ strlen ( nm ) + 1 ] ;
-    strcpy ( name, nm ) ;
-  }
 }
 
 
 void ssgEntity::dirtyBSphere ()
 {
+  if ( bsphere_is_invalid ) return ;
+
   bsphere_is_invalid = TRUE ;
 
   int np = getNumParents () ; 
@@ -47,13 +68,16 @@ void ssgEntity::visualiseBSphere ()
     return ;
 
   glDisable ( GL_LIGHTING ) ;
-  glTranslatef(bsphere.getCenter()[0],bsphere.getCenter()[1],bsphere.getCenter()[2]);
 
+  glTranslatef ( bsphere.getCenter()[0],
+                 bsphere.getCenter()[1],
+                 bsphere.getCenter()[2] ) ;
+
+#ifdef USE_GLUT_SPHERES
   int spherebotch = (int)(this) % 9 ;
 
   switch ( spherebotch++ )
   {
-#ifdef USE_GLUT_SPHERES
     case 0 : glutWireSphere(bsphere.getRadius(),10,10); break ;
     case 1 : glutWireSphere(bsphere.getRadius(),11,10); break ;
     case 2 : glutWireSphere(bsphere.getRadius(),12,10); break ;
@@ -62,20 +86,24 @@ void ssgEntity::visualiseBSphere ()
     case 5 : glutWireSphere(bsphere.getRadius(),12,11); break ;
     case 6 : glutWireSphere(bsphere.getRadius(),10,12); break ;
     case 7 : glutWireSphere(bsphere.getRadius(),11,12); break ;
-    case 8 : glutWireSphere(bsphere.getRadius(),12,12); spherebotch = 0 ; break ;
-#else
-#endif
+    case 8 : glutWireSphere(bsphere.getRadius(),12,12); spherebotch=0 ; break ;
   }
-  glTranslatef(-bsphere.getCenter()[0],-bsphere.getCenter()[1],-bsphere.getCenter()[2]);
+#endif
+
+  glTranslatef ( -bsphere.getCenter()[0],
+                 -bsphere.getCenter()[1],
+                 -bsphere.getCenter()[2] ) ;
+
   glEnable ( GL_LIGHTING ) ;
 }
 
-void ssgEntity::print ( FILE *fd, char *indent )
-{
-  ssgBase::print ( fd, indent ) ;
 
-  fprintf ( fd, "%s  Name = \"%s\"\n", indent, getPrintableName() ) ;
-  fprintf ( fd, "%s  Num Parents=%d\n", indent, parents . getNumEntities () ) ;
+void ssgEntity::print ( FILE *fd, char *indent, int how_much )
+{
+  ssgBase::print ( fd, indent, how_much ) ;
+
+	if ( how_much > 1 )
+		fprintf ( fd, "%s  Num Parents=%d\n", indent, parents . getNumEntities () ) ;
 }
 
 
@@ -115,11 +143,70 @@ ssgEntity* ssgEntity::getByPath ( char *path )
 }
   
 
+ssgCallback ssgEntity::getCallback ( int cb_type )
+{
+  if ( isAKindOf ( ssgTypeLeaf() ) )
+    return ((ssgLeaf*)this) -> getCallback ( cb_type ) ;
+
+  /*
+   *  Because of transparency sorting, having a pre/post draw callback
+   *  doesn't make sense for anything but a leaf.
+   */
+
+  ulSetError ( UL_WARNING, "getCallback() ignored for non-leaf entity");
+ 
+  return NULL ;
+}
+
+
+void ssgEntity::setCallback ( int cb_type, ssgCallback cb )
+{
+  if ( isAKindOf ( ssgTypeLeaf() ) )
+  {
+    ((ssgLeaf*)this) -> setCallback ( cb_type, cb ) ;
+  }
+  else
+  {
+    /*
+     *  Because of transparency sorting, having a pre/post draw callback
+     *  doesn't make sense for anything but a leaf.
+     */
+
+    ulSetError ( UL_WARNING, "setCallback() ignored for non-leaf entity");
+  }
+}
+
+
+int ssgEntity::preTravTests ( int *test_needed, int which )
+{
+  if ( (getTraversalMask() & which) == 0 )
+  {
+    if ( which & SSGTRAV_HOT )
+      stats_hot_no_trav ++ ;
+    return FALSE ;
+  }
+
+  if ( preTravCB != NULL )
+  {
+    int result = (*preTravCB)(this,which) ;
+    
+    if ( result == 0 ) return FALSE ;
+    if ( result == 2 ) *test_needed = 0 ;
+  }
+  
+  return TRUE ;
+}
+
+
+void ssgEntity::postTravTests ( int which )
+{
+  if ( postTravCB != NULL )
+    (*postTravCB)(this,which) ;
+}
+
+
 ssgCullResult ssgEntity::cull_test ( sgFrustum *f, sgMat4 m, int test_needed )
 {
-  if ( (getTraversalMask() & SSGTRAV_CULL) == 0 )
-    return SSG_OUTSIDE ;
-
   if ( ! test_needed )
     return SSG_INSIDE ;
 
@@ -131,7 +218,7 @@ ssgCullResult ssgEntity::cull_test ( sgFrustum *f, sgMat4 m, int test_needed )
 
   tmp . orthoXform ( m ) ;
 
-  if ( _ssgOrthographic )
+  if ( _ssgCurrentContext->isOrtho() )
     return SSG_STRADDLE ;   /* XXX Fix Me!! XXX */
   else
     return (ssgCullResult) f -> contains ( &tmp ) ;
@@ -140,9 +227,6 @@ ssgCullResult ssgEntity::cull_test ( sgFrustum *f, sgMat4 m, int test_needed )
 
 ssgCullResult ssgEntity::isect_test ( sgSphere *s, sgMat4 m, int test_needed )
 {
-  if ( (getTraversalMask() & SSGTRAV_ISECT) == 0 )
-    return SSG_OUTSIDE ;
-
   if ( ! test_needed )
     return SSG_INSIDE ;
 
@@ -161,9 +245,9 @@ ssgCullResult ssgEntity::isect_test ( sgSphere *s, sgMat4 m, int test_needed )
 
   sgSubVec3 ( center_vec, s->getCenter(), tmp.getCenter() ) ;
 
-  if ( center_vec[0] > sum_radii ||
-       center_vec[1] > sum_radii ||
-       center_vec[2] > sum_radii )
+  if ( sgAbs(center_vec[0]) > sum_radii ||
+       sgAbs(center_vec[1]) > sum_radii ||
+       sgAbs(center_vec[2]) > sum_radii )
     return SSG_OUTSIDE ;
 
   float separation_sqd = sgScalarProductVec3 ( center_vec, center_vec ) ;
@@ -226,12 +310,6 @@ stats_hot_triv_accept++ ;
     return SSG_INSIDE ;
 }
    
-  if ((getTraversalMask() & SSGTRAV_HOT) == 0 )
-{
-stats_hot_no_trav++ ;
-    return SSG_OUTSIDE ;
-}
-
   sgSphere tmp = *(getBSphere()) ;
 
   if ( tmp.isEmpty () )
@@ -255,18 +333,15 @@ stats_hot_straddle++ ;
 
 int ssgEntity::load ( FILE *fd )
 {
-  delete name ;
-  name = NULL ;
   bsphere_is_invalid = TRUE ;
-
-  _ssgReadString ( fd, &name ) ;
   _ssgReadInt    ( fd, &traversal_mask ) ;
   return ssgBase::load(fd) ;
 }
 
+
+
 int ssgEntity::save ( FILE *fd )
 {
-  _ssgWriteString ( fd, name ) ;
   _ssgWriteInt    ( fd, traversal_mask ) ;
   return ssgBase::save(fd) ;
 }

@@ -1,11 +1,76 @@
+/*
+     PLIB - A Suite of Portable Game Libraries
+     Copyright (C) 2001  Steve Baker
+ 
+     This library is free software; you can redistribute it and/or
+     modify it under the terms of the GNU Library General Public
+     License as published by the Free Software Foundation; either
+     version 2 of the License, or (at your option) any later version.
+ 
+     This library is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+     Library General Public License for more details.
+ 
+     You should have received a copy of the GNU Library General Public
+     License along with this library; if not, write to the Free
+     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+ 
+     For further information visit http://plib.sourceforge.net
+
+     $Id: ssgVtxTable.cxx,v 1.18 2001/06/16 16:27:37 stromberg Exp $
+*/
+
 
 #include "ssgLocal.h"
 
 #define HL_DELTA 0.04f
 
+void ssgVtxTable::copy_from ( ssgVtxTable *src, int clone_flags )
+{
+  ssgLeaf::copy_from ( src, clone_flags ) ;
+
+  gltype = src -> getPrimitiveType () ;
+
+  if ( src->vertices != NULL && ( clone_flags & SSG_CLONE_GEOMETRY ) )
+    vertices = (ssgVertexArray *)( src -> vertices -> clone ( clone_flags )) ;
+  else
+    vertices = src -> vertices ;
+
+  if ( src->normals != NULL && ( clone_flags & SSG_CLONE_GEOMETRY ) )
+    normals = (ssgNormalArray *)( src -> normals -> clone ( clone_flags )) ;
+  else
+    normals = src -> normals ;
+
+  if ( src->texcoords != NULL && ( clone_flags & SSG_CLONE_GEOMETRY ) )
+    texcoords = (ssgTexCoordArray *)( src -> texcoords -> clone ( clone_flags )) ;
+  else
+    texcoords = src -> texcoords ;
+
+  if ( src->colours != NULL && ( clone_flags & SSG_CLONE_GEOMETRY ) )
+    colours = (ssgColourArray *)( src -> colours -> clone ( clone_flags )) ;
+  else
+    colours = src -> colours ;
+
+  if ( vertices  != NULL ) vertices  -> ref () ;
+  if ( normals   != NULL ) normals   -> ref () ;
+  if ( texcoords != NULL ) texcoords -> ref () ;
+  if ( colours   != NULL ) colours   -> ref () ;
+
+  recalcBSphere () ;
+}
+
+ssgBase *ssgVtxTable::clone ( int clone_flags )
+{
+  ssgVtxTable *b = new ssgVtxTable ;
+  b -> copy_from ( this, clone_flags ) ;
+  return b ;
+}
+
+
 ssgVtxTable::ssgVtxTable ()
 {
-  type |= SSG_TYPE_VTXTABLE ;
+  type = ssgTypeVtxTable () ;
   gltype = GL_POINTS ;
   vertices  = NULL ;
   normals   = NULL ;
@@ -21,7 +86,7 @@ ssgVtxTable::ssgVtxTable ( GLenum ty,
                 ssgColourArray   *cl )
 {
   gltype = ty ;
-  type |= SSG_TYPE_VTXTABLE ;
+  type = ssgTypeVtxTable () ;
 
   vertices  = (vl!=NULL) ? vl : new ssgVertexArray   () ;
   normals   = (nl!=NULL) ? nl : new ssgNormalArray   () ;
@@ -36,6 +101,43 @@ ssgVtxTable::ssgVtxTable ( GLenum ty,
   recalcBSphere () ;
 }
 
+void ssgVtxTable::setVertices ( ssgVertexArray *vl )
+{
+  ssgDeRefDelete ( vertices ) ;
+  vertices = vl ;
+
+  if ( vertices != NULL )
+    vertices -> ref () ;
+
+  recalcBSphere () ;
+}
+
+void ssgVtxTable::setNormals ( ssgNormalArray *nl )
+{
+  ssgDeRefDelete ( normals ) ;
+  normals = nl ;
+
+  if ( normals != NULL )
+    normals -> ref () ;
+}
+
+void ssgVtxTable::setTexCoords ( ssgTexCoordArray *tl )
+{
+  ssgDeRefDelete ( texcoords ) ;
+  texcoords = tl ;
+
+  if ( texcoords != NULL )
+    texcoords -> ref () ;
+}
+
+void ssgVtxTable::setColours ( ssgColourArray *cl )
+{
+  ssgDeRefDelete ( colours ) ;
+  colours = cl ;
+
+  if ( colours != NULL )
+    colours -> ref () ;
+}
 
 ssgVtxTable::~ssgVtxTable ()
 {
@@ -48,7 +150,7 @@ ssgVtxTable::~ssgVtxTable ()
 
 void ssgVtxTable::getTriangle ( int n, short *v1, short *v2, short *v3 )
 {
-  switch ( getGLtype () )
+  switch ( getPrimitiveType () )
   {
     case GL_POLYGON :
     case GL_TRIANGLE_FAN :
@@ -92,7 +194,7 @@ void ssgVtxTable::getTriangle ( int n, short *v1, short *v2, short *v3 )
 
 int ssgVtxTable::getNumTriangles ()
 {
-  switch ( getGLtype () )
+  switch ( getPrimitiveType () )
   {
     case GL_POLYGON :
     case GL_TRIANGLE_FAN :
@@ -109,15 +211,82 @@ int ssgVtxTable::getNumTriangles ()
 
     case GL_QUAD_STRIP :
       return ( ( getNumVertices() - 2 ) / 2 ) * 2 ;
-
     default : break ;
   }
 
-  return 0 ;   /* Should never get here...but you never know! */
+  return 0 ;   /* Should never get here...but you never know! 
+	                wk: Yes it does, for GL_POINTS      
+										GL_LINES       
+										GL_LINE_LOOP   
+										GL_LINE_STRIP  
+										*/
 }
 
+int ssgVtxTable::getNumLines ()
+{
+  switch ( getPrimitiveType () )
+  {
+    case GL_POLYGON :
+    case GL_TRIANGLE_FAN :
+    case GL_TRIANGLES :
+    case GL_TRIANGLE_STRIP :
+    case GL_QUADS :
+    case GL_QUAD_STRIP :
+    case GL_POINTS :
+      return 0;
+		case GL_LINES :   
+			// wk: FIXME: check the 3 following formulas. I don't have an OpenGL bokk at hand currently :-(
+			return getNumVertices()/2;
+    case GL_LINE_LOOP :
+    	return getNumVertices();
+    case GL_LINE_STRIP :
+    	return getNumVertices()-1;
+    default : break ;
+  }
+  assert(false); /* Should never get here  */
+  return 0 ;   
+}
 
-void ssgVtxTable::transform ( sgMat4 m )
+void ssgVtxTable::getLine ( int n, short *v1, short *v2 )
+{ 
+	assert( n>=0 );
+  switch ( getPrimitiveType () )
+  {
+    case GL_POLYGON :
+    case GL_TRIANGLE_FAN :
+    case GL_TRIANGLES :
+    case GL_TRIANGLE_STRIP :
+    case GL_QUADS :
+    case GL_QUAD_STRIP :
+    case GL_POINTS :
+      assert(false);
+		case GL_LINES :   
+			// wk: FIXME: check the 3 following formulas. I don't have an OpenGL bokk at hand currently :-(
+			assert ( 2*n+1 < getNumVertices() );
+			*v1 = 2*n;
+			*v2 = 2*n+1 ;
+			return ;
+    case GL_LINE_LOOP :
+			assert ( n < getNumVertices() );
+			*v1 = n;
+			if ( n == getNumVertices()-1 )
+			  *v2 = 0;
+			else
+				*v2 = n+1;
+			return ;
+    case GL_LINE_STRIP :
+    	assert ( n < getNumVertices()-1 );
+			*v1 = n;
+			*v2 = n+1;
+			return;
+    default :
+			break ;
+  }
+  assert(false); /* Should never get here  */
+  return ;   
+}
+
+void ssgVtxTable::transform ( const sgMat4 m )
 {
   int i ;
 
@@ -125,7 +294,7 @@ void ssgVtxTable::transform ( sgMat4 m )
     sgXformPnt3 ( vertices->get(i), vertices->get(i), m ) ;
 
   for ( i = 0 ; i < getNumNormals() ; i++ )
-    sgXformPnt3 ( normals->get(i), normals->get(i), m ) ;
+    sgXformVec3 ( normals->get(i), normals->get(i), m ) ;
 
   recalcBSphere () ;
 }
@@ -213,9 +382,11 @@ void ssgVtxTable::draw ()
   stats_num_leaves++ ;
   stats_num_vertices += getNumVertices() ;
 
+#ifdef _SSG_USE_DLIST
   if ( dlist )
     glCallList ( dlist ) ;
   else
+#endif
     draw_geometry () ;
 
   if ( postDrawCB != NULL )
@@ -355,10 +526,10 @@ void ssgVtxTable::hot_triangles ( sgVec3 s, sgMat4 m, int /* test_needed */ )
     float ep2 = vv2[0] * vv3[1] - vv2[1] * vv3[0] ;
     float ep3 = vv3[0] * vv1[1] - vv3[1] * vv1[0] ;
 
-    float ap = fabs ( ep1 + ep2 + ep3 ) ;
-    float ai = fabs ( e1 + ep1 - e2 ) +
-               fabs ( e2 + ep2 - e3 ) +
-               fabs ( e3 + ep3 - e1 ) ;
+    float ap = (float) fabs ( ep1 + ep2 + ep3 ) ;
+    float ai = (float) ( fabs ( e1 + ep1 - e2 ) +
+                         fabs ( e2 + ep2 - e3 ) +
+                         fabs ( e3 + ep3 - e1 ) ) ;
 
     if ( ai > ap * 1.01 )
       continue ;
@@ -394,7 +565,7 @@ void ssgVtxTable::isect_triangles ( sgSphere *s, sgMat4 m, int test_needed )
       continue ;
     }
 
-    float dp = fabs ( sgDistToPlaneVec3 ( plane, s->getCenter() ) ) ;
+    float dp = (float) fabs ( sgDistToPlaneVec3 ( plane, s->getCenter() ) ) ;
 
     if ( dp > s->getRadius() )
       continue ;
@@ -481,13 +652,21 @@ void ssgVtxTable::isect_triangles ( sgSphere *s, sgMat4 m, int test_needed )
 }
 
 
-void ssgVtxTable::print ( FILE *fd, char *indent )
+void ssgVtxTable::print ( FILE *fd, char *indent, int how_much )
 {
-  ssgLeaf  ::print ( fd, indent ) ;
-  vertices ->print ( fd, indent ) ;
-  normals  ->print ( fd, indent ) ;
-  texcoords->print ( fd, indent ) ;
-  colours  ->print ( fd, indent ) ;
+  char in [ 100 ] ;
+
+  if ( how_much == 0 ) 
+    return ;
+  
+  sprintf ( in, "%s  ", indent );
+	
+  ssgLeaf  ::print ( fd, indent, how_much ) ;
+		
+  vertices  -> print ( fd, in, how_much ) ;
+  normals   -> print ( fd, in, how_much ) ;
+  texcoords -> print ( fd, in, how_much ) ;
+  colours   -> print ( fd, in, how_much ) ;
 }
 
 
@@ -503,20 +682,17 @@ int ssgVtxTable::load ( FILE *fd )
   if ( ! ssgLeaf::load(fd) )
     return FALSE ;
 
-  vertices  = new ssgVertexArray   () ;
-  normals   = new ssgNormalArray   () ;
-  texcoords = new ssgTexCoordArray () ;
-  colours   = new ssgColourArray   () ;
-
-  if ( ! vertices  -> load ( fd ) ||
-       ! normals   -> load ( fd ) ||
-       ! texcoords -> load ( fd ) ||
-       ! colours   -> load ( fd ) )
-  {
-    fprintf ( stderr, "loadSSG: Failed to read vertex array.\n" ) ;
+  if ( ! _ssgLoadObject ( fd, (ssgBase **)&vertices,  ssgTypeVertexArray ()   ) ||
+       ! _ssgLoadObject ( fd, (ssgBase **)&normals,   ssgTypeNormalArray ()   ) ||
+       ! _ssgLoadObject ( fd, (ssgBase **)&texcoords, ssgTypeTexCoordArray () ) ||
+       ! _ssgLoadObject ( fd, (ssgBase **)&colours,   ssgTypeColourArray ()   ) )
     return FALSE ;
-  }
 
+  if ( vertices  != NULL ) vertices  -> ref () ;
+  if ( normals   != NULL ) normals   -> ref () ;
+  if ( texcoords != NULL ) texcoords -> ref () ;
+  if ( colours   != NULL ) colours   -> ref () ;
+     
   return TRUE ;
 }
 
@@ -527,19 +703,14 @@ int ssgVtxTable::save ( FILE *fd )
   _ssgWriteVec3  ( fd, bbox.getMax() ) ;
   _ssgWriteInt   ( fd, (int) gltype ) ;
 
-  ssgLeaf::save(fd) ;
-
-  if ( ! vertices  -> save ( fd ) ||
-       ! normals   -> save ( fd ) ||
-       ! texcoords -> save ( fd ) ||
-       ! colours   -> save ( fd ) )
-  {
-    fprintf ( stderr, "saveSSG: Failed to write vertex array\n" ) ;
+  if ( ! ssgLeaf::save(fd) )
     return FALSE ;
-  }
+
+  if ( ! _ssgSaveObject ( fd, vertices  ) ||
+       ! _ssgSaveObject ( fd, normals   ) ||
+       ! _ssgSaveObject ( fd, texcoords ) ||
+       ! _ssgSaveObject ( fd, colours   ) )
+    return FALSE ;
 
   return TRUE ;
 }
-
-
-

@@ -1,3 +1,26 @@
+/*
+     PLIB - A Suite of Portable Game Libraries
+     Copyright (C) 2001  Steve Baker
+ 
+     This library is free software; you can redistribute it and/or
+     modify it under the terms of the GNU Library General Public
+     License as published by the Free Software Foundation; either
+     version 2 of the License, or (at your option) any later version.
+ 
+     This library is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+     Library General Public License for more details.
+ 
+     You should have received a copy of the GNU Library General Public
+     License along with this library; if not, write to the Free
+     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+ 
+     For further information visit http://plib.sourceforge.net
+
+     $Id: slMODinst.cxx,v 1.5 2001/04/12 03:37:36 deca Exp $
+*/
+
 
 #include "slMODPrivate.h"
 
@@ -139,7 +162,7 @@ static void hirevLoop80 ( unsigned int n )
   ihi.wAcc = ihiWAcc ;
 }
 
-#define hirevLoop(x)  { if ( ihi.xor )  hirevLoop80(x) ; else hirevLoop0(x) ; }
+#define hirevLoop(x)  { if ( ihi.x_or )  hirevLoop80(x) ; else hirevLoop0(x) ; }
 
   
 void _MOD_instHirevLoop ( InstHirevInfo *ihip ) 
@@ -190,9 +213,9 @@ void _MOD_instHirevLoop ( InstHirevInfo *ihip )
 
     if ( l8 <= 0 ) 
     {
-      fprintf ( stderr, "bug: restF=%u\n",restF ) ;
-      fprintf ( stderr, "end-ptr=%d w=%u\n",ihi.end-ihi.ptr,ihi.w ) ;
-      fprintf ( stderr, "wAcc = %u\n",ihi.wAcc ) ;
+      ulSetError ( UL_WARNING, "bug: restF=%u",restF ) ;
+      ulSetError ( UL_WARNING, "end-ptr=%d w=%u",ihi.end-ihi.ptr,ihi.w ) ;
+      ulSetError ( UL_WARNING, "wAcc = %u",ihi.wAcc ) ;
     }
 
     l0 = ihi.w - 1 - ihi.wAcc ;
@@ -204,22 +227,23 @@ void _MOD_instHirevLoop ( InstHirevInfo *ihip )
     { /* sample is longer than frame */
 
       hirevLoop ( restF ) ;
-      lastD = ( signed char ) ( * ( ihi.ptr - ( ihi.wAcc >> 16 ) )  ^ ihi.xor ) ;
+      lastD = ( signed char ) ( * ( ihi.ptr - ( ihi.wAcc >> 16 ) )  ^ ihi.x_or ) ;
 
       break ;
     }
 
     /* restF >= restS */
     hirevLoop ( restS ) ;
-    lastD = ( signed char ) ( * ( ihi.ptr - ( ihi.wAcc >> 16 ) )  ^ ihi.xor ) ;
+    lastD = ( signed char ) ( * ( ihi.ptr - ( ihi.wAcc >> 16 ) )  ^ ihi.x_or ) ;
 
     if ( ihi.ptr < ihi.end || ihi.end <= ihi.ptr - ( ihi.wAcc >> 16 ) ) 
     {
-      fprintf ( stderr, "bug: restS = %u restF=%u end-ptr = %d, ptr=%u\n",
-          restS, restF, ihi.end-ihi.ptr, ( unsigned int ) ihi.ptr ) ;
-      fprintf ( stderr, "last ptr=%u\n",
-          ( unsigned int ) ( ihi.ptr - ( ihi.wAcc >> 16 ) ) ) ;
-      exit ( 1 ) ;
+      ulSetError ( UL_FATAL, "SL: Internal Error in _MOD_instHirevLoop." ) ;
+/*
+      ulSetError ( UL_DEBUG, "bug: restS = %u restF=%u end-ptr = %d, ptr=%p",
+          restS, restF, ihi.end-ihi.ptr, ihi.ptr ) ;
+      ulSetError ( UL_DEBUG, "last ptr=%p", ( ihi.ptr - ( ihi.wAcc >> 16 ) ) ) ;
+*/
     }
 
     restF -= restS ;
@@ -451,8 +475,7 @@ static void addPerFrameWork(void (*f)(void))
 {
   if (instp->pfw.n >= PFW_MAX)
   {
-    fprintf(stderr, "Too many PFWs\n");
-    exit(1);
+    ulSetError ( UL_FATAL, "Too many PFWs");
   }
 
   instp->pfw.func[instp->pfw.n++] = f;
@@ -509,7 +532,7 @@ static void setPeriod(void)
     instp->smp.sip       = instp->smp.newSip       ;
     instp->hirev.end     = instp->smp.sip->end     ;
     instp->hirev.loopBeg = instp->smp.sip->loopBeg ;
-    instp->hirev.xor     = instp->smp.sip->xor     ;
+    instp->hirev.x_or    = instp->smp.sip->x_or    ;
   }
 
   instp->per.note = instp->per.delay.newNote;

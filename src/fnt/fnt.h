@@ -1,15 +1,31 @@
+/*
+     PLIB - A Suite of Portable Game Libraries
+     Copyright (C) 2001  Steve Baker
+ 
+     This library is free software; you can redistribute it and/or
+     modify it under the terms of the GNU Library General Public
+     License as published by the Free Software Foundation; either
+     version 2 of the License, or (at your option) any later version.
+ 
+     This library is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+     Library General Public License for more details.
+ 
+     You should have received a copy of the GNU Library General Public
+     License along with this library; if not, write to the Free
+     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+ 
+     For further information visit http://plib.sourceforge.net
+
+     $Id: fnt.h,v 1.4 2001/04/09 00:24:07 deca Exp $
+*/
+
 
 #ifndef _FNT_H_
 #define _FNT_H_  1
 
-#ifdef WIN32
-#include <windows.h>
-#endif
-
-#include <assert.h>
 #include "sg.h"
-#include <GL/gl.h>
-#include <GL/glu.h>
 
 #define FNTMAX_CHAR  256
 #define FNT_TRUE  1
@@ -23,27 +39,27 @@ public:
 
   virtual ~fntFont () ;
 
-  virtual void getBBox ( char *s, float pointsize, float italic,
+  virtual void getBBox ( const char *s, float pointsize, float italic,
                                   float *left, float *right,
                                   float *bot , float *top  ) = 0 ;
   virtual void putch ( sgVec3 curpos, float pointsize, float italic, char  c ) = 0 ;
-  virtual void puts  ( sgVec3 curpos, float pointsize, float italic, char *s ) = 0 ;
+  virtual void puts  ( sgVec3 curpos, float pointsize, float italic, const char *s ) = 0 ;
   virtual void begin () = 0 ;
   virtual void end   () = 0 ;
 
-  virtual int load ( char *fname, GLenum mag = GL_NEAREST, 
+  virtual int load ( const char *fname, GLenum mag = GL_NEAREST, 
                                   GLenum min = GL_LINEAR_MIPMAP_LINEAR ) = 0 ;
 
   virtual void setFixedPitch ( int fix ) = 0 ;
-  virtual int   isFixedPitch ()          = 0 ;
+  virtual int   isFixedPitch () const    = 0 ;
 
   virtual void  setWidth     ( float w ) = 0 ;
   virtual void  setGap       ( float g ) = 0 ;
 
-  virtual float getWidth     () = 0 ;
-  virtual float getGap       () = 0 ;
+  virtual float getWidth     () const    = 0 ;
+  virtual float getGap       () const    = 0 ;
 
-  virtual int   hasGlyph ( char c ) = 0 ;
+  virtual int hasGlyph ( char c ) = 0 ;
 } ;
 
 
@@ -101,7 +117,7 @@ private:
 
   float low_putch ( sgVec3 curpos, float pointsize, float italic, char c ) ;
 
-  int loadTXF ( char *fname, GLenum mag = GL_NEAREST,
+  int loadTXF ( const char *fname, GLenum mag = GL_NEAREST,
                              GLenum min = GL_LINEAR_MIPMAP_LINEAR ) ;
 public:
 
@@ -116,7 +132,7 @@ public:
     memset ( exists, FNT_FALSE, FNTMAX_CHAR * sizeof(int) ) ;
   }
 
-  fntTexFont ( char *fname, GLenum mag = GL_NEAREST, 
+  fntTexFont ( const char *fname, GLenum mag = GL_NEAREST, 
                             GLenum min = GL_LINEAR_MIPMAP_LINEAR ) : fntFont ()
   {
     bound       = FNT_FALSE ;
@@ -142,17 +158,17 @@ public:
     }
   }
 
-  int load ( char *fname, GLenum mag = GL_NEAREST, 
+  int load ( const char *fname, GLenum mag = GL_NEAREST, 
                           GLenum min = GL_LINEAR_MIPMAP_LINEAR ) ;
 
   void setFixedPitch ( int fix ) { fixed_pitch = fix ;  } 
-  int   isFixedPitch ()          { return fixed_pitch ; } 
+  int   isFixedPitch () const    { return fixed_pitch ; } 
 
   void  setWidth     ( float w ) { width     = w ; } 
   void  setGap       ( float g ) { gap       = g ; } 
 
-  float getWidth     () { return width     ; } 
-  float getGap       () { return gap       ; } 
+  float getWidth     () const { return width     ; } 
+  float getGap       () const { return gap       ; } 
 
 
   void setGlyph ( char c,
@@ -169,7 +185,7 @@ public:
 
   int hasGlyph ( char c ) { return getGlyph ( c ) ; }
 
-  void getBBox ( char *s, float pointsize, float italic,
+  void getBBox ( const char *s, float pointsize, float italic,
                  float *left, float *right,
                  float *bot , float *top  ) ;
   
@@ -184,7 +200,7 @@ public:
     bound = FNT_FALSE ;
   }
 
-  void puts ( sgVec3 curpos, float pointsize, float italic, char *s ) ;
+  void puts ( sgVec3 curpos, float pointsize, float italic, const char *s ) ;
 
   void putch ( sgVec3 curpos, float pointsize, float italic, char c )
   {
@@ -220,7 +236,7 @@ public:
   void start2f  ( float x, float y ) { sgSetVec3 ( curpos, x, y, 0.0f ) ; }
   void start3f  ( float x, float y, float z ) { sgSetVec3 ( curpos, x, y, z ) ; }
 
-  void getCursor ( float *x, float *y, float *z )
+  void getCursor ( float *x, float *y, float *z ) const
   {
     if ( x != NULL ) *x = curpos [ 0 ] ;
     if ( y != NULL ) *y = curpos [ 1 ] ;
@@ -228,19 +244,19 @@ public:
   }
 
   void     setFont ( fntFont *f ) { font = f ; }
-  fntFont *getFont () { return font ; }
+  fntFont *getFont () const { return font ; }
 
   void  setSlant     ( float i ) { italic    = i ; } 
   void  setPointSize ( float p ) { pointsize = p ; }
 
-  float getSlant     () { return italic    ; } 
-  float getPointSize () { return pointsize ; } 
+  float getSlant     () const { return italic    ; } 
+  float getPointSize () const { return pointsize ; } 
 
   void begin () { font->begin () ; }
   void end   () { font->end   () ; }
 
   void putch ( char  c ) { font->putch ( curpos, pointsize, italic, c ) ; }
-  void puts  ( char *s ) { font->puts  ( curpos, pointsize, italic, s ) ; }
+  void puts  ( const char *s ) { font->puts  ( curpos, pointsize, italic, s ) ; }
 } ;
 
 

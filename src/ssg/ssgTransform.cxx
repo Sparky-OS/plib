@@ -1,20 +1,51 @@
+/*
+     PLIB - A Suite of Portable Game Libraries
+     Copyright (C) 2001  Steve Baker
+ 
+     This library is free software; you can redistribute it and/or
+     modify it under the terms of the GNU Library General Public
+     License as published by the Free Software Foundation; either
+     version 2 of the License, or (at your option) any later version.
+ 
+     This library is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+     Library General Public License for more details.
+ 
+     You should have received a copy of the GNU Library General Public
+     License along with this library; if not, write to the Free
+     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+ 
+     For further information visit http://plib.sourceforge.net
+
+     $Id: ssgTransform.cxx,v 1.9 2001/06/16 16:27:37 stromberg Exp $
+*/
+
 
 #include "ssgLocal.h"
-#ifdef WIN32
-#include <windows.h>
-#endif
 
-#include <GL/gl.h>
+void ssgTransform::copy_from ( ssgTransform *src, int clone_flags )
+{
+  ssgBaseTransform::copy_from ( src, clone_flags ) ;
+}
+
+ssgBase *ssgTransform::clone ( int clone_flags )
+{
+  ssgTransform *b = new ssgTransform ;
+  b -> copy_from ( this, clone_flags ) ;
+  return b ;
+}
+
 
 ssgTransform::ssgTransform ( sgCoord *c )
 {
-  type |= SSG_TYPE_TRANSFORM ;
+  type = ssgTypeTransform () ;
   setTransform ( c ) ;
 }
 
 ssgTransform::ssgTransform (void)
 {
-  type |= SSG_TYPE_TRANSFORM ;
+  type = ssgTypeTransform () ;
 }
 
 ssgTransform::~ssgTransform (void)
@@ -31,6 +62,9 @@ void ssgTransform::recalcBSphere (void)
 
 void ssgTransform::cull ( sgFrustum *f, sgMat4 m, int test_needed )
 {
+  if ( ! preTravTests ( &test_needed, SSGTRAV_CULL ) )
+    return ;
+
   int cull_result = cull_test ( f, m, test_needed ) ;
 
   if ( cull_result == SSG_OUTSIDE )
@@ -50,10 +84,15 @@ void ssgTransform::cull ( sgFrustum *f, sgMat4 m, int test_needed )
 
   glPopMatrix () ;
   _ssgPopMatrix () ;
+
+  postTravTests ( SSGTRAV_CULL ) ; 
 }
 
 void ssgTransform::hot ( sgVec3 s, sgMat4 m, int test_needed )
 {
+  if ( ! preTravTests ( &test_needed, SSGTRAV_HOT ) )
+    return ;
+
   int hot_result = hot_test ( s, m, test_needed ) ;
 
   if ( hot_result == SSG_OUTSIDE )
@@ -70,11 +109,16 @@ void ssgTransform::hot ( sgVec3 s, sgMat4 m, int test_needed )
     e -> hot ( s, tmp, hot_result != SSG_INSIDE ) ;
 
   _ssgPopPath () ;
+
+  postTravTests ( SSGTRAV_HOT ) ; 
 }
 
 
 void ssgTransform::isect ( sgSphere *s, sgMat4 m, int test_needed )
 {
+  if ( ! preTravTests ( &test_needed, SSGTRAV_ISECT ) )
+    return ;
+
   int isect_result = isect_test ( s, m, test_needed ) ;
 
   if ( isect_result == SSG_OUTSIDE )
@@ -91,6 +135,8 @@ void ssgTransform::isect ( sgSphere *s, sgMat4 m, int test_needed )
     e -> isect ( s, tmp, isect_result != SSG_INSIDE ) ;
 
   _ssgPopPath () ;
+
+  postTravTests ( SSGTRAV_ISECT ) ; 
 }
 
 void ssgTransform::setTransform ( sgVec3 xyz )
@@ -139,6 +185,5 @@ int ssgTransform::save ( FILE *fd )
 {
   return ssgBaseTransform::save(fd) ;
 }
-
 
 

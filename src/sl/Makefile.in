@@ -75,7 +75,9 @@ libplibsl_a_SOURCES =  	slDSP.cxx slSample.cxx slEnvelope.cxx 	slPlayer.cxx slMO
 
 libplibsm_a_SOURCES = slPortability.h smMixer.cxx
 
-EXTRA_DIST = Makefile.msc README.freebsd README.linux 	README.openbsd README.sgi README.unix README.win         sl.dsp
+INCLUDES =  -I$(top_srcdir)/src/util
+
+EXTRA_DIST = Makefile.msc README.freebsd README.linux 	README.openbsd README.sgi README.unix README.win         sl.dsp libsm.bpr libsl.bpr
 
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_CLEAN_FILES = 
@@ -112,7 +114,7 @@ DIST_COMMON =  Makefile.am Makefile.in
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
-TAR = gtar
+TAR = tar
 GZIP_ENV = --best
 SOURCES = $(libplibsl_a_SOURCES) $(libplibsm_a_SOURCES)
 OBJECTS = $(libplibsl_a_OBJECTS) $(libplibsm_a_OBJECTS)
@@ -250,20 +252,21 @@ distdir: $(DISTFILES)
 	    || cp -p $$d/$$file $(distdir)/$$file || :; \
 	  fi; \
 	done
-slDSP.o: slDSP.cxx sl.h slPortability.h
-slEnvelope.o: slEnvelope.cxx sl.h slPortability.h
-slMODPlayer.o: slMODPlayer.cxx sl.h slPortability.h slMODPrivate.h \
+slDSP.o: slDSP.cxx sl.h slPortability.h ../../src/util/ul.h
+slEnvelope.o: slEnvelope.cxx sl.h slPortability.h ../../src/util/ul.h
+slMODPlayer.o: slMODPlayer.cxx sl.h slPortability.h ../../src/util/ul.h \
+	slMODPrivate.h slMODfile.h
+slMODdacio.o: slMODdacio.cxx slMODPrivate.h ../../src/util/ul.h
+slMODfile.o: slMODfile.cxx slMODPrivate.h ../../src/util/ul.h \
 	slMODfile.h
-slMODdacio.o: slMODdacio.cxx slMODPrivate.h
-slMODfile.o: slMODfile.cxx slMODPrivate.h slMODfile.h
-slMODinst.o: slMODinst.cxx slMODPrivate.h
-slMODnode.o: slMODnode.cxx slMODPrivate.h
-slMODnote.o: slMODnote.cxx slMODPrivate.h
-slPlayer.o: slPlayer.cxx sl.h slPortability.h
-slSample.o: slSample.cxx sl.h slPortability.h
-slSamplePlayer.o: slSamplePlayer.cxx sl.h slPortability.h
-slScheduler.o: slScheduler.cxx sl.h slPortability.h
-smMixer.o: smMixer.cxx sm.h slPortability.h
+slMODinst.o: slMODinst.cxx slMODPrivate.h ../../src/util/ul.h
+slMODnote.o: slMODnote.cxx slMODPrivate.h ../../src/util/ul.h
+slPlayer.o: slPlayer.cxx sl.h slPortability.h ../../src/util/ul.h
+slSample.o: slSample.cxx sl.h slPortability.h ../../src/util/ul.h
+slSamplePlayer.o: slSamplePlayer.cxx sl.h slPortability.h \
+	../../src/util/ul.h
+slScheduler.o: slScheduler.cxx sl.h slPortability.h ../../src/util/ul.h
+smMixer.o: smMixer.cxx sm.h slPortability.h ../../src/util/ul.h
 
 info-am:
 info: info-am

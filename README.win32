@@ -9,7 +9,7 @@ important therefore that you direct problems and
 queries to the PLIB mailing lists.  Subscription
 information is on the PLIB homepage:
 
-   http://www.woodsoup.org/projs/plib
+   http://plib.sourceforge.net
 
 
 CygWin:
@@ -34,24 +34,21 @@ as far as I can tell, the "configure/make/make install" approach
 
 Microsoft Visual C++:
 ~~~~~~~~~~~~~~~~~~~~~
-I am distributing a set of MSVC project files for PLIB that
-were kindly provided by Nate Robins. These are scattered
-down to the source directories with a workspace set up 
-in the PLIB root area.
+All you need to do is open the workspace "plib.dsw" in MSVC++,
+select the "plib" project (using Set Active Project in the Project
+menu), and build it (using "Rebuild All" in the Build menu).
 
-Nate says:
+In the examples folder, open the workspace "plib_examples.dsw".
+Each example has a seperate project in the workspace.  Select
+the one you want and build it.  Then you should be able to hit
+the Go icon on the toolbar and try it out.
 
-> There is one dsp for each of the libraries, and for each of the example
-> executables.  Internally the dsp's are set up so that they depend on each
-> other (i.e., complex depends on pui and sg and fnt).  The plib.dsp contains
-> _all_ the other dsp's (it is essentially an "all" or "default" target).  So,
-> to build everything, select that project and build.
 
 Borland C++:
 ~~~~~~~~~~~~
-As with MSVC, I'll need someone to send me an appropriate set
-of Borland project files in order to get this going.
-
+"Heil, David G. SDX" <DavidH@HPD.Abbott.com> contributed a set of
+Borland bpg/bpr files. I know nothing more about what may be
+required in order to use them.
 
      Steve.
 

@@ -25,18 +25,20 @@ build-stamp:
 
 # First build the shared library
 	$(MAKE) CPPFLAGS="-O2 -fPIC -pipe"
-	( cd src/fnt; gcc -shared -Wl,-soname,libplibfnt.so.$(version_major) \
-	  -o libplibfnt.so.$(version) `ls *.o` )
-	( cd src/pui; gcc -shared -Wl,-soname,libplibpu.so.$(version_major) \
-	  -o libplibpu.so.$(version) `ls *.o` )
-	( cd src/sg; gcc -shared -Wl,-soname,libplibsg.so.$(version_major) \
-	  -o libplibsg.so.$(version) `ls *.o` )
-	( cd src/sl; gcc -shared -Wl,-soname,libplibsl.so.$(version_major) \
-	  -o libplibsl.so.$(version) `ls sl*.o` )
-	( cd src/sl; gcc -shared -Wl,-soname,libplibsm.so.$(version_major) \
-	  -o libplibsm.so.$(version) `ls sm*.o` )
-	( cd src/ssg; gcc -shared -Wl,-soname,libplibssg.so.$(version_major) \
-	  -o libplibssg.so.$(version) `ls *.o` )
+	( cd src/fnt; gcc -shared -Wl,-soname,lib$(package)fnt.so.$(version_major) \
+	  -o lib$(package)fnt.so.$(version) `ls *.o` )
+	( cd src/pui; gcc -shared -Wl,-soname,lib$(package)pu.so.$(version_major) \
+	  -o lib$(package)pu.so.$(version) `ls *.o` )
+	( cd src/sg; gcc -shared -Wl,-soname,lib$(package)sg.so.$(version_major) \
+	  -o lib$(package)sg.so.$(version) `ls *.o` )
+	( cd src/sl; gcc -shared -Wl,-soname,lib$(package)sl.so.$(version_major) \
+	  -o lib$(package)sl.so.$(version) `ls sl*.o` )
+	( cd src/sl; gcc -shared -Wl,-soname,lib$(package)sm.so.$(version_major) \
+	  -o lib$(package)sm.so.$(version) `ls sm*.o` )
+	( cd src/ssg; gcc -shared -Wl,-soname,lib$(package)ssg.so.$(version_major) \
+	  -o lib$(package)ssg.so.$(version) `ls *.o` )
+	( cd src/ssgAux; gcc -shared -Wl,-soname,lib$(package)ssgAux.so.$(version_major) \
+	  -o lib$(package)ssgAux.so.$(version) `ls *.o` )
 
 	make clean
 
@@ -69,21 +71,23 @@ install-stamp: build-stamp
 	dh_installdirs
 
 # plib-dev
-	$(MAKE) install prefix=`pwd`/debian/plib-dev/usr
+	$(MAKE) install prefix=`pwd`/debian/$(package)-dev/usr
 #	mv debian/plib-dev/usr/include/*.h debian/plib-dev/usr/include/plib
 
 # plib1
-	install -m 755 src/fnt/libplibfnt.so.$(version) \
+	install -m 755 src/fnt/lib$(package)fnt.so.$(version) \
 	  `pwd`/debian/plib1/usr/lib
-	install -m 755 src/pui/libplibpu.so.$(version) \
+	install -m 755 src/pui/lib$(package)pu.so.$(version) \
 	  `pwd`/debian/plib1/usr/lib
-	install -m 755 src/sg/libplibsg.so.$(version) \
+	install -m 755 src/sg/lib$(package)sg.so.$(version) \
 	  `pwd`/debian/plib1/usr/lib
-	install -m 755 src/sl/libplibsl.so.$(version) \
+	install -m 755 src/sl/lib$(package)sl.so.$(version) \
 	  `pwd`/debian/plib1/usr/lib
-	install -m 755 src/sl/libplibsm.so.$(version) \
+	install -m 755 src/sl/lib$(package)sm.so.$(version) \
 	  `pwd`/debian/plib1/usr/lib
-	install -m 755 src/ssg/libplibssg.so.$(version) \
+	install -m 755 src/ssg/lib$(package)ssg.so.$(version) \
+	  `pwd`/debian/plib1/usr/lib
+	install -m 755 src/ssgAux/lib$(package)ssgAux.so.$(version) \
 	  `pwd`/debian/plib1/usr/lib
 
 	touch install-stamp

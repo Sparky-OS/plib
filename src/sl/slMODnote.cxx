@@ -1,3 +1,26 @@
+/*
+     PLIB - A Suite of Portable Game Libraries
+     Copyright (C) 2001  Steve Baker
+ 
+     This library is free software; you can redistribute it and/or
+     modify it under the terms of the GNU Library General Public
+     License as published by the Free Software Foundation; either
+     version 2 of the License, or (at your option) any later version.
+ 
+     This library is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+     Library General Public License for more details.
+ 
+     You should have received a copy of the GNU Library General Public
+     License along with this library; if not, write to the Free
+     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+ 
+     For further information visit http://plib.sourceforge.net
+
+     $Id: slMODnote.cxx,v 1.4 2001/04/12 03:37:36 deca Exp $
+*/
+
 
 #include "slMODPrivate.h"
 
@@ -44,7 +67,7 @@ static void noEffect ( Note *np )
 
 static void unknownEffect ( Note *np )
 {
-  fprintf ( stderr, "Unknown effect: %c%02X \n", np->cmd + '@', np->info ) ;
+  ulSetError ( UL_WARNING, "Unknown effect: %c%02X", np->cmd + '@', np->info ) ;
   commonWork ( np ) ;
 }
 
@@ -254,39 +277,39 @@ static void sCmd(Note *np)
 
     switch ( X )
     {
-      case 1: /* set glissando control */
-	_MOD_instSetPortamentoGlissando(Y);
-	break;
-      case 2: /* set finetune */
-	/* ...but not tested yet. which tune use this? */
-	printf("Got it! Set Finetune\n");
-	{ 
-	  static int freq[16] =
-	  {
-	    8363,8413,8463,8529,8581,8651,8723,8757,
-	    7895,7941,7985,8046,8107,8169,8232,8280
-	  };
-	  _MOD_instTuning(freq[Y]);
-	  /* the tuning effects from next key-on */
-	}
-	break;
-      case 3: /* set vibrato waveform */
-	_MOD_instSetVibratoWave(Y%4, Y/4);
-	break;
-      case 4: /* set tremolo waveform */
-	_MOD_instSetTremoloWave(Y%4, Y/4);
-	break;
-      case 8: /* set pan position */
-	_MOD_instPanPosition(Y*64/15);
-	break;
-      case 0xc: /* notecut */
-	_MOD_instNoteCut(Y);
-	break;
-      case 0xb: /* pattern loop */
-      case 0xe: /* pattern delay */
-	break;
-      default:
-	fprintf(stderr, "Warning: %c%02X not supported.\n", np->cmd+'@', np->info);
+    case 1: /* set glissando control */
+      _MOD_instSetPortamentoGlissando(Y);
+      break;
+    case 2: /* set finetune */
+      /* ...but not tested yet. which tune use this? */
+      ulSetError ( UL_DEBUG, "Got it! Set Finetune");
+      { 
+        static int freq[16] =
+        {
+          8363,8413,8463,8529,8581,8651,8723,8757,
+            7895,7941,7985,8046,8107,8169,8232,8280
+        };
+        _MOD_instTuning(freq[Y]);
+        /* the tuning effects from next key-on */
+      }
+      break;
+    case 3: /* set vibrato waveform */
+      _MOD_instSetVibratoWave(Y%4, Y/4);
+      break;
+    case 4: /* set tremolo waveform */
+      _MOD_instSetTremoloWave(Y%4, Y/4);
+      break;
+    case 8: /* set pan position */
+      _MOD_instPanPosition(Y*64/15);
+      break;
+    case 0xc: /* notecut */
+      _MOD_instNoteCut(Y);
+      break;
+    case 0xb: /* pattern loop */
+    case 0xe: /* pattern delay */
+      break;
+    default:
+      ulSetError ( UL_WARNING, "%c%02X not supported.", np->cmd+'@', np->info);
     }
   }
 }
@@ -370,16 +393,15 @@ static void setFrameLen ( void )
 }
 
 
-void _MOD_playNoteSetOutRate ( int or )
+void _MOD_playNoteSetOutRate ( int _or )
 {
-  if ( or > MAX_OUTRATE )
+  if ( _or > MAX_OUTRATE )
   {
-    fprintf ( stderr, "Too high output sample rate.\n" ) ;
-    exit ( 1 ) ;
+    ulSetError ( UL_FATAL, "Too high output sample rate." ) ;
   }
 
-  _MOD_instOutRate ( or ) ;
-  outRate = or ;
+  _MOD_instOutRate ( _or ) ;
+  outRate = _or ;
   setFrameLen () ;
 }
 
@@ -388,7 +410,7 @@ void _MOD_playNoteSetTempo ( int n )
 {
   if ( n < MIN_TEMPO )
   {
-    fprintf ( stderr, "Illegal tempo (%d) ignored.\n", n ) ;
+    ulSetError ( UL_WARNING, "Illegal tempo (%d) ignored.", n ) ;
     return ;
   }
 

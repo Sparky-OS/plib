@@ -2,29 +2,25 @@ Source: plib
 Section: devel
 Priority: optional
 Maintainer: Philipp Frauenfelder <pfrauenf@debian.org>
-Standards-Version: 3.0.1
+Standards-Version: 3.5.5
+Build-Depends: libgl-dev, glutg3-dev, g++, m4, autoconf, automake, xlibs-dev, debhelper (>= 2)
 
 Package: plib1
 Section: libs
 Architecture: any
 Depends: glutg3, libgl1
-Replaces: plib
-Conflicts: plib
-Description: Portability Libraries: Run-time package.
+Description: Portability Libraries: Run-time package, stable release
  Provides a Joystick interface, a simple GUI built on top of OpenGL,
  some standard geometry functions, a sound library and a simple scene
  graph API built on top of OpenGL.
- .
- This package contains the shared libraries need at runtime.
 
 Package: plib-dev
 Section: devel
 Architecture: any
-Depends: plib1, glutg3-dev, libgl-dev
-Description: Portability Libraries: Development package.
+Depends: plib1 (= ${Source-Version}), glutg3-dev, libgl-dev
+Conflicts: plib1.3-dev, plib1.5-dev
+Replaces: plib1.3-dev, plib1.5-dev
+Description: Portability Libraries: Development package, stable release
  Provides a Joystick interface, a simple GUI built on top of OpenGL,
  some standard geometry functions, a sound library and a simple scene
  graph API built on top of OpenGL.
- .
- This package contains the header files and the static libraries needed
- for development.

@@ -70,9 +70,11 @@ lib_LIBRARIES = libplibsg.a
 
 include_HEADERS = sg.h
 
-libplibsg_a_SOURCES = sg.cxx sgd.cxx
+libplibsg_a_SOURCES = sg.cxx sgd.cxx sgIsect.cxx
 
-EXTRA_DIST = sg.dsp
+INCLUDES =  -I$(top_srcdir)/src/util
+
+EXTRA_DIST = sg.dsp libsg.bpr
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_CLEAN_FILES = 
 LIBRARIES =  $(lib_LIBRARIES)
@@ -87,7 +89,7 @@ X_LIBS = @X_LIBS@
 X_EXTRA_LIBS = @X_EXTRA_LIBS@
 X_PRE_LIBS = @X_PRE_LIBS@
 libplibsg_a_LIBADD = 
-libplibsg_a_OBJECTS =  sg.o sgd.o
+libplibsg_a_OBJECTS =  sg.o sgd.o sgIsect.o
 AR = ar
 CXXFLAGS = @CXXFLAGS@
 CXXCOMPILE = $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
@@ -100,7 +102,7 @@ DIST_COMMON =  Makefile.am Makefile.in
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
-TAR = gtar
+TAR = tar
 GZIP_ENV = --best
 SOURCES = $(libplibsg_a_SOURCES)
 OBJECTS = $(libplibsg_a_OBJECTS)
@@ -233,8 +235,9 @@ distdir: $(DISTFILES)
 	    || cp -p $$d/$$file $(distdir)/$$file || :; \
 	  fi; \
 	done
-sg.o: sg.cxx sg.h
-sgd.o: sgd.cxx sg.h
+sg.o: sg.cxx sg.h ../../src/util/ul.h
+sgIsect.o: sgIsect.cxx sg.h ../../src/util/ul.h
+sgd.o: sgd.cxx sg.h ../../src/util/ul.h
 
 info-am:
 info: info-am

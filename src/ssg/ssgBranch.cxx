@@ -1,10 +1,56 @@
+/*
+     PLIB - A Suite of Portable Game Libraries
+     Copyright (C) 2001  Steve Baker
+ 
+     This library is free software; you can redistribute it and/or
+     modify it under the terms of the GNU Library General Public
+     License as published by the Free Software Foundation; either
+     version 2 of the License, or (at your option) any later version.
+ 
+     This library is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+     Library General Public License for more details.
+ 
+     You should have received a copy of the GNU Library General Public
+     License along with this library; if not, write to the Free
+     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+ 
+     For further information visit http://plib.sourceforge.net
+
+     $Id: ssgBranch.cxx,v 1.18 2001/06/16 16:27:37 stromberg Exp $
+*/
+
 
 #include "ssgLocal.h"
+
+void ssgBranch::copy_from ( ssgBranch *src, int clone_flags )
+{
+  ssgEntity::copy_from ( src, clone_flags ) ;
+
+  for ( int i = 0 ; i < src -> getNumKids () ; i++ )
+  {
+    ssgEntity *k = src -> getKid ( i ) ;
+
+    if ( k != NULL && ( clone_flags & SSG_CLONE_RECURSIVE ) )
+      addKid ( (ssgEntity *)( k -> clone ( clone_flags )) ) ;
+    else
+      addKid ( k ) ;
+  }
+}
+
+ssgBase *ssgBranch::clone ( int clone_flags )
+{
+  ssgBranch *b = new ssgBranch ;
+  b -> copy_from ( this, clone_flags ) ;
+  return b ;
+}
+
 
 
 ssgBranch::ssgBranch (void)
 {
-  type |= SSG_TYPE_BRANCH ;
+  type = ssgTypeBranch () ;
 }
 
 
@@ -67,25 +113,45 @@ void ssgBranch::removeAllKids (void)
     removeKid ( k ) ;
 }
 
-void ssgBranch::print ( FILE *fd, char *indent )
+
+void ssgBranch::replaceKid ( int n, ssgEntity *new_entity )
 {
-  ssgEntity::print ( fd, indent ) ;
+  if ( n >= 0 && n < getNumKids () )
+  {
+    getKid ( n ) -> removeParent ( this ) ;
+    kids.replaceEntity ( n, new_entity ) ;
+    new_entity -> addParent ( this ) ;
+    dirtyBSphere () ;
+  }
+}
+
+void ssgBranch::replaceKid ( ssgEntity *old_entity, ssgEntity *new_entity )
+{
+  replaceKid ( searchForKid( old_entity ), new_entity ) ;
+}
+
+
+void ssgBranch::print ( FILE *fd, char *indent, int how_much )
+{
+  ssgEntity::print ( fd, indent, how_much ) ;
   fprintf ( fd, "%s  Num Kids=%d\n", indent, getNumKids() ) ;
 
   if ( getNumParents() != getRef() )
-    fprintf ( stderr, "****** WARNING: Ref count doesn't tally with parent count\n" ) ;
+    ulSetError ( UL_WARNING, "Ref count doesn't tally with parent count" ) ;
 
-  if ( bsphere.isEmpty() )
-    fprintf ( fd, "%s  BSphere is Empty.\n", indent ) ;
-  else
-    fprintf ( fd, "%s  BSphere  R=%g, C=(%g,%g,%g)\n", indent,
-      bsphere.getRadius(), bsphere.getCenter()[0], bsphere.getCenter()[1], bsphere.getCenter()[2] ) ;
+	if ( how_much > 1 )
+  {	if ( bsphere.isEmpty() )
+			fprintf ( fd, "%s  BSphere is Empty.\n", indent ) ;
+		else
+			fprintf ( fd, "%s  BSphere  R=%g, C=(%g,%g,%g)\n", indent,
+				bsphere.getRadius(), bsphere.getCenter()[0], bsphere.getCenter()[1], bsphere.getCenter()[2] ) ;
+	}
 
   char in [ 100 ] ;
   sprintf ( in, "%s  ", indent ) ;
 
   for ( ssgEntity *e = getKid ( 0 ) ; e != NULL ; e = getNextKid() )
-    e -> print ( fd, in ) ;
+    e -> print ( fd, in, how_much ) ;
 }
 
 
@@ -176,6 +242,9 @@ ssgEntity *ssgBranch::getByPath ( char *path )
 
 void ssgBranch::cull ( sgFrustum *f, sgMat4 m, int test_needed )
 {
+  if ( ! preTravTests ( &test_needed, SSGTRAV_CULL ) )
+    return ;
+
   int cull_result = cull_test ( f, m, test_needed ) ;
 
   if ( cull_result == SSG_OUTSIDE )
@@ -183,12 +252,17 @@ void ssgBranch::cull ( sgFrustum *f, sgMat4 m, int test_needed )
 
   for ( ssgEntity *e = getKid ( 0 ) ; e != NULL ; e = getNextKid() )
     e -> cull ( f, m, cull_result != SSG_INSIDE ) ;
+
+  postTravTests ( SSGTRAV_CULL ) ; 
 }
 
 
 
 void ssgBranch::hot ( sgVec3 s, sgMat4 m, int test_needed )
 {
+  if ( ! preTravTests ( &test_needed, SSGTRAV_HOT ) )
+    return ;
+
   int hot_result = hot_test ( s, m, test_needed ) ;
 
   if ( hot_result == SSG_OUTSIDE )
@@ -200,12 +274,17 @@ void ssgBranch::hot ( sgVec3 s, sgMat4 m, int test_needed )
     e -> hot ( s, m, hot_result != SSG_INSIDE ) ;
 
   _ssgPopPath () ;
+
+  postTravTests ( SSGTRAV_HOT ) ; 
 }
 
 
 
 void ssgBranch::isect ( sgSphere *s, sgMat4 m, int test_needed )
 {
+  if ( ! preTravTests ( &test_needed, SSGTRAV_ISECT ) )
+    return ;
+
   int isect_result = isect_test ( s, m, test_needed ) ;
 
   if ( isect_result == SSG_OUTSIDE )
@@ -217,6 +296,8 @@ void ssgBranch::isect ( sgSphere *s, sgMat4 m, int test_needed )
     e -> isect ( s, m, isect_result != SSG_INSIDE ) ;
 
   _ssgPopPath () ;
+
+  postTravTests ( SSGTRAV_ISECT ) ; 
 }
 
 
@@ -231,40 +312,11 @@ int ssgBranch::load ( FILE *fd )
 
   for ( int i = 0 ; i < nkids ; i++ )
   {
-    int key, t ;
     ssgEntity *kid ;
 
-    _ssgReadInt ( fd, & t ) ;
-
-    if ( t == SSG_BACKWARDS_REFERENCE )
-    {
-      _ssgReadInt ( fd, & key ) ;
-      kid = (ssgEntity *) _ssgGetFromList ( key ) ; 
-    }
-    else
-    if ( t == ssgTypeVTable       () ) kid = new ssgVTable       () ; else
-    if ( t == ssgTypeVtxTable     () ) kid = new ssgVtxTable     () ; else
-    if ( t == ssgTypeBranch       () ) kid = new ssgBranch       () ; else
-    if ( t == ssgTypeTransform    () ) kid = new ssgTransform    () ; else
-    if ( t == ssgTypeTexTrans     () ) kid = new ssgTexTrans     () ; else
-    if ( t == ssgTypeSelector     () ) kid = new ssgSelector     () ; else
-    if ( t == ssgTypeRangeSelector() ) kid = new ssgRangeSelector() ; else
-    if ( t == ssgTypeTimedSelector() ) kid = new ssgTimedSelector() ; else
-    if ( t == ssgTypeCutout       () ) kid = new ssgCutout       () ; else
-    if ( t == ssgTypeInvisible    () ) kid = new ssgInvisible    () ; else
-    if ( t == ssgTypeRoot         () ) kid = new ssgRoot         () ; else
-    {
-      fprintf ( stderr, "loadSSG: Unrecognised Entity type 0x%08x\n", t ) ;
+    if ( ! _ssgLoadObject ( fd, (ssgBase **) &kid, ssgTypeEntity () ) )
       return FALSE ;
-    }
 
-    if ( ! kid -> load ( fd ) )
-    {
-      fprintf ( stderr, "loadSSG: Failed to read child object.\n" ) ;
-      return FALSE ;
-    }
-
-    kid -> recalcBSphere () ;
     addKid ( kid ) ;
   }
 
@@ -281,25 +333,8 @@ int ssgBranch::save ( FILE *fd )
 
   for ( int i = 0 ; i < getNumKids() ; i++ )
   {
-    ssgEntity *kid = getKid ( i ) ;
-
-    /* Has this child node already been written out? */
-
-    if ( kid -> getSpare () > 0 )
-    {
-      _ssgWriteInt ( fd, SSG_BACKWARDS_REFERENCE ) ;
-      _ssgWriteInt ( fd, kid -> getSpare () ) ;
-    }
-    else
-    {
-      _ssgWriteInt ( fd, kid->getType() ) ;
-
-      if ( ! kid -> save ( fd ) )
-      {
-        fprintf ( stderr, "saveSSG: Failed to write child object\n" ) ;
-        return FALSE ;
-      }
-    }
+    if ( ! _ssgSaveObject ( fd, getKid ( i ) ) )
+       return FALSE ;
   }
 
   return TRUE ;

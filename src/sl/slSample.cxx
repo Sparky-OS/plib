@@ -1,3 +1,26 @@
+/*
+     PLIB - A Suite of Portable Game Libraries
+     Copyright (C) 2001  Steve Baker
+ 
+     This library is free software; you can redistribute it and/or
+     modify it under the terms of the GNU Library General Public
+     License as published by the Free Software Foundation; either
+     version 2 of the License, or (at your option) any later version.
+ 
+     This library is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+     Library General Public License for more details.
+ 
+     You should have received a copy of the GNU Library General Public
+     License along with this library; if not, write to the Free
+     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+ 
+     For further information visit http://plib.sourceforge.net
+
+     $Id: slSample.cxx,v 1.3 2001/04/12 03:37:36 deca Exp $
+*/
+
 
 #include "sl.h"
 #include <math.h>
@@ -244,8 +267,8 @@ int slSample::loadFile ( char *fname )
   if ( _slStrEqual ( & fname [ strlen ( fname ) - 3 ], ".ub" ) )
     return loadRawFile ( fname ) ;
 
-  fprintf ( stderr, "slSample:loadFile: Unknown file type for '%s'.\n",
-                                    fname ) ;
+  ulSetError ( UL_WARNING,
+    "slSample:loadFile: Unknown file type for '%s'.", fname ) ;
   return SL_FALSE ;
 }
 
@@ -263,9 +286,8 @@ int slSample::loadWavFile ( char *fname )
 
   if ( fd == NULL )
   {
-    fprintf ( stderr,
-	     "slSample: loadWavFile: Cannot open '%s' for reading.\n",
-	     fname ) ;
+    ulSetError ( UL_WARNING,
+	     "slSample: loadWavFile: Cannot open '%s' for reading.", fname ) ;
     return SL_FALSE ;
   }
 
@@ -275,8 +297,8 @@ int slSample::loadWavFile ( char *fname )
        magic[0] != 'R' || magic[1] != 'I' ||
        magic[2] != 'F' || magic[3] != 'F' )
   {
-    fprintf ( stderr, "slWavSample: File '%s' has wrong magic number\n", fname ) ;
-    fprintf ( stderr, "            - it probably isn't in '.wav' format.\n" ) ;
+    ulSetError ( UL_WARNING, "slWavSample: File '%s' has wrong magic number", fname ) ;
+    ulSetError ( UL_WARNING, "            - it probably isn't in '.wav' format." ) ;
     fclose ( fd ) ;
     return SL_FALSE ;
   }
@@ -285,7 +307,7 @@ int slSample::loadWavFile ( char *fname )
 
   if ( fread ( & leng1, sizeof(int), 1, fd ) == 0 )
   {
-    fprintf ( stderr, "slSample: File '%s' has premature EOF in header\n", fname ) ;
+    ulSetError ( UL_WARNING, "slSample: File '%s' has premature EOF in header", fname ) ;
     fclose ( fd ) ;
     return SL_FALSE ;
   }
@@ -295,7 +317,7 @@ int slSample::loadWavFile ( char *fname )
   if ( magic[0] != 'W' || magic[1] != 'A' ||
        magic[2] != 'V' || magic[3] != 'E' )
   {
-    fprintf ( stderr, "slSample: File '%s' has no WAVE tag.\n", fname ) ;
+    ulSetError ( UL_WARNING, "slSample: File '%s' has no WAVE tag.", fname ) ;
     fclose ( fd ) ;
     return SL_FALSE ;
   }
@@ -311,7 +333,7 @@ int slSample::loadWavFile ( char *fname )
 
       if ( fread ( & leng1, sizeof(int), 1, fd ) == 0 )
       {
-	fprintf ( stderr, "slSample: File '%s' has premature EOF in header\n", fname ) ;
+	ulSetError ( UL_WARNING, "slSample: File '%s' has premature EOF in header", fname ) ;
 	fclose ( fd ) ;
 	return SL_FALSE ;
       }
@@ -325,8 +347,8 @@ int slSample::loadWavFile ( char *fname )
       Ushort header [ 8 ] ;
 
       if ( leng1 != sizeof ( header ) )
-	fprintf ( stderr,
-               "slSample: File '%s' has unexpectedly long (%d byte) header\n",
+	ulSetError ( UL_WARNING,
+               "slSample: File '%s' has unexpectedly long (%d byte) header",
                fname, leng1 ) ;
 
       fread ( & header, sizeof(header), 1, fd ) ;
@@ -346,7 +368,7 @@ int slSample::loadWavFile ( char *fname )
 
       if ( header [ 0 ] != 0x0001 )
       {
-	fprintf ( stderr, "slSample: File '%s' is not WAVE_FORMAT_PCM!\n", fname ) ;
+	ulSetError ( UL_WARNING, "slSample: File '%s' is not WAVE_FORMAT_PCM!", fname ) ;
 	fclose ( fd ) ;
 	return SL_FALSE ;
       }
@@ -361,14 +383,14 @@ int slSample::loadWavFile ( char *fname )
     {
       if ( ! found_header )
       {
-	fprintf ( stderr, "slSample: File '%s' has no data section\n", fname ) ;
+	ulSetError ( UL_WARNING, "slSample: File '%s' has no data section", fname ) ;
 	fclose ( fd ) ;
 	return SL_FALSE ;
       }
 
       if ( fread ( & length, sizeof(int), 1, fd ) == 0 )
       {
-	fprintf ( stderr, "slSample: File '%s' has premature EOF in data\n", fname ) ;
+	ulSetError ( UL_WARNING, "slSample: File '%s' has premature EOF in data", fname ) ;
 	fclose ( fd ) ;
 	return SL_FALSE ;
       }
@@ -409,8 +431,8 @@ int slSample::loadAUFile ( char *fname )
 
   if ( fd == NULL )
   {
-    fprintf ( stderr,
-	     "slSample: loadAUFile: Cannot open '%s' for reading.\n",
+    ulSetError ( UL_WARNING,
+	     "slSample: loadAUFile: Cannot open '%s' for reading.",
 	     fname ) ;
     return SL_FALSE ;
   }
@@ -421,8 +443,8 @@ int slSample::loadAUFile ( char *fname )
        magic[0] != '.' || magic[1] != 's' ||
        magic[2] != 'n' || magic[3] != 'd' )
   {
-    fprintf ( stderr, "slSample: File '%s' has wrong magic number\n", fname ) ;
-    fprintf ( stderr, "            - it probably isn't in '.au' format.\n" ) ;
+    ulSetError ( UL_WARNING, "slSample: File '%s' has wrong magic number", fname ) ;
+    ulSetError ( UL_WARNING, "            - it probably isn't in '.au' format." ) ;
     fclose ( fd ) ;
     return SL_FALSE ;
   }
@@ -439,7 +461,7 @@ int slSample::loadAUFile ( char *fname )
        fread ( & irate     , sizeof(int), 1, fd ) == 0 ||
        fread ( & nchans    , sizeof(int), 1, fd ) == 0 )
   {
-    fprintf ( stderr, "slSample: File '%s' has premature EOF in header\n", fname ) ;
+    ulSetError ( UL_WARNING, "slSample: File '%s' has premature EOF in header", fname ) ;
     fclose ( fd ) ;
     return SL_FALSE ;
   }
@@ -460,14 +482,12 @@ int slSample::loadAUFile ( char *fname )
   if ( nbytes > 2 || nbytes <= 0 || hdr_length > 512 || hdr_length < 24 ||
        irate > 65526 || irate <= 1000 || nchans < 1 || nchans > 2 )
   {
-    fprintf ( stderr, "slSample: File '%s' has a very strange header\n", fname ) ;
-
-    fprintf ( stderr, "  Header Length = %d\n", hdr_length ) ;
-    fprintf ( stderr, "  Data   Length = %d\n", dat_length ) ;
-    fprintf ( stderr, "  Bytes/sample  = %d\n", nbytes     ) ;
-    fprintf ( stderr, "  Sampling Rate = %dHz\n",irate     ) ;
-    fprintf ( stderr, "  Num Channels  = %d\n", nchans     ) ;
-    fprintf ( stderr, "\n" ) ;
+    ulSetError ( UL_WARNING, "slSample: File '%s' has a very strange header", fname ) ;
+    ulSetError ( UL_WARNING, "  Header Length = %d", hdr_length ) ;
+    ulSetError ( UL_WARNING, "  Data   Length = %d", dat_length ) ;
+    ulSetError ( UL_WARNING, "  Bytes/sample  = %d", nbytes     ) ;
+    ulSetError ( UL_WARNING, "  Sampling Rate = %dHz",irate     ) ;
+    ulSetError ( UL_WARNING, "  Num Channels  = %d", nchans     ) ;
     fclose ( fd ) ;
     return SL_FALSE ;
   }
@@ -486,7 +506,7 @@ int slSample::loadAUFile ( char *fname )
     length = fread ( buffer, 1, dat_length, fd ) ;
 
     if ( length != dat_length )
-      fprintf ( stderr, "slAUSample: File '%s' has premature EOF in data.\n", fname ) ;
+      ulSetError ( UL_WARNING, "slAUSample: File '%s' has premature EOF in data.", fname ) ;
     changeToUnsigned () ;
   }
 
@@ -505,8 +525,8 @@ int slSample::loadRawFile ( char *fname )
 
   if ( fd == NULL )
   {
-    fprintf ( stderr,
-              "slSample: loadRawFile: Cannot open '%s' for reading.\n",
+    ulSetError ( UL_WARNING,
+              "slSample: loadRawFile: Cannot open '%s' for reading.",
              fname ) ;
     return SL_FALSE ;
   }
@@ -515,8 +535,8 @@ int slSample::loadRawFile ( char *fname )
 
   if ( fstat ( fileno ( fd ), & stat_buf ) != 0 )
   {
-    fprintf ( stderr,
-             "slSample: loadRawFile: Cannot get status for '%s'.\n",
+    ulSetError ( UL_WARNING,
+             "slSample: loadRawFile: Cannot get status for '%s'.",
              fname ) ;        
     fclose ( fd ) ;
     return SL_FALSE ;

@@ -1,3 +1,26 @@
+/*
+     PLIB - A Suite of Portable Game Libraries
+     Copyright (C) 2001  Steve Baker
+ 
+     This library is free software; you can redistribute it and/or
+     modify it under the terms of the GNU Library General Public
+     License as published by the Free Software Foundation; either
+     version 2 of the License, or (at your option) any later version.
+ 
+     This library is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+     Library General Public License for more details.
+ 
+     You should have received a copy of the GNU Library General Public
+     License along with this library; if not, write to the Free
+     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+ 
+     For further information visit http://plib.sourceforge.net
+
+     $Id: puGroup.cxx,v 1.6 2001/04/12 03:36:12 deca Exp $
+*/
+
 
 #include "puLocal.h"
 
@@ -11,7 +34,7 @@ void puPushGroup ( puGroup *in )
   if ( currGroup < PUSTACK_MAX )
     groupStack [ ++currGroup ] = in ;
   else
-    fprintf ( stderr, "PUI: Too many puGroups open at once!\n" ) ;
+    ulSetError ( UL_WARNING, "PUI: Too many puGroups open at once!" ) ;
 }
 
 
@@ -20,7 +43,7 @@ void  puPopGroup ( void )
   if ( currGroup > 0 )
     --currGroup ;
   else 
-    fprintf ( stderr, "PUI: puGroup stack is empty!\n" ) ;
+    ulSetError ( UL_WARNING, "PUI: puGroup stack is empty!" ) ;
 }
 
 int  puNoGroup ( void )
@@ -33,7 +56,7 @@ puGroup *puGetCurrGroup ( void )
 {
   if ( currGroup < 0 )
   {
-    fprintf ( stderr, "PUI: No Group!\n" ) ;
+    ulSetError ( UL_WARNING, "PUI: No Group!" ) ;
     return NULL ;
   }
 
@@ -62,6 +85,32 @@ void puGroup::remove ( puObject *obj )
 
   num_children-- ;
   recalc_bbox () ;
+}
+
+void puGroup::empty ( void )
+{
+  puObject *obj = dlist ;
+  while ( obj != NULL )
+  {
+    if ( obj->getType () & PUCLASS_GROUP )
+    {
+      puGroup *group = (puGroup *)obj ;
+      group->empty () ;
+    }
+
+    if ( obj->getUserData () )
+    {
+      puGroup *group = (puGroup *)( obj->getUserData () ) ;
+      group->empty () ;
+      obj->setUserData ( NULL ) ;
+    }
+
+    puObject *temp = obj->getNextObject () ;
+    delete obj ;
+    obj = temp ;
+  }
+
+  dlist = NULL ;
 }
 
 void puGroup::add ( puObject *new_obj )
@@ -133,12 +182,63 @@ int puGroup::checkHit ( int button, int updown, int x, int y )
     the click order is the same as the DRAW order.
   */
 
-  for ( bo = dlist ; bo->next != NULL ; bo = bo->next )
-    /* Find the last object in our list. */ ;
+  if ( !mouse_active )
+  {
+    /* Find the last object in our list. */
 
-  for ( ; bo != NULL ; bo = bo->prev )
-    if ( bo -> checkHit ( button, updown, x, y ) )
+    for ( bo = dlist ; bo->next != NULL ; bo = bo->next ) ;
+
+    for ( ; bo != NULL ; bo = bo->prev )
+      if ( bo -> checkHit ( button, updown, x, y ) )
+        return TRUE ;
+  }
+
+  /*
+    If right mouse button is pressed, save mouse coordinates for
+    dragging and dropping.  Do this only if the "floating" flag is set.
+  */
+
+  if ( mouse_active || ( isHit ( x+abox.min[0], y+abox.min[1]) &&
+       floating && ( button == PU_RIGHT_BUTTON ) ) )
+  {
+    puMoveToLast ( this );
+
+    /*
+      Return (x, y) to coordinates of parent interface to avoid "jumping" of
+      present interface as mouse drags
+    */
+
+    x += abox.min[0] ;
+    y += abox.min[1] ;
+
+    if ( updown == PU_DOWN )
+    {
+      mouse_x = x;  /* Save mouse coordinates for dragging */
+      mouse_y = y;
+
+      mouse_active = TRUE ;
+
       return TRUE ;
+    }
+    else if ( updown == PU_DRAG )
+    {
+      int curr_x, curr_y;
+
+      getPosition ( &curr_x, &curr_y );
+      setPosition ( curr_x+x-mouse_x, curr_y+y-mouse_y );  /* Move to new position */
+
+      mouse_x = x;  /* Save new coordinates */
+      mouse_y = y;
+
+      return TRUE ;
+    }
+    else if ( updown == PU_UP )
+    {
+      mouse_active = FALSE ;
+
+      return TRUE ;
+    }
+  }
 
   return FALSE ;
 }
@@ -199,8 +299,15 @@ void puGroup::doHit ( int, int, int, int )
 
 puGroup::~puGroup ()
 {
-  for ( puObject *bo = dlist ; bo != NULL ; bo = bo->next )
-    delete bo ;
+  for ( puObject *bo = dlist ; bo != NULL ; /* Nothing */ )
+  {
+    dlist = bo    ;
+    bo = bo->next ;
+    delete dlist  ;
+  }
+
+  if ( this == puActiveWidget () )
+    puDeactivateWidget () ;
 }
 
 

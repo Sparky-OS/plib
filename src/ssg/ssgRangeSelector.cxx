@@ -1,9 +1,51 @@
+/*
+     PLIB - A Suite of Portable Game Libraries
+     Copyright (C) 2001  Steve Baker
+ 
+     This library is free software; you can redistribute it and/or
+     modify it under the terms of the GNU Library General Public
+     License as published by the Free Software Foundation; either
+     version 2 of the License, or (at your option) any later version.
+ 
+     This library is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+     Library General Public License for more details.
+ 
+     You should have received a copy of the GNU Library General Public
+     License along with this library; if not, write to the Free
+     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+ 
+     For further information visit http://plib.sourceforge.net
+
+     $Id: ssgRangeSelector.cxx,v 1.9 2001/06/16 16:27:37 stromberg Exp $
+*/
+
 
 #include "ssgLocal.h"
 
+void ssgRangeSelector::copy_from ( ssgRangeSelector *src, int clone_flags )
+{
+  ssgSelector::copy_from ( src, clone_flags ) ;
+
+  additive = src -> isAdditive () ;
+
+  for ( unsigned int i = 0 ; i < 33 ; i++ )
+    rng_list [ i ] = src -> getRange ( i ) ;
+}
+
+
+ssgBase *ssgRangeSelector::clone ( int clone_flags )
+{
+  ssgRangeSelector *b = new ssgRangeSelector ;
+  b -> copy_from ( this, clone_flags ) ;
+  return b ;
+}
+
+
 ssgRangeSelector::ssgRangeSelector (void)
 {
-  type |= SSG_TYPE_RANGESELECTOR ;
+  type = ssgTypeRangeSelector () ;
   additive = FALSE ;
   rng_list[0] = 0.0f ;
 
@@ -17,6 +59,9 @@ ssgRangeSelector::~ssgRangeSelector (void)
 
 void ssgRangeSelector::cull ( sgFrustum *f, sgMat4 m, int test_needed )
 {
+  if ( ! preTravTests ( &test_needed, SSGTRAV_CULL ) )
+    return ;
+
   int cull_result = cull_test ( f, m, test_needed ) ;
 
   if ( cull_result == SSG_OUTSIDE )
@@ -56,11 +101,16 @@ void ssgRangeSelector::cull ( sgFrustum *f, sgMat4 m, int test_needed )
   }
 
   select ( sel ) ;
+
+  postTravTests ( SSGTRAV_CULL ) ; 
 }
 
 
 void ssgRangeSelector::hot ( sgVec3 sp, sgMat4 m, int test_needed )
 {
+  if ( ! preTravTests ( &test_needed, SSGTRAV_HOT ) )
+    return ;
+
   if ( additive )
     ssgBranch::hot ( sp, m, test_needed ) ;
   else
@@ -76,11 +126,16 @@ void ssgRangeSelector::hot ( sgVec3 sp, sgMat4 m, int test_needed )
 
     _ssgPopPath () ;
   }
+
+  postTravTests ( SSGTRAV_HOT ) ; 
 }
 
 
 void ssgRangeSelector::isect ( sgSphere *sp, sgMat4 m, int test_needed )
 {
+  if ( ! preTravTests ( &test_needed, SSGTRAV_ISECT ) )
+    return ;
+
   if ( additive )
     ssgBranch::isect ( sp, m, test_needed ) ;
   else
@@ -96,6 +151,8 @@ void ssgRangeSelector::isect ( sgSphere *sp, sgMat4 m, int test_needed )
 
     _ssgPopPath () ;
   }
+
+  postTravTests ( SSGTRAV_ISECT ) ; 
 }
 
 
@@ -104,6 +161,7 @@ int ssgRangeSelector::load ( FILE *fd )
 {
   _ssgReadInt   ( fd, & additive ) ;
   _ssgReadFloat ( fd, 33, rng_list ) ;
+
   return ssgSelector::load(fd) ;
 }
 
@@ -111,6 +169,7 @@ int ssgRangeSelector::save ( FILE *fd )
 {
   _ssgWriteInt   ( fd, additive ) ;
   _ssgWriteFloat ( fd, 33, rng_list ) ;
+
   return ssgSelector::save(fd) ;
 }
 

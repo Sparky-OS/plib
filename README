@@ -6,7 +6,7 @@ Portability Libraries.
 All the documentation and installation instructions
 are now online at:
 
-  http://www.woodsoup.org/projs/plib
+  http://plib.sourceforge.net
 
 They are also downloadable - along with example
 programs and demos from the same site.
@@ -19,7 +19,7 @@ get *WAY* too much mail as it is!  Instead, please
 sign up to the PLIB user's mailing list.  Instructions
 can be found here:
 
-  http://www.woodsoup.org/projs/plib
+  http://plib.sourceforge.net
 
 
 LICENSING:
@@ -28,6 +28,21 @@ These libraries are offered as OpenSource freeware
 under the provisions of the GNU Library Public
 License (LGPL). Those terms and conditions are
 detailed in the file 'LICENSE' in this directory.
+
+I have added a short preamble to LGPL that removes
+no rights from ordinary users but offers special
+dispensation to allow PLIB to be used under certain
+commercial conditions (such as Games Consoles) where
+the constraints of LGPL are impossible to meet.
+
+|  As a special exception Steve Baker gives permission to link these 
+|  libraries with proprietary software and distribute the resulting 
+|  executable without including that proprietary code in any distribution 
+|  as the LGPL would normally dictate. 
+| 
+|  This exception is ONLY granted in the case of an embedded system in 
+|  which there is no possibility of an end user re-linking or recompiling 
+|  against new versions of this library that may appear in the future.
 
 
 REQUIREMENTS:
@@ -50,6 +65,8 @@ SG  -- Some Standard Geometry functions (vector and
 SL  -- A Games-oriented Sound Library.
 FNT -- OpenGL texture-mapped font Library.
 SSG -- A Simple Scene Graph API built on top of OpenGL.
+UTIL-- Utilities - things that your OS would normally
+       handle - but these functions are portable.
 
 
 DIRECTORY STRUCTURE:
@@ -72,11 +89,14 @@ yet been ported to all operating systems.
 
 JS  -- Currently Linux/Windows/BSD only.
 
+UTIL-- Should be portable to POSIX-compliant
+       OS's ... and Windows.
+
 SG  -- Totally portable, no dependancies.
 
 PUI -- Requires GLUT and OpenGL also FNT and SG.
 
-FNT and SSG -- Require OpenGL and SG.
+FNT and SSG -- Require OpenGL, SG and UTIL.
 
 SL  -- This has now been ported onto:
 
@@ -106,7 +126,7 @@ SG, SL, JS and PUI have all been in use for a long time
 in a huge number of applications - so they are reliable
 and unlikely to change much in the future.
 
-FNT is pretty simple and should be very stable.
+UTIL and FNT are pretty simple and should be very stable.
 
 SSG is still fairly new though - and it's by far the
 most complex and ambitious of the libraries. Whilst
@@ -115,10 +135,24 @@ of applications I have, it will certainly need more
 work in the future.
 
 
+
+AUX LIBRARIES AND TOOLS:
+
+PLIB comes with a number of auxiliary libraries in the
+'auxlibs' folder.  These add capabilities to PLIB that
+not every program will wish to be burdened with.
+
+The 'tools' directory contains a number of useful tools
+and utility programs that are either built using PLIB or
+which are specifically useful when writing PLIB programs.
+
+
+
 COMPILING/LINKING WITH PLIB
 
 In your source code, add any combination of:
 
+     #include <plib/ul.h>
      #include <plib/js.h>
      #include <plib/sg.h>
      #include <plib/fnt.h>
@@ -128,7 +162,7 @@ In your source code, add any combination of:
 
 Add any of these to your link line:
 
-  -lplibssg -lplibsl -lplibpu -lplibfnt -lplibsg
+  -lplibssg -lplibsl -lplibpu -lplibfnt -lplibsg -lplibul
 
 Under UNIX/Linux, you'll also need:
 
@@ -137,4 +171,5 @@ Under UNIX/Linux, you'll also need:
 
              Steve Baker.
              <sjbaker1@airmail.net>
-             http://www.woodsoup.org/~sbaker
+             http://web2.airmail.net/sjbaker1
+
