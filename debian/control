@@ -2,14 +2,14 @@ Source: plib
 Section: devel
 Priority: extra
 Maintainer: Philipp Frauenfelder <pfrauenf@debian.org>
-Standards-Version: 3.6.1
-Build-Depends: xlibmesa-gl-dev | libgl-dev, libglut3-dev, m4, autoconf, automake | automake1.7, libx11-dev, libxmu-dev, debhelper (>= 4)
+Standards-Version: 3.6.2
+Build-Depends: xlibmesa-gl-dev | libgl-dev, libglut3-dev, m4, autoconf, automake | automake1.7, libx11-dev, libxmu-dev, debhelper (>= 4), g++-4.0 | c++abi2-dev
 
-Package: plib1.8.4
+Package: plib1.8.4c2
 Section: libs
 Architecture: any
-Conflicts: plib1c102, plib1
-Replaces: plib1c102, plib1
+Conflicts: plib1c102, plib1, plib1.8.4
+Replaces: plib1c102, plib1, plib1.8.4
 Depends: libglut3, libgl1
 Description: Portability Libraries: Run-time package, stable release
  Provides a Joystick interface, a simple GUI built on top of OpenGL,
@@ -22,7 +22,7 @@ Description: Portability Libraries: Run-time package, stable release
 Package: plib1.8.4-dev
 Section: libdevel
 Architecture: any
-Depends: plib1.8.4 (= ${Source-Version}), libglut3-dev, xlibmesa-gl-dev | libgl-dev
+Depends: plib1.8.4c2 (= ${Source-Version}), libglut3-dev, xlibmesa-gl-dev | libgl-dev
 Conflicts: plib1.5-dev, plib1.7-dev, plib-pic, plib1.8-pic, plib1.8.3-pic, plib-dev, plib1.8-dev, plib1.8.4-pic
 Replaces: plib1.5-dev, plib1.7-dev, plib-pic, plib1.8-pic, plib1.8.3-pic, plib-dev, plib1.8-dev, plib1.8.4-pic
 Provides: plib-dev
@@ -42,7 +42,7 @@ Description: Portability Libraries: Development package, stable release
 Package: plib1.8.4-pic
 Section: libdevel
 Architecture: any
-Depends: plib1.8.4 (= ${Source-Version}), libglut3-dev, xlibmesa-gl-dev | libgl-dev
+Depends: plib1.8.4c2 (= ${Source-Version}), libglut3-dev, xlibmesa-gl-dev | libgl-dev
 Conflicts: plib1.5-dev, plib1.7-dev, plib-dev, plib1.8-dev, plib1.8.3-dev, plib1.8.4-dev
 Replaces: plib1.5-dev, plib1.7-dev, plib-dev, plib1.8-dev, plib1.8.3-dev, plib1.8.4-dev
 Provides: plib-dev

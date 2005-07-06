@@ -1,3 +1,11 @@
+plib (1.8.4-2) unstable; urgency=low
+
+  * New package name for plib1.8.4 -> plib1.8.4c2 as advised by the
+    GCC 4.0 transition guide.
+  * Bumped standards version to 3.6.2
+
+ -- Philipp Frauenfelder <pfrauenf@debian.org>  Wed,  6 Jul 2005 21:46:45 +0200
+
 plib (1.8.4-1) unstable; urgency=low
 
   * New upstream release: accumulated small bug fixes, minor enhancements.
