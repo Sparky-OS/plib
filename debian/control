@@ -3,7 +3,8 @@ Section: devel
 Priority: extra
 Maintainer: Philipp Frauenfelder <pfrauenf@debian.org>
 Standards-Version: 3.6.2
-Build-Depends: xlibmesa-gl-dev | libgl-dev, libglut3-dev, m4, autoconf, automake | automake1.7, libx11-dev, libxmu-dev, debhelper (>= 4), g++-4.0 | c++abi2-dev
+Build-Depends: xlibmesa-gl-dev | libgl-dev, libglut3-dev, m4, autoconf, automake1.9, libx11-dev, libxmu-dev, debhelper (>= 4), g++-4.0 | c++abi2-dev
+Build-Conflicts: autoconf2.13, automake1.4
 
 Package: plib1.8.4c2
 Section: libs

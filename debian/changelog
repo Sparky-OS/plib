@@ -1,3 +1,10 @@
+plib (1.8.4-3) unstable; urgency=low
+
+  * Fixes for GNU/kFreeBSD. Closes: #332995
+  * Properly use autotools to recreate configure, Makefiles etc.
+
+ -- Philipp Frauenfelder <pfrauenf@debian.org>  Tue, 25 Oct 2005 17:55:16 +0200
+
 plib (1.8.4-2) unstable; urgency=low
 
   * New package name for plib1.8.4 -> plib1.8.4c2 as advised by the

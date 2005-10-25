@@ -53,7 +53,17 @@ clean:
 	if [ ! -e Makefile ]; then \
 	  ./configure ;\
 	fi
-	$(MAKE) distclean
+
+	rm -f aclocal.m4 && aclocal
+	automake-1.9
+	autoconf
+
+	# Add here commands to clean up after the build process.
+	-$(MAKE) distclean
+	-test -r /usr/share/misc/config.sub && \
+	  cp -f /usr/share/misc/config.sub config.sub
+	-test -r /usr/share/misc/config.guess && \
+	  cp -f /usr/share/misc/config.guess config.guess
 
 	dh_clean
 
