@@ -1,3 +1,10 @@
+plib (1.8.4-3.1) unstable; urgency=high
+
+  * Non-maintainer upload.
+  * Add build-dependency on libxi-dev; fixes FTBFS. (Closes: #372772)
+
+ -- Steinar H. Gunderson <sesse@debian.org>  Mon, 19 Jun 2006 23:17:39 +0200
+
 plib (1.8.4-3) unstable; urgency=low
 
   * Fixes for GNU/kFreeBSD. Closes: #332995
