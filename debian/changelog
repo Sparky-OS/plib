@@ -1,3 +1,10 @@
+plib (1.8.4-4) unstable; urgency=low
+
+  * Thanks for the NMU! Closes: #372772
+  * Bumped standards version to 3.7.2 (no changes)
+
+ -- Philipp Frauenfelder <pfrauenf@debian.org>  Thu, 22 Jun 2006 11:13:43 +0200
+
 plib (1.8.4-3.1) unstable; urgency=high
 
   * Non-maintainer upload.
