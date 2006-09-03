@@ -1,3 +1,10 @@
+plib (1.8.4-4.1) unstable; urgency=low
+
+  * NMU.
+  * Drop build dependency on g++-4.0. Closes: #385836.
+
+ -- Matthias Klose <doko@debian.org>  Sun,  3 Sep 2006 16:57:16 +0000
+
 plib (1.8.4-4) unstable; urgency=low
 
   * Thanks for the NMU! Closes: #372772
