@@ -1,3 +1,15 @@
+plib (1.8.4-5) unstable; urgency=low
+
+  * Acknowledge NMU of Matthias Klose. Closes: #385836.
+    Removing build-dependency on g++-4.0
+  * #374540 was already handled in -4. Closes: #374540.
+  * #302711 was never really reproducable by other people. The submitter did
+    not answer after nearlly two month. Closes: #302711
+  * The same with #260179. But here, the submitter did not answer after
+    nearlly one year. Closes: #260179
+
+ -- Philipp Frauenfelder <pfrauenf@debian.org>  Sat, 14 Oct 2006 09:37:10 +0200
+
 plib (1.8.4-4.1) unstable; urgency=low
 
   * NMU.
