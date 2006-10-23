@@ -1,3 +1,10 @@
+plib (1.8.4-6) unstable; urgency=low
+
+  * Change dependency of libglut3[-dev] to freeglut3[-dev]. Closes: #394500
+  * Updated watch file.
+
+ -- Philipp Frauenfelder <pfrauenf@debian.org>  Mon, 23 Oct 2006 22:42:11 +0200
+
 plib (1.8.4-5) unstable; urgency=low
 
   * Acknowledge NMU of Matthias Klose. Closes: #385836.
