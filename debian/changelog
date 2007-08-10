@@ -1,3 +1,10 @@
+plib (1.8.4-8) unstable; urgency=low
+
+  * Add versioned shlib to help upgrade to release post -6 (which was buggy).
+    Closes: #436917
+
+ -- Philipp Frauenfelder <pfrauenf@debian.org>  Fri, 10 Aug 2007 22:45:41 +0200
+
 plib (1.8.4-7) unstable; urgency=low
 
   * Fix libplibjs. Closes: #425724

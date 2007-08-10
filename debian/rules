@@ -111,7 +111,7 @@ binary-arch: build install
 	dh_shlibdeps -a
 	dh_fixperms -a
 	dh_installdeb -a
-	dh_makeshlibs -a
+	dh_makeshlibs -a -V 'plib1.8.4c2 (>= 1.8.4-7)'
 	dh_gencontrol -a
 	dh_md5sums -a
 	dh_builddeb -a
