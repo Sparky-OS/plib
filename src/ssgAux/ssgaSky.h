@@ -104,7 +104,7 @@ public:
   ssgaCelestialBodyList ( int init = 3 )
 	  : ssgSimpleList ( sizeof(ssgaCelestialBody*), init ) { }
 
-  ~ssgaCelestialBodyList () { removeAll(); }
+  ssgaCelestialBodyList::~ssgaCelestialBodyList () { removeAll(); }
 
   int getNum (void) { return total ; }
 
@@ -192,7 +192,7 @@ public:
   ssgaCloudLayerList ( int init = 3 )
 	  : ssgSimpleList ( sizeof(ssgaCloudLayer*), init ) { }
 
-  ~ssgaCloudLayerList () { removeAll(); }
+  ssgaCloudLayerList::~ssgaCloudLayerList () { removeAll(); }
 
   int getNum (void) { return total ; }
 

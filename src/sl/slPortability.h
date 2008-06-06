@@ -59,8 +59,8 @@
 #  if defined(UL_LINUX)
 #    include <linux/soundcard.h>
 #    include <sys/ioctl.h>
-#  elif defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
-#    include <sys/soundcard.h>
+#  elif defined(__FreeBSD__)
+#    include <machine/soundcard.h>
 #  else
     /*
       Tom thinks this file may be <sys/soundcard.h> under some
@@ -75,7 +75,7 @@
 #endif
 
 #ifdef UL_BSD
-#if !defined(__FreeBSD__) && !defined(__FreeBSD_kernel__)
+#ifndef __FreeBSD__
 #  include <sys/audioio.h>
 #endif
 #endif

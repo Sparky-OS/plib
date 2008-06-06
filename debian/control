@@ -1,18 +1,30 @@
 Source: plib
 Section: devel
 Priority: extra
-Maintainer: Philipp Frauenfelder <pfrauenf@debian.org>
-Standards-Version: 3.7.2
-Build-Depends: xlibmesa-gl-dev | libgl-dev, freeglut3-dev, m4, autoconf, automake1.9, libx11-dev, libxmu-dev, debhelper (>= 4), libxi-dev
-Build-Conflicts: autoconf2.13, automake1.4
+Maintainer: Bradley Smith <brad@brad-smith.co.uk>
+Uploaders: Debian Games Team <pkg-games-devel@lists.alioth.debian.org>
+Standards-Version: 3.7.3
+Build-Depends: libgl1-mesa-dev | libgl-dev,
+               freeglut3-dev,
+               libx11-dev,
+               libxmu-dev,
+               debhelper (>= 5),
+               libxi-dev,
+               quilt,
+               autoconf,
+               automake,
+               libtool
+Homepage: http://plib.sourceforge.net/
+Vcs-Svn: svn://svn.debian.org/svn/pkg-games/people/brad-guest/trunk/plib/
+Vcs-Browser: http://svn.debian.org/wsvn/pkg-games/people/brad-guest/trunk/plib/?op=log
 
 Package: plib1.8.4c2
 Section: libs
 Architecture: any
-Conflicts: plib1c102, plib1, plib1.8.4
-Replaces: plib1c102, plib1, plib1.8.4
-Depends: freeglut3, libgl1
-Description: Portability Libraries: Run-time package, stable release
+Depends: freeglut3, libgl1, ${misc:Depends}, ${shlibs:Depends}
+Conflicts: plib1c102, plib1, plib1.8.3, plib1.8.4
+Replaces: plib1c102, plib1, plib1.8.3, plib1.8.4
+Description: Portability Libraries: Run-time package
  Provides a Joystick interface, a simple GUI built on top of OpenGL,
  some standard geometry functions, a sound library and a simple scene
  graph API built on top of OpenGL.
@@ -23,11 +35,12 @@ Description: Portability Libraries: Run-time package, stable release
 Package: plib1.8.4-dev
 Section: libdevel
 Architecture: any
-Depends: plib1.8.4c2 (= ${Source-Version}), freeglut3-dev, xlibmesa-gl-dev | libgl-dev
-Conflicts: plib1.5-dev, plib1.7-dev, plib-pic, plib1.8-pic, plib1.8.3-pic, plib-dev, plib1.8-dev, plib1.8.4-pic
-Replaces: plib1.5-dev, plib1.7-dev, plib-pic, plib1.8-pic, plib1.8.3-pic, plib-dev, plib1.8-dev, plib1.8.4-pic
+Depends: plib1.8.4c2 (= ${binary:Version}), freeglut3-dev,
+         libgl1-mesa-dev | libgl-dev, ${misc:Depends}, ${shlibs:Depends}
+Conflicts: plib1.8.3-pic, plib1.8.3-dev
+Replaces: plib1.8.3-pic, plib1.8.3-dev
 Provides: plib-dev
-Description: Portability Libraries: Development package, stable release
+Description: Portability Libraries: Development package
  Provides a Joystick interface, a simple GUI built on top of OpenGL,
  some standard geometry functions, a sound library and a simple scene
  graph API built on top of OpenGL.
@@ -35,28 +48,3 @@ Description: Portability Libraries: Development package, stable release
  This package provides the static libraries, the header files and the
  development links to the shared libraries. You need this package if you
  want to compile software which needs plib.
- .
- This packages provides the same libraries as plib-pic but is compiled without
- -fPIC. If you need to link the static libraries of plib into shared objects,
- use plib-pic. Otherwise, this package is a safe choice.
-
-Package: plib1.8.4-pic
-Section: libdevel
-Architecture: any
-Depends: plib1.8.4c2 (= ${Source-Version}), freeglut3-dev, xlibmesa-gl-dev | libgl-dev
-Conflicts: plib1.5-dev, plib1.7-dev, plib-dev, plib1.8-dev, plib1.8.3-dev, plib1.8.4-dev
-Replaces: plib1.5-dev, plib1.7-dev, plib-dev, plib1.8-dev, plib1.8.3-dev, plib1.8.4-dev
-Provides: plib-dev
-Description: Portability Libraries: Dev. package (with PIC code), stable rel.
- Provides a Joystick interface, a simple GUI built on top of OpenGL,
- some standard geometry functions, a sound library and a simple scene
- graph API built on top of OpenGL.
- .
- This package provides the static libraries, the header files and the
- development links to the shared libraries. You need this package if you
- want to compile software which needs plib.
- .
- This packages provides the same libraries as plib-dev but is compiled with
- -fPIC. This is needed by some applications which link the static libraries
- of plib into shared objects. If you do not need this, plib-dev is a safe
- choice.

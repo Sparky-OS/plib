@@ -1,3 +1,28 @@
+plib (1.8.4-9) unstable; urgency=low
+
+  * New Maintainer. Closes: #475428
+  * Add games team as uploader.
+  * Add build_shared_libs patch
+   - Build shared libs properly. Closes: #475331
+  * Add remove_pthread_link patch
+   - Remove unneeded linking with pthread
+  * Use fixed ltmain.sh in build
+  * Overhaul packaging. Closes: #475356
+   - Correct debian/control
+   - Fix autotools regeneration
+   - Remove extra whitespace in copyright
+   - Tidy up debian/rules
+   - Update standards and debhelper versions
+   - Add homepage field
+  * Remove unneeded plib1.8.4-pic package.
+  * Change 'downloaded from' in copyright, since it is no longer correct.
+  * Bump shlibs version.
+  * Bump compat version to 5.
+  * Remove changes from top srcdir into misc_fixes patch.
+  * Added missing conflict against plib1.8.3.
+
+ -- Bradley Smith <brad@brad-smith.co.uk>  Fri, 06 Jun 2008 16:16:35 +0100
+
 plib (1.8.4-8) unstable; urgency=low
 
   * Add versioned shlib to help upgrade to release post -6 (which was buggy).

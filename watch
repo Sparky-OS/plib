@@ -1,2 +1,0 @@
-version=2
-http://plib.sourceforge.net/download.html dist/plib-(.*)\.tar\.gz debian uupdate

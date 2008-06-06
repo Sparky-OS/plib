@@ -1,0 +1,3 @@
+build_shared_libs
+remove_pthread_link
+misc_fixes

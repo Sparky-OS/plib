@@ -1,12 +1,14 @@
 This package was debianized by Philipp Frauenfelder <pfrauenf@debian.org> on
-Wed, 12 May 1999 21:10:59 +0200.
+Wed, 12 May 1999 21:10:59 +0200, and is now maintained by Bradley Smith
+<brad@brad-smith.co.uk>.
 
-It was downloaded from http://www.woodsoup.org/projs/plib/
+It was downloaded from http://plib.sourceforge.net/dist/
 
-Upstream Author: Steve Baker, <sjbaker1@airmail.net>, 
-                 http://www.woodsoup.org/~sbaker
+Upstream Author: Steve Baker, <sjbaker1@airmail.net>
 
 Copyright:
+
+Copyright (C) 1998,2002  Steve Baker
 
 These libraries are offered as OpenSource freeware
 under the provisions of the GNU Library Public
@@ -14,11 +16,11 @@ License (LGPL). Those terms and conditions are
 detailed in the file '/usr/share/common-licenses/LGPL'.
 
 License addendum for release 1.3.1 and later:
-| As a special exception Steve Baker gives permission to link these 
-| libraries with proprietary software and distribute the resulting 
-| executable without including that proprietary code in any distribution 
-| as the LGPL would normally dictate. 
-| 
-| This exception is ONLY granted in the case of an embedded system in 
-| which there is no possibility of an end user re-linking or recompiling 
+| As a special exception Steve Baker gives permission to link these
+| libraries with proprietary software and distribute the resulting
+| executable without including that proprietary code in any distribution
+| as the LGPL would normally dictate.
+|
+| This exception is ONLY granted in the case of an embedded system in
+| which there is no possibility of an end user re-linking or recompiling
 | against new versions of this library that may appear in the future.
