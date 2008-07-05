@@ -1,3 +1,13 @@
+plib (1.8.4-10) unstable; urgency=low
+
+  * Bump shlibs version to 1.8.4-9. Closes: #487367.
+  * Correct dh_* rules order.
+  * Update Vcs entries in debian/control.
+  * Update Standards-Version to 3.8.0.
+    - Support parallel=N in DEB_BUILD_OPTIONS.
+
+ -- Bradley Smith <brad@brad-smith.co.uk>  Sat, 05 Jul 2008 12:39:29 +0100
+
 plib (1.8.4-9) unstable; urgency=low
 
   * New Maintainer. Closes: #475428

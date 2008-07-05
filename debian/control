@@ -3,7 +3,7 @@ Section: devel
 Priority: extra
 Maintainer: Bradley Smith <brad@brad-smith.co.uk>
 Uploaders: Debian Games Team <pkg-games-devel@lists.alioth.debian.org>
-Standards-Version: 3.7.3
+Standards-Version: 3.8.0
 Build-Depends: libgl1-mesa-dev | libgl-dev,
                freeglut3-dev,
                libx11-dev,
@@ -15,8 +15,8 @@ Build-Depends: libgl1-mesa-dev | libgl-dev,
                automake,
                libtool
 Homepage: http://plib.sourceforge.net/
-Vcs-Svn: svn://svn.debian.org/svn/pkg-games/people/brad-guest/trunk/plib/
-Vcs-Browser: http://svn.debian.org/wsvn/pkg-games/people/brad-guest/trunk/plib/?op=log
+Vcs-Git: git://git.debian.org/git/pkg-games/plib/
+Vcs-Browser: http://git.debian.org/?p=pkg-games/plib.git;a=summary
 
 Package: plib1.8.4c2
 Section: libs

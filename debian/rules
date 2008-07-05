@@ -14,6 +14,11 @@ else
 	CFLAGS += -O2
 endif
 
+ifneq (,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
+	NUMJOBS = $(patsubst parallel=%,%,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
+	MAKEFLAGS += -j$(NUMJOBS)
+endif
+
 configure: patch configure-stamp
 configure-stamp:
 	dh_testdir
@@ -62,10 +67,10 @@ binary-arch: build install
 	dh_link
 	dh_strip
 	dh_compress
-	dh_shlibdeps
 	dh_fixperms
+	dh_makeshlibs -V 'plib1.8.4c2 (>= 1.8.4-9)'
+	dh_shlibdeps
 	dh_installdeb
-	dh_makeshlibs -V 'plib1.8.4c2 (>= 1.8.4)'
 	dh_gencontrol
 	dh_md5sums
 	dh_builddeb
