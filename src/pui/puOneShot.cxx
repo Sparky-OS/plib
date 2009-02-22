@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: puOneShot.cxx,v 1.5 2002/09/02 06:05:46 sjbaker Exp $
+     $Id: puOneShot.cxx 1568 2002-09-02 06:05:49Z sjbaker $
 */
 
 

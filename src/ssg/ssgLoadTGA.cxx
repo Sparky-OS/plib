@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgLoadTGA.cxx,v 1.10 2003/01/30 00:51:59 stromberg Exp $
+     $Id: ssgLoadTGA.cxx 1749 2003-01-30 00:51:59Z stromberg $
 */
 
 

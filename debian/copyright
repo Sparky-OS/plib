@@ -1,26 +1,44 @@
-This package was debianized by Philipp Frauenfelder <pfrauenf@debian.org> on
-Wed, 12 May 1999 21:10:59 +0200, and is now maintained by Bradley Smith
-<brad@brad-smith.co.uk>.
+Author: Steve Baker, <sjbaker1@airmail.net>
+Download: http://plib.sourceforge.net/dist/
 
-It was downloaded from http://plib.sourceforge.net/dist/
+Files: *
+Copyright: (C) 1998,2002  Steve Baker
+License: LGPL-2+
+ This package is free software; you can redistribute it and/or modify it
+ under the terms of the GNU Lesser General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or (at your
+ option) any later version.
+ .
+ This package is distributed in the hope that it will be useful, but
+ WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
+ License for more details.
+ .
+ License addendum for release 1.3.1 and later:
+ | As a special exception Steve Baker gives permission to link these
+ | libraries with proprietary software and distribute the resulting
+ | executable without including that proprietary code in any distribution
+ | as the LGPL would normally dictate.
+ |
+ | This exception is ONLY granted in the case of an embedded system in
+ | which there is no possibility of an end user re-linking or recompiling
+ | against new versions of this library that may appear in the future.
 
-Upstream Author: Steve Baker, <sjbaker1@airmail.net>
+Files: debian/*
+Copyright: (C) 2008 Bradley Smith <brad@brad-smith.co.uk>
+License: GPL-2+.
+ This program is free software; you can redistribute it and/or modify it
+ under the terms of the GNU General Public License as published by the Free
+ Software Foundation; either version 2 of the License, or (at your option)
+ any later version.
+ .
+ This program is distributed in the hope that it will be useful, but
+ WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+ for more details.
 
-Copyright:
+On Debian systems, the complete text of the GNU General Public License
+can be found in `/usr/share/common-licenses/GPL-2'.
 
-Copyright (C) 1998,2002  Steve Baker
-
-These libraries are offered as OpenSource freeware
-under the provisions of the GNU Library Public
-License (LGPL). Those terms and conditions are
-detailed in the file '/usr/share/common-licenses/LGPL'.
-
-License addendum for release 1.3.1 and later:
-| As a special exception Steve Baker gives permission to link these
-| libraries with proprietary software and distribute the resulting
-| executable without including that proprietary code in any distribution
-| as the LGPL would normally dictate.
-|
-| This exception is ONLY granted in the case of an embedded system in
-| which there is no possibility of an end user re-linking or recompiling
-| against new versions of this library that may appear in the future.
+On Debian GNU/Linux systems, the complete text of the GNU Lesser General
+Public License can be found in `/usr/share/common-licenses/LGPL-2'.

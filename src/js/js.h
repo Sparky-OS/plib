@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: js.h,v 1.33 2004/10/20 23:49:33 wolfram_kuss Exp $
+     $Id: js.h 2067 2006-01-30 07:36:01Z bram $
 */
 
 #ifndef __INCLUDED_JS_H__
@@ -68,6 +68,7 @@ public:
 
   const char* getName () const { return name ;     }
   int   getNumAxes    () const { return num_axes ; }
+  int   getNumButtons () const { return num_buttons; }
   int   notWorking    () const { return error ;    }
   void  setError      () { error = JS_TRUE ; }
 

@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: puArrowButton.cxx,v 1.16 2002/09/02 06:05:44 sjbaker Exp $
+     $Id: puArrowButton.cxx 1568 2002-09-02 06:05:49Z sjbaker $
 */
 
 

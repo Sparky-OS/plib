@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: puMenuBar.cxx,v 1.21 2004/02/16 13:49:03 stromberg Exp $
+     $Id: puMenuBar.cxx 2021 2005-05-06 18:31:27Z fayjf $
 */
 
 
@@ -124,6 +124,7 @@ void puMenuBar::add_submenu ( const char *str, char *items[], puCallback _cb[],
   b -> setActiveDirn ( PU_UP_AND_DOWN ) ;
 
   puPopupMenu *p = new puPopupMenu ( w+10, 0 ) ;
+  p->setActiveButton ( active_mouse_button ) ;
 
   b -> setUserData ( p ) ;
 

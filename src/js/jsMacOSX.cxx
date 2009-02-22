@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: jsMacOSX.cxx,v 1.4 2004/09/21 11:45:55 smokydiamond Exp $
+     $Id: jsMacOSX.cxx 2118 2007-09-14 22:23:32Z fayjf $
 */
 
 #include "js.h"
@@ -26,7 +26,7 @@
 #if defined (UL_MAC_OSX)
 
 #include <mach/mach.h>
-#include <IOKit/IOkitLib.h>
+#include <IOKit/IOKitLib.h>
 #include <IOKit/hid/IOHIDLib.h>
 #include <mach/mach_error.h>
 #include <IOKit/hid/IOHIDKeys.h>
@@ -275,7 +275,7 @@ void os_specific_s::enumerateElements(jsJoystick* joy, CFTypeRef element)
 		&elementEnumerator, joy);
 }
 
-static void os_specific_s::elementEnumerator( const void *element, void* vjs)
+void os_specific_s::elementEnumerator( const void *element, void* vjs)
 {
 	if (CFGetTypeID((CFTypeRef) element) != CFDictionaryGetTypeID()) {
 		ulSetError(UL_WARNING, "element enumerator passed non-dictionary value");
@@ -315,11 +315,12 @@ void os_specific_s::parseElement(jsJoystick* joy, CFDictionaryRef element)
 				case kHIDUsage_GD_Ry:
 				case kHIDUsage_GD_Rz:
 				case kHIDUsage_GD_Slider: // for throttle / trim controls
+        case kHIDUsage_GD_Dial:
 					//printf(" axis\n");
 					/*joy->os->*/addAxisElement(joy, (CFDictionaryRef) element);
 					break;
-					
-				case kHIDUsage_GD_Hatswitch:
+
+        case kHIDUsage_GD_Hatswitch:
 					//printf(" hat\n");
 					/*joy->os->*/addHatElement(joy, (CFDictionaryRef) element);
 					break;

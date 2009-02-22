@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: puBox.cxx,v 1.11 2004/08/05 01:05:48 puggles Exp $
+     $Id: puBox.cxx 1943 2004-08-05 01:05:48Z puggles $
 */
 
 

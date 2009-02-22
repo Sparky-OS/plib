@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: puFLTK.h,v 1.1 2004/02/16 13:49:03 stromberg Exp $
+     $Id: puFLTK.h 1857 2004-02-16 13:49:03Z stromberg $
 */
 
 #ifndef _PU_FLTK_H_

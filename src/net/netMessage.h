@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: netMessage.h,v 1.11 2004/03/21 17:41:07 sjbaker Exp $
+     $Id: netMessage.h 2112 2006-12-12 18:45:28Z fayjf $
 */
 
 /****
@@ -42,8 +42,11 @@
 
 #include "netBuffer.h"
 
-#ifndef UL_MSVC
-#include <netinet/in.h> // ntohs() etc prototypes
+// ntohs() etc prototypes
+#ifdef UL_MSVC
+#include <winsock2.h>
+#else
+#include <netinet/in.h>
 #endif
 
 #ifdef __FreeBSD__

@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: pu.cxx,v 1.67 2004/02/16 22:09:34 stromberg Exp $
+     $Id: pu.cxx 2030 2005-05-23 21:24:26Z fayjf $
 */
 
 #include "puLocal.h"
@@ -362,14 +362,10 @@ int puMouse ( int button, int updown, int x, int y )
 
   pu_mouse_x = x ;
   pu_mouse_y = h - y ;
-  int return_value =  puGetBaseLiveInterface () -> checkHit ( button,
-    updown, pu_mouse_x, pu_mouse_y ) ;
-
-  puCleanUpJunk () ;
 
   puObject *active = puActiveWidget () ;
 
-  if ( ( last_buttons == 0 ) && ( active != NULL ) )
+  if ( ( last_buttons != 0 ) && ( active != NULL ) )
   {
     int x_offset, y_offset ;
     active -> getAbsolutePosition ( &x_offset, &y_offset ) ;
@@ -377,12 +373,18 @@ int puMouse ( int button, int updown, int x, int y )
     x_offset -= active -> getABox () -> min [0] ;
     y_offset -= active -> getABox () -> min [1] ;
 
-    if ( ! active -> isHit ( pu_mouse_x - x_offset, pu_mouse_y - y_offset ) )
+    if ( ( ! active -> isHit ( pu_mouse_x - x_offset, pu_mouse_y - y_offset ) ) &&
+         ( active -> getWhenToDeactivate () == PUDEACTIVATE_ON_MOUSE_CLICK ) )
     {
       active -> invokeDownCallback () ;
       puDeactivateWidget () ;
     }
   }
+
+  int return_value =  puGetBaseLiveInterface () -> checkHit ( button,
+    updown, pu_mouse_x, pu_mouse_y ) ;
+
+  puCleanUpJunk () ;
 
   return return_value ;
 }
@@ -392,6 +394,7 @@ int puMouse ( int x, int y )
 {
   puCursor ( x, y ) ;
 
+  // Pick buttons in order of descending priority:  Left, Right, Middle
   int button =
     (last_buttons & (1<<PU_LEFT_BUTTON  )) ?  PU_LEFT_BUTTON   :
     (last_buttons & (1<<PU_MIDDLE_BUTTON)) ?  PU_MIDDLE_BUTTON :
@@ -409,9 +412,11 @@ int puMouse ( int x, int y )
   */
   if ( puActiveWidget () )
   {
-    puActiveWidget()->doHit(button, PU_DRAG, pu_mouse_x - pu_mouse_offset_x,
-                                             pu_mouse_y - pu_mouse_offset_y) ;
-    return TRUE ;
+    if ( puActiveWidget()->checkHit(button, PU_DRAG, pu_mouse_x - pu_mouse_offset_x,
+                                                     pu_mouse_y - pu_mouse_offset_y) )
+      return TRUE ;
+    else
+      return FALSE ;
   }
 
   int return_value = puGetBaseLiveInterface () -> checkHit ( button,

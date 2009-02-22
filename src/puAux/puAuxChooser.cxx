@@ -19,7 +19,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: puAuxChooser.cxx,v 1.1 2004/08/05 01:03:49 puggles Exp $
+     $Id: puAuxChooser.cxx 1942 2004-08-05 01:03:49Z puggles $
 */
 
 

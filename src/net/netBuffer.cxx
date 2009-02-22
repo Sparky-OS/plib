@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: netBuffer.cxx,v 1.6 2002/09/02 06:05:43 sjbaker Exp $
+     $Id: netBuffer.cxx 1568 2002-09-02 06:05:49Z sjbaker $
 */
 
 #include "netBuffer.h"

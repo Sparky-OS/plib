@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgaStars.cxx,v 1.3 2003/09/26 14:54:20 sjbaker Exp $
+     $Id: ssgaStars.cxx 1798 2003-09-26 14:54:20Z sjbaker $
 */
 
 // Written by Durk Talsma. Originally started October 1997, for distribution  

@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: puObject.cxx,v 1.50 2004/08/05 01:05:48 puggles Exp $
+     $Id: puObject.cxx 2051 2005-11-10 20:21:22Z fayjf $
 */
 
 
@@ -39,7 +39,8 @@ static puColour _puDefaultColourTable[] =
   { 0.7f, 0.7f, 0.7f, 1.0f }, /* PUCOL_HIGHLIGHT  */
   { 0.0f, 0.0f, 0.0f, 1.0f }, /* PUCOL_LABEL      */
   { 1.0f, 1.0f, 1.0f, 1.0f }, /* PUCOL_LEGEND     */
-  { 0.0f, 0.0f, 0.0f, 1.0f }  /* PUCOL_MISC       */
+  { 0.0f, 0.0f, 0.0f, 1.0f }, /* PUCOL_MISC       */
+  { 0.8f, 0.7f, 0.7f, 1.0f }  /* PUCOL_EDITFIELD  */
 } ;
 
 
@@ -148,6 +149,7 @@ puObject::puObject ( int minx, int miny, int maxx, int maxy ) : puValue ()
   bbox.max[1] = abox.max[1] = maxy ;
 
   active_mouse_edge = PU_UP ;
+  active_mouse_button = PU_LEFT_BUTTON ;
   style      = defaultStyle ;
   visible = active  = TRUE  ;
   highlighted       = FALSE ;
@@ -169,6 +171,8 @@ puObject::puObject ( int minx, int miny, int maxx, int maxy ) : puValue ()
   legend      = NULL ;
   legendFont  = defaultLegendFont ;
   legendPlace = PUPLACE_LEGEND_DEFAULT ;
+
+  when_to_deactivate = PUDEACTIVATE_ON_MOUSE_CLICK ;
 
   for ( int i = 0 ; i < PUCOL_MAX ; i++ )
     puSetColour ( colour[i], _puDefaultColourTable[i] ) ;
@@ -464,10 +468,10 @@ int puObject::checkKey ( int key, int updown )
       puDeactivateWidget () ;
     }
 
-    checkHit ( PU_LEFT_BUTTON, PU_DOWN, (abox.min[0]+abox.max[0])/2,
-                                        (abox.min[1]+abox.max[1])/2 ) ;
-    checkHit ( PU_LEFT_BUTTON, PU_UP  , (abox.min[0]+abox.max[0])/2,
-                                        (abox.min[1]+abox.max[1])/2 ) ;
+    checkHit ( active_mouse_button, PU_DOWN, (abox.min[0]+abox.max[0])/2,
+                                             (abox.min[1]+abox.max[1])/2 ) ;
+    checkHit ( active_mouse_button, PU_UP  , (abox.min[0]+abox.max[0])/2,
+                                             (abox.min[1]+abox.max[1])/2 ) ;
     return TRUE ;
   }
 
@@ -486,9 +490,9 @@ void puObject::doHit ( int button, int updown, int x, int y )
   if ( updown != PU_DRAG )
     puMoveToLast ( this );
 
-  if ( button == PU_LEFT_BUTTON )
+  if ( button == active_mouse_button )
   {
-    if ( updown == active_mouse_edge || active_mouse_edge == PU_UP_AND_DOWN )
+    if ( ( updown == active_mouse_edge ) || ( active_mouse_edge == PU_UP_AND_DOWN ) )
     {
       lowlight () ;
       puSetActiveWidget ( this, x, y ) ;
@@ -503,7 +507,8 @@ void puObject::doHit ( int button, int updown, int x, int y )
 
 int puObject::checkHit ( int button, int updown, int x, int y )
 {
-  if ( ( ( puGetPressedButton () || updown == PU_UP ) ) && isHit( x, y ) )
+  if ( ( puGetPressedButton () || ( updown == PU_UP ) ) && isHit( x, y ) ||
+       puGetPressedButton () && ( isHit( x, y ) || ( puActiveWidget () == this ) ) )
   {
     doHit ( button, updown, x, y ) ;
     return TRUE ;

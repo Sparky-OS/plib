@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: pslSymbol.h,v 1.4 2002/09/06 19:17:23 ude Exp $
+     $Id: pslSymbol.h 1612 2002-09-06 19:17:23Z ude $
 */
 
 

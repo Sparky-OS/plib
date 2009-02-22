@@ -18,11 +18,12 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgLoadTexture.cxx,v 1.18 2003/06/27 08:15:15 sjbaker Exp $
+     $Id: ssgLoadTexture.cxx 2128 2007-10-03 02:42:32Z fayjf $
 */
 
 
 #include "ssgLocal.h"
+#include <sys/stat.h>
 
 
 struct _ssgTextureFormat
@@ -46,10 +47,13 @@ int ssgGetNumTexelsLoaded ()
 }
 
 
-bool ssgMakeMipMaps ( GLubyte *image, int xsize, int ysize, int zsize )
+bool ssgMakeMipMaps ( GLubyte *image, int xsize, int ysize, int zsize, bool freeData )
 {
-  if ( ! ((xsize & (xsize-1))==0) ||
-       ! ((ysize & (ysize-1))==0) )
+  bool non_power_of_two_tex_supported = ssgIsExtensionSupported( "GL_ARB_texture_non_power_of_two" );
+  
+  if ( !non_power_of_two_tex_supported &&
+       ( ! ((xsize & (xsize-1))==0) ||
+         ! ((ysize & (ysize-1))==0) ) )
   {
     ulSetError ( UL_WARNING, "Map is not a power-of-two in size!" ) ;
     return false ;
@@ -134,7 +138,11 @@ else
 
     if ( ww == 0 )
     {
-      delete [] texels [ 0 ] ;
+      if ( freeData )
+        delete [] texels [ 0 ] ;
+      else
+        delete [] texels [ 1 ] ;  /* User does not want input image freed, but we need to free all the rest of them */
+
       xsize >>= 1 ;
       ysize >>= 1 ;
 
@@ -168,7 +176,8 @@ else
                                        GL_RGBA,
                             GL_UNSIGNED_BYTE, (GLvoid *) texels[i] ) ;
     map_level++ ;
-    delete [] texels [ i ] ;
+    if ( freeData || ( i > 0 ) )
+      delete [] texels [ i ] ;
   }
 
   return true ;
@@ -223,6 +232,25 @@ void ssgAddTextureFormat ( const char* extension,
   }
 }
 
+
+static int fileMTimeCmp( const char *fname_input, const char *fname_output )
+// Compare the two input file names against their modification time
+// -1: fname_input newer than fname_output
+//  1: fname_input older than fname_output
+//  0: stat error
+{
+#ifdef UL_WIN32
+#define stat _stat
+#endif
+  struct stat buffer_in, buffer_out;
+
+  if ( stat( fname_input, &buffer_in ) == 0 && stat( fname_output, &buffer_out ) == 0 )
+    return buffer_in.st_mtime > buffer_out.st_mtime ? -1 : 1;
+  else
+    return 0;
+}
+
+
 bool ssgConvertTexture( char * fname_output, const char * fname_input ) 
 // converts file to .rgb (Silicon Graphics) format
 // returns true if the file has been converted to rgb, or already exists as rgb
@@ -252,26 +280,28 @@ bool ssgConvertTexture( char * fname_output, const char * fname_input )
 		return false; // no input file => we can't convert it
 	}
 
+  if ( ulFileExists ( fname_output ) && fileMTimeCmp( fname_input, fname_output ) != -1 )
+    return true; // found *.rgb-file, and it's newer than fname_input, so no conversion is needed
+
 	// ****** found original file. convert it. ******
-#ifdef UL_WIN32
   char command [ 1024 ] ;
-	sprintf(command, "imconvert -verbose %s sgi:%s", fname_input, fname_output);
-	unsigned int ui = WinExec(command, SW_HIDE );	
-	if ( ui < 32 )
-	{	ulSetError(UL_WARNING, "Couldn't convert texture '%s'. Did you install ImageMagick?"
-		                       " You may also convert it manually to '%s' and reload the model.", 
-													 fname_input, fname_output);
+  char *conv_cmd = 
+#ifdef UL_WIN32
+                "imconvert";
+#else
+                "convert";
+#endif
+  sprintf(command, "%s -verbose %s sgi:%s", conv_cmd, fname_input, fname_output);
+
+  if ( system( command ) < 0 || !ulFileExists ( fname_output ) )
+  {
+    ulSetError(UL_WARNING, "Couldn't convert texture '%s'. Did you install ImageMagick?"
+                           " You may also convert it manually to '%s' and reload the model.", 
+                           fname_input, fname_output);
 		return false;
 	}
-#else
-	ulSetError(UL_WARNING, "Converting textures not yet implemented under Linux."
-		                     "You may convert '%s' manually to '%s' and reload the model.", 
-													 fname_input, fname_output);
-  //sprintf(command, "-verbose %s sgi:%s", fname_input, fname_output);
-	//execlp ( "convert", "convert",  command, NULL ) ;
 
-#endif
-	return true;
+  return true;
 }
 
 

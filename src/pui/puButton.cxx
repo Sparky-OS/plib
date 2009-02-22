@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: puButton.cxx,v 1.21 2003/02/07 17:41:07 nhv Exp $
+     $Id: puButton.cxx 2064 2006-01-05 21:32:59Z fayjf $
 */
 
 
@@ -39,7 +39,8 @@ void puButton::draw ( int dx, int dy )
     {
       if ( parent && ( ( parent->getType() & PUCLASS_POPUPMENU ) ||
                        ( parent->getType() & PUCLASS_MENUBAR   ) ) )
-        abox.draw ( dx, dy, PUSTYLE_SMALL_SHADED, colour, isReturnDefault(), 2 ) ;
+        abox.draw ( dx, dy, active ? PUSTYLE_SMALL_SHADED : PUSTYLE_PLAIN, colour,
+                    isReturnDefault(), active ? 2 : 0 ) ;
       else
         abox.draw ( dx, dy, -style, colour, isReturnDefault(), border_thickness ) ;
     }
@@ -210,9 +211,9 @@ void puButton::doHit ( int button, int updown, int x, int y )
   if ( updown != PU_DRAG )
     puMoveToLast ( this );
 
-  if ( button == PU_LEFT_BUTTON )
+  if ( button == active_mouse_button )
   {
-    if ( updown == active_mouse_edge || active_mouse_edge == PU_UP_AND_DOWN )
+    if ( ( updown == active_mouse_edge ) || ( active_mouse_edge == PU_UP_AND_DOWN ) )
     {
       lowlight () ;
       setValue ( (int) ! getIntegerValue () ) ;

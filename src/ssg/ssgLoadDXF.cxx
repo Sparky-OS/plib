@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgLoadDXF.cxx,v 1.27 2002/09/15 01:29:11 ude Exp $
+     $Id: ssgLoadDXF.cxx 1673 2002-09-15 01:29:12Z ude $
 */
 
 //

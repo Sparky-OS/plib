@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgSaveOFF.cxx,v 1.5 2002/09/02 06:05:48 sjbaker Exp $
+     $Id: ssgSaveOFF.cxx 1568 2002-09-02 06:05:49Z sjbaker $
 */
 /* 
  .off writer for SSG/PLIB

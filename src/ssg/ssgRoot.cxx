@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgRoot.cxx,v 1.7 2002/09/02 06:05:48 sjbaker Exp $
+     $Id: ssgRoot.cxx 1568 2002-09-02 06:05:49Z sjbaker $
 */
 
 

@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgAnimation.cxx,v 1.16 2002/11/08 18:35:07 sjbaker Exp $
+     $Id: ssgAnimation.cxx 1725 2002-11-08 18:35:07Z sjbaker $
 */
 
 

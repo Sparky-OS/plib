@@ -1,9 +1,19 @@
-plib (1.8.4-11) unstable; urgency=low
+plib (1.8.5-1) experimental; urgency=low
 
-  * Update maintainer email.
-  * Stop replacing ltmain.sh. Closes: #527506.
+  * New upstream release. Closes: #475354.
+  * debian/control
+    - Update maintainer email address.
+    - Rename binary packages.
+    - Remove obsolote Conflicts/Replaces, and add new ones.
+    - Fix Vcs-* entries.
+  * debian/patches
+    - build_shared_libs - Update soname.
+    - misc_fixes - Refresh
+  * Update compat version to 7 and upgrade debhelper build-depends.
+  * Convert copyright to machine readable format.
+  * Fix watch file.
 
- -- Bradley Smith <bradsmith@debian.org>  Sat, 09 May 2009 18:57:39 +0100
+ -- Bradley Smith <bradsmith@debian.org>  Sun, 22 Feb 2009 12:31:31 +0000
 
 plib (1.8.4-10) unstable; urgency=low
 

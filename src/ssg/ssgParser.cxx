@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgParser.cxx,v 1.28 2004/10/04 08:10:00 wolfram_kuss Exp $
+     $Id: ssgParser.cxx 2117 2007-09-13 23:21:09Z fayjf $
 */
 
 //
@@ -271,17 +271,13 @@ void _ssgParser::addOneCharToken ( char *ptr )
 	onechartokenbuf_ptr += 2; // prepare for nect onechartoken
 }
 
-static char *mystrchr( const char *string, int c )
+static const char *mystrchr( const char *string, int c )
 // like strchr, but string may be NULL
 {
 	if (string == NULL )
 		return NULL;
 	else
-#ifdef UL_BB
-		return strchr( (char*)string, c );
-#else
 		return strchr( string, c );
-#endif
 }
 
 

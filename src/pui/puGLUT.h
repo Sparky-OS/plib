@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: puGLUT.h,v 1.1 2004/02/16 13:49:03 stromberg Exp $
+     $Id: puGLUT.h 2122 2007-09-15 12:34:36Z fayjf $
 */
 
 #ifndef _PU_GLUT_H_
@@ -33,7 +33,11 @@
 #ifdef UL_MAC_OSX
 # include <GLUT/glut.h>
 #else
-# include <GL/glut.h>
+# ifdef FREEGLUT_IS_PRESENT /* for FreeGLUT like PLIB 1.6.1*/
+#  include <GL/freeglut.h>
+# else
+#  include <GL/glut.h>
+# endif
 #endif
 
 

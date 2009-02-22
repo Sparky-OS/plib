@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: puAuxVerticalMenu.cxx,v 1.2 2004/03/21 19:03:23 sjbaker Exp $
+     $Id: puAuxVerticalMenu.cxx 2022 2005-05-06 18:39:18Z fayjf $
 */
 
 
@@ -54,6 +54,7 @@ void puaVerticalMenu::add_submenu ( const char *str, char *items[],
     b -> setActiveDirn ( PU_UP_AND_DOWN ) ;
 
     puPopupMenu *p = new puPopupMenu ( w+10, 0 ) ;      
+    p->setActiveButton ( active_mouse_button ) ;
 
     b -> setUserData ( p ) ;
 

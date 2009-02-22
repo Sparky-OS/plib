@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: puPopup.cxx,v 1.5 2002/09/02 06:05:46 sjbaker Exp $
+     $Id: puPopup.cxx 1568 2002-09-02 06:05:49Z sjbaker $
 */
 
 

@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: puAuxScrollBar.cxx,v 1.2 2004/03/21 19:03:23 sjbaker Exp $
+     $Id: puAuxScrollBar.cxx 2022 2005-05-06 18:39:18Z fayjf $
 */
 
 
@@ -139,13 +139,13 @@ void puaScrollBar::doHit ( int button, int updown, int x, int y )
   if ( updown != PU_DRAG )
     puMoveToLast ( this );
 
-  if ( button == PU_LEFT_BUTTON && updown == PU_UP )
+  if ( ( button == active_mouse_button ) && ( updown == PU_UP ) )
   {
     puDeactivateWidget () ;
     return ;
   }
 
-  if ( button == PU_LEFT_BUTTON )
+  if ( button == active_mouse_button )
   {
     int width = isVertical () ? abox.max[0] - abox.min[0] : abox.max[1] - abox.min[1] ;
 

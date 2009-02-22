@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgLoadSSG.cxx,v 1.19 2002/09/02 06:05:48 sjbaker Exp $
+     $Id: ssgLoadSSG.cxx 1568 2002-09-02 06:05:49Z sjbaker $
 */
 
 // code for loading and writing .ssg files

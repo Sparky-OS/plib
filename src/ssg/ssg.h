@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssg.h,v 1.176 2004/12/29 07:19:40 sjbaker Exp $
+     $Id: ssg.h 2126 2007-10-02 00:49:30Z fayjf $
 */
 
 
@@ -200,6 +200,10 @@ inline int ssgTypeTexture      () { return _SSG_TYPE_TEXTURE   | ssgTypeBase    
 
 int ssgGetFrameCounter () ;
 void ssgSetFrameCounter ( int fc ) ;
+
+// Returns GL_TRUE if the OpenGL Extension whose name is *extName
+// is supported by the system, or GL_FALSE otherwise.
+bool ssgIsExtensionSupported(char *extName);
 
 class ssgList
 {
@@ -444,7 +448,8 @@ public:
 
   void removeAll ()
   {
-    delete [] list ;
+    if ( own_mem )
+      delete [] list ;
     list = NULL ;
     limit = total = 0 ;
   }
@@ -694,7 +699,7 @@ void ssgAddTextureFormat ( const char* extension,
                           bool (*) (const char*, ssgTextureInfo* info) ) ;
 
 int ssgGetNumTexelsLoaded () ;
-bool ssgMakeMipMaps ( GLubyte *image, int xsize, int ysize, int zsize ) ;
+bool ssgMakeMipMaps ( GLubyte *image, int xsize, int ysize, int zsize, bool freeData = true ) ;
 
 
 class ssgTexture : public ssgBase

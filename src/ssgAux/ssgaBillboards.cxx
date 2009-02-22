@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgaBillboards.cxx,v 1.4 2004/02/25 15:39:34 sjbaker Exp $
+     $Id: ssgaBillboards.cxx 1878 2004-02-25 15:39:34Z sjbaker $
 */
 
 

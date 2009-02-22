@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgIO.cxx,v 1.38 2002/09/15 01:29:11 ude Exp $
+     $Id: ssgIO.cxx 1673 2002-09-15 01:29:12Z ude $
 */
 
 

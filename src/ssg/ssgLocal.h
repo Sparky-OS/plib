@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgLocal.h,v 1.26 2004/12/29 07:19:40 sjbaker Exp $
+     $Id: ssgLocal.h 1996 2004-12-29 07:19:40Z sjbaker $
 */
 
 

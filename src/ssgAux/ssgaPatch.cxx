@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgaPatch.cxx,v 1.5 2002/09/02 06:05:49 sjbaker Exp $
+     $Id: ssgaPatch.cxx 1568 2002-09-02 06:05:49Z sjbaker $
 */
 
 

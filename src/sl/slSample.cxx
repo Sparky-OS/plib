@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: slSample.cxx,v 1.10 2004/02/08 18:41:15 stromberg Exp $
+     $Id: slSample.cxx 1853 2004-02-08 18:41:15Z stromberg $
 */
 
 

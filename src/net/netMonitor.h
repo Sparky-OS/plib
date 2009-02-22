@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: netMonitor.h,v 1.10 2004/03/21 17:41:07 sjbaker Exp $
+     $Id: netMonitor.h 1899 2004-03-21 17:41:07Z sjbaker $
 */
 
 /****

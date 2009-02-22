@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: puDialogBox.cxx,v 1.5 2002/09/02 06:05:45 sjbaker Exp $
+     $Id: puDialogBox.cxx 1568 2002-09-02 06:05:49Z sjbaker $
 */
 
 

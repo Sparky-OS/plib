@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgaSphere.h,v 1.2 2005/01/09 13:13:12 bram Exp $
+     $Id: ssgaSphere.h 2000 2005-01-09 13:13:12Z bram $
 */
 
 

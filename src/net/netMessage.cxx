@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: netMessage.cxx,v 1.7 2004/03/21 17:41:07 sjbaker Exp $
+     $Id: netMessage.cxx 1899 2004-03-21 17:41:07Z sjbaker $
 */
 
 #include "netMessage.h"

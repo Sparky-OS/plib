@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: sl.h,v 1.26 2004/04/06 13:32:26 sjbaker Exp $
+     $Id: sl.h 1924 2004-04-06 13:32:26Z sjbaker $
 */
 
 

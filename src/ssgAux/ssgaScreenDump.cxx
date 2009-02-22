@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgaScreenDump.cxx,v 1.4 2004/12/29 07:19:40 sjbaker Exp $
+     $Id: ssgaScreenDump.cxx 1996 2004-12-29 07:19:40Z sjbaker $
 */
 
 

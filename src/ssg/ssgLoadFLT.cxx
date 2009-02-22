@@ -18,11 +18,11 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgLoadFLT.cxx,v 1.39 2003/04/17 13:10:12 stromberg Exp $
+     $Id: ssgLoadFLT.cxx 1762 2003-04-17 13:10:12Z stromberg $
 */
 
 //
-//  $Id: ssgLoadFLT.cxx,v 1.39 2003/04/17 13:10:12 stromberg Exp $
+//  $Id: ssgLoadFLT.cxx 1762 2003-04-17 13:10:12Z stromberg $
 //
 //
 //    OpenFlight loader for SSG

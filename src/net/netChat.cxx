@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: netChat.cxx,v 1.5 2002/09/02 06:05:44 sjbaker Exp $
+     $Id: netChat.cxx 2117 2007-09-13 23:21:09Z fayjf $
 */
 
 #include "netChat.h"
@@ -63,7 +63,7 @@ find_terminator (const netBuffer& haystack, const char* needle)
   if (needle && *needle)
   {
     const char* data = haystack.getData();
-    char* ptr = strstr(data,needle);
+    const char* ptr = strstr(data,needle);
     if (ptr != NULL)
       return(ptr-data);
   }

@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgaSkyDome.cxx,v 1.2 2003/09/26 14:54:20 sjbaker Exp $
+     $Id: ssgaSkyDome.cxx 1798 2003-09-26 14:54:20Z sjbaker $
 */
 
 // Written by Curtis Olson, started December 1997.

@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: slScheduler.cxx,v 1.10 2003/05/18 13:45:04 puggles Exp $
+     $Id: slScheduler.cxx 1764 2003-05-18 13:45:04Z puggles $
 */
 
 

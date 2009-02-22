@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgAux.h,v 1.18 2003/06/27 08:15:15 sjbaker Exp $
+     $Id: ssgAux.h 1772 2003-06-27 08:15:15Z sjbaker $
 */
 
 

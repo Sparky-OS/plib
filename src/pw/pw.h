@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: pw.h,v 1.7 2004/04/06 23:45:19 sjbaker Exp $
+     $Id: pw.h 1928 2004-04-06 23:45:19Z sjbaker $
 */
 
 

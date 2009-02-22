@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgSaveIV.cxx,v 1.2 2005/01/15 17:59:31 sjbaker Exp $
+     $Id: ssgSaveIV.cxx 2011 2005-01-15 17:59:31Z sjbaker $
 */
 
 //

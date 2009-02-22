@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: pslCodeGen.cxx,v 1.30 2004/03/18 22:09:07 sjbaker Exp $
+     $Id: pslCodeGen.cxx 1891 2004-03-18 22:09:07Z sjbaker $
 */
 
 

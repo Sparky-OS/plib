@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: puPopupMenu.cxx,v 1.18 2003/06/26 11:31:07 puggles Exp $
+     $Id: puPopupMenu.cxx 2021 2005-05-06 18:31:27Z fayjf $
 */
 
 
@@ -41,6 +41,8 @@ puObject *puPopupMenu::add_item ( const char *str, puCallback _cb,
   b->setCallback     ( _cb ) ;
   b->setLegendPlace  ( PUPLACE_LOWER_LEFT ) ;
   b->setUserData     ( _user_data ) ;
+  b->setActiveButton ( active_mouse_button ) ;
+  b->setWindow ( getWindow () ) ;
   recalc_bbox () ;
   return b ;
 }

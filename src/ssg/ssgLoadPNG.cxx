@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgLoadPNG.cxx,v 1.9 2002/09/02 06:05:48 sjbaker Exp $
+     $Id: ssgLoadPNG.cxx 1568 2002-09-02 06:05:49Z sjbaker $
 */
 
 

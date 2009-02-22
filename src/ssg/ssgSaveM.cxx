@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgSaveM.cxx,v 1.6 2002/09/02 06:05:48 sjbaker Exp $
+     $Id: ssgSaveM.cxx 1568 2002-09-02 06:05:49Z sjbaker $
 */
 
 #include <stdio.h>

@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgaShapes.h,v 1.14 2002/09/02 06:05:49 sjbaker Exp $
+     $Id: ssgaShapes.h 1568 2002-09-02 06:05:49Z sjbaker $
 */
 
 

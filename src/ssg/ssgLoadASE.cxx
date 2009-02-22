@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgLoadASE.cxx,v 1.48 2004/10/29 22:41:37 wolfram_kuss Exp $
+     $Id: ssgLoadASE.cxx 1988 2004-10-29 22:41:37Z wolfram_kuss $
 */
 
 /****

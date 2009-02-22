@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: jsLinuxOld.cxx,v 1.4 2004/10/20 23:49:33 wolfram_kuss Exp $
+     $Id: jsLinuxOld.cxx 2039 2005-07-16 17:27:51Z fayjf $
 */
 
 #include "js.h"
@@ -27,7 +27,7 @@
 
 #include <linux/joystick.h>
 
-#if !defined(JS_VERSION) || JS_VERSION >= 0x010000
+#if !defined(JS_VERSION) || JS_VERSION < 0x010000
 
 #include <fcntl.h>
 #include <sys/ioctl.h>

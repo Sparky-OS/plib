@@ -1,19 +1,8 @@
---- plib-1.8.4.orig/src/js/jsLinuxOld.cxx
-+++ plib-1.8.4/src/js/jsLinuxOld.cxx
-@@ -27,7 +27,7 @@
- 
- #include <linux/joystick.h>
- 
--#if !defined(JS_VERSION) || JS_VERSION >= 0x010000
-+#if !defined(JS_VERSION) || JS_VERSION < 0x010000
- 
- #include <fcntl.h>
- #include <sys/ioctl.h>
---- plib-1.8.4.orig/src/js/jsBSD.cxx
-+++ plib-1.8.4/src/js/jsBSD.cxx
+--- plib-1.8.5.orig/src/js/jsBSD.cxx
++++ plib-1.8.5/src/js/jsBSD.cxx
 @@ -45,7 +45,7 @@
- #endif
- 
+ #include <string.h>
+ #include <errno.h>
  #include <sys/ioctl.h>
 -#if defined(__FreeBSD__)
 +#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
@@ -38,9 +27,8 @@
  #    include <linux/soundcard.h>
  #    include <sys/ioctl.h>
 -#  elif defined(__FreeBSD__)
--#    include <machine/soundcard.h>
 +#  elif defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
-+#    include <sys/soundcard.h>
+ #    include <sys/soundcard.h>
  #  else
      /*
        Tom thinks this file may be <sys/soundcard.h> under some
@@ -53,23 +41,3 @@
  #  include <sys/audioio.h>
  #endif
  #endif
---- plib-1.8.4.orig/src/ssgAux/ssgaSky.h
-+++ plib-1.8.4/src/ssgAux/ssgaSky.h
-@@ -104,7 +104,7 @@
-   ssgaCelestialBodyList ( int init = 3 )
- 	  : ssgSimpleList ( sizeof(ssgaCelestialBody*), init ) { }
- 
--  ssgaCelestialBodyList::~ssgaCelestialBodyList () { removeAll(); }
-+  ~ssgaCelestialBodyList () { removeAll(); }
- 
-   int getNum (void) { return total ; }
- 
-@@ -192,7 +192,7 @@
-   ssgaCloudLayerList ( int init = 3 )
- 	  : ssgSimpleList ( sizeof(ssgaCloudLayer*), init ) { }
- 
--  ssgaCloudLayerList::~ssgaCloudLayerList () { removeAll(); }
-+  ~ssgaCloudLayerList () { removeAll(); }
- 
-   int getNum (void) { return total ; }
- 

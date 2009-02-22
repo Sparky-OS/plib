@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgStateSelector.cxx,v 1.21 2004/09/13 11:28:34 wolfram_kuss Exp $
+     $Id: ssgStateSelector.cxx 1950 2004-09-13 11:28:34Z wolfram_kuss $
 */
 
 

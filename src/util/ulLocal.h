@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: ulLocal.h,v 1.2 2002/09/02 06:05:49 sjbaker Exp $
+     $Id: ulLocal.h 1568 2002-09-02 06:05:49Z sjbaker $
 */
 
 #ifndef _UL_LOCAL_H_

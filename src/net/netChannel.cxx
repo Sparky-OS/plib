@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: netChannel.cxx,v 1.9 2004/03/22 19:44:50 sjbaker Exp $
+     $Id: netChannel.cxx 1906 2004-03-22 19:44:50Z sjbaker $
 */
 
 // TODO:

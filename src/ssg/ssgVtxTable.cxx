@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgVtxTable.cxx,v 1.38 2004/12/01 08:28:05 wolfram_kuss Exp $
+     $Id: ssgVtxTable.cxx 1992 2004-12-01 08:28:05Z wolfram_kuss $
 */
 
 

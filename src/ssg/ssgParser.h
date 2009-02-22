@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgParser.h,v 1.16 2004/10/04 08:11:26 wolfram_kuss Exp $
+     $Id: ssgParser.h 1970 2004-10-04 08:11:26Z wolfram_kuss $
 */
 
 

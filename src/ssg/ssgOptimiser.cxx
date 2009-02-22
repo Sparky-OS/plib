@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgOptimiser.cxx,v 1.37 2005/01/09 13:10:08 bram Exp $
+     $Id: ssgOptimiser.cxx 1999 2005-01-09 13:10:08Z bram $
 */
 
 

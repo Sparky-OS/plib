@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgSimpleState.cxx,v 1.25 2002/09/02 06:05:49 sjbaker Exp $
+     $Id: ssgSimpleState.cxx 1568 2002-09-02 06:05:49Z sjbaker $
 */
 
 

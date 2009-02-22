@@ -19,7 +19,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgaWaveSystem.cxx,v 1.11 2003/06/27 08:15:15 sjbaker Exp $
+     $Id: ssgaWaveSystem.cxx 1772 2003-06-27 08:15:15Z sjbaker $
 */
 
 

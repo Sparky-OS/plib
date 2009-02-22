@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ulError.cxx,v 1.8 2004/10/02 12:20:43 wolfram_kuss Exp $
+     $Id: ulError.cxx 1967 2004-10-02 12:20:43Z wolfram_kuss $
 */
 
 

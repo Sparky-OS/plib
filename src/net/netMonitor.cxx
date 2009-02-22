@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: netMonitor.cxx,v 1.8 2002/09/02 06:05:44 sjbaker Exp $
+     $Id: netMonitor.cxx 1568 2002-09-02 06:05:49Z sjbaker $
 */
 
 #include "netMonitor.h"

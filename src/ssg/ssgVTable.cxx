@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgVTable.cxx,v 1.21 2004/06/24 16:30:54 sjbaker Exp $
+     $Id: ssgVTable.cxx 1938 2004-06-24 16:30:55Z sjbaker $
 */
 
 

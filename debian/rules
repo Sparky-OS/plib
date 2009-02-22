@@ -19,10 +19,11 @@ ifneq (,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
 	MAKEFLAGS += -j$(NUMJOBS)
 endif
 
-configure: patch configure-stamp
-configure-stamp:
+configure: configure-stamp
+configure-stamp: $(QUILT_STAMPFN)
 	dh_testdir
 	autoreconf -i
+	cp debian/ltmain.sh .
 	LDFLAGS="$(LDFLAGS)" CFLAGS="$(CFLAGS)" \
 		./configure --prefix=/usr \
 		--host=$(DEB_HOST_GNU_TYPE)	--build=$(DEB_BUILD_GNU_TYPE)
@@ -48,11 +49,11 @@ clean: pre-clean unpatch
 install: build
 	dh_testdir
 	dh_testroot
-	dh_clean -k
+	dh_prep
 	$(MAKE) install DESTDIR=$(CURDIR)/debian/tmp/
-	mkdir -p debian/plib1.8.4c2/usr/share/lintian/overrides/
-	cp -a debian/plib1.8.4c2.lintian-overrides \
-		debian/plib1.8.4c2/usr/share/lintian/overrides/plib1.8.4c2
+	mkdir -p debian/libplib1/usr/share/lintian/overrides/
+	cp -a debian/libplib1.lintian-overrides \
+		debian/libplib1/usr/share/lintian/overrides/libplib1
 
 binary-indep: build install
 
@@ -67,7 +68,7 @@ binary-arch: build install
 	dh_strip
 	dh_compress
 	dh_fixperms
-	dh_makeshlibs -V 'plib1.8.4c2 (>= 1.8.4-9)'
+	dh_makeshlibs -V 'libplib1 (>= 1.8.5-1)'
 	dh_shlibdeps
 	dh_installdeb
 	dh_gencontrol

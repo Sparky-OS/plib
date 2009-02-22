@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: slMODinst.cxx,v 1.7 2002/09/02 06:05:47 sjbaker Exp $
+     $Id: slMODinst.cxx 1568 2002-09-02 06:05:49Z sjbaker $
 */
 
 

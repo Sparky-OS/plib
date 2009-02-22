@@ -19,7 +19,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgLoaderWriterStuff.cxx,v 1.31 2004/10/06 14:25:11 wolfram_kuss Exp $
+     $Id: ssgLoaderWriterStuff.cxx 2060 2006-01-05 20:54:15Z fayjf $
 */
 
 // ssgLoaderWriterStuff.cxx
@@ -657,7 +657,9 @@ void ssgLoaderWriterMesh::addOneNodeToSSGFromPerVertexTextureCoordinates2( class
 	if ( colours == NULL )
 	  {
 	     colours = new ssgColourArray ( 1 ) ;
-	     colours -> add ( currentDiffuse ) ;
+         sgVec4 currentDiffuseColour;
+         sgCopyVec4(currentDiffuseColour, currentState->getMaterial(GL_DIFFUSE));
+         colours -> add ( currentDiffuseColour ) ;
 	  }
      }
    ssgVtxArray* leaf = new ssgVtxArray ( GL_TRIANGLES, theVertices, normalList, theTextureCoordinates2, colours, indexList ) ;

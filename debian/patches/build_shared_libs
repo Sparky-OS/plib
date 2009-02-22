@@ -1,6 +1,6 @@
-diff -Naur plib-1.8.4.orig/configure.in plib-1.8.4/configure.in
---- plib-1.8.4.orig/configure.in	2008-04-17 13:46:45.000000000 +0100
-+++ plib-1.8.4/configure.in	2008-04-17 13:47:10.000000000 +0100
+diff -Naur plib-1.8.5.orig/configure.in plib-1.8.5/configure.in
+--- plib-1.8.5.orig/configure.in	2008-04-17 13:46:45.000000000 +0100
++++ plib-1.8.5/configure.in	2008-04-17 13:47:10.000000000 +0100
 @@ -36,7 +36,7 @@
  AC_PROG_CXX
  AC_PROG_CXXCPP
@@ -10,9 +10,9 @@ diff -Naur plib-1.8.4.orig/configure.in plib-1.8.4/configure.in
  
  dnl Command line arguments
  
-diff -Naur plib-1.8.4.orig/src/fnt/Makefile.am plib-1.8.4/src/fnt/Makefile.am
---- plib-1.8.4.orig/src/fnt/Makefile.am	2008-04-17 13:46:45.000000000 +0100
-+++ plib-1.8.4/src/fnt/Makefile.am	2008-04-17 13:52:53.000000000 +0100
+diff -Naur plib-1.8.5.orig/src/fnt/Makefile.am plib-1.8.5/src/fnt/Makefile.am
+--- plib-1.8.5.orig/src/fnt/Makefile.am	2008-04-17 13:46:45.000000000 +0100
++++ plib-1.8.5/src/fnt/Makefile.am	2008-04-17 13:52:53.000000000 +0100
 @@ -1,10 +1,12 @@
  if BUILD_FNT
  
@@ -24,13 +24,13 @@ diff -Naur plib-1.8.4.orig/src/fnt/Makefile.am plib-1.8.4/src/fnt/Makefile.am
 -libplibfnt_a_SOURCES = fnt.cxx fntTXF.cxx fntLocal.h fntBitmap.cxx
 +libplibfnt_la_SOURCES = fnt.cxx fntTXF.cxx fntLocal.h fntBitmap.cxx
 +libplibfnt_la_LIBADD = ../util/libplibul.la
-+libplibfnt_la_LDFLAGS = -version-info 9:4:8
++libplibfnt_la_LDFLAGS = -version-info 9:5:8
  
  INCLUDES = -I$(top_srcdir)/src/sg -I$(top_srcdir)/src/util
  
-diff -Naur plib-1.8.4.orig/src/js/Makefile.am plib-1.8.4/src/js/Makefile.am
---- plib-1.8.4.orig/src/js/Makefile.am	2008-04-17 13:46:45.000000000 +0100
-+++ plib-1.8.4/src/js/Makefile.am	2008-04-17 13:53:33.000000000 +0100
+diff -Naur plib-1.8.5.orig/src/js/Makefile.am plib-1.8.5/src/js/Makefile.am
+--- plib-1.8.5.orig/src/js/Makefile.am	2008-04-17 13:46:45.000000000 +0100
++++ plib-1.8.5/src/js/Makefile.am	2008-04-17 13:53:33.000000000 +0100
 @@ -1,12 +1,15 @@
  if BUILD_JS
  
@@ -44,20 +44,20 @@ diff -Naur plib-1.8.4.orig/src/js/Makefile.am plib-1.8.4/src/js/Makefile.am
                               jsMacOSX.cxx jsWindows.cxx jsBSD.cxx   \
                               jsNone.cxx
 +libplibjs_la_LIBADD = ../util/libplibul.la
-+libplibjs_la_LDFLAGS = -version-info 9:4:8
++libplibjs_la_LDFLAGS = -version-info 9:5:8
 +
  
  INCLUDES = -I$(top_srcdir)/src/util
  
-diff -Naur plib-1.8.4.orig/src/Makefile.am plib-1.8.4/src/Makefile.am
---- plib-1.8.4.orig/src/Makefile.am	2008-04-17 13:46:45.000000000 +0100
-+++ plib-1.8.4/src/Makefile.am	2008-04-17 14:16:21.000000000 +0100
+diff -Naur plib-1.8.5.orig/src/Makefile.am plib-1.8.5/src/Makefile.am
+--- plib-1.8.5.orig/src/Makefile.am	2008-04-17 13:46:45.000000000 +0100
++++ plib-1.8.5/src/Makefile.am	2008-04-17 14:16:21.000000000 +0100
 @@ -1 +1 @@
 -SUBDIRS = util js sl pui puAux sg ssg fnt ssgAux net psl pw
 +SUBDIRS = util fnt sg js sl pui puAux ssg ssgAux net psl pw
-diff -Naur plib-1.8.4.orig/src/net/Makefile.am plib-1.8.4/src/net/Makefile.am
---- plib-1.8.4.orig/src/net/Makefile.am	2008-04-17 13:46:45.000000000 +0100
-+++ plib-1.8.4/src/net/Makefile.am	2008-04-17 13:54:12.000000000 +0100
+diff -Naur plib-1.8.5.orig/src/net/Makefile.am plib-1.8.5/src/net/Makefile.am
+--- plib-1.8.5.orig/src/net/Makefile.am	2008-04-17 13:46:45.000000000 +0100
++++ plib-1.8.5/src/net/Makefile.am	2008-04-17 13:54:12.000000000 +0100
 @@ -1,12 +1,14 @@
  if BUILD_NET
  
@@ -71,13 +71,13 @@ diff -Naur plib-1.8.4.orig/src/net/Makefile.am plib-1.8.4/src/net/Makefile.am
 +libplibnet_la_SOURCES = netBuffer.cxx netChannel.cxx netChat.cxx \
  	netMessage.cxx netMonitor.cxx netSocket.cxx
 +libplibnet_la_LIBADD = ../util/libplibul.la
-+libplibnet_la_LDFLAGS = -version-info 9:4:8
++libplibnet_la_LDFLAGS = -version-info 9:5:8
  
  INCLUDES = -I$(top_srcdir)/src/util
  
-diff -Naur plib-1.8.4.orig/src/psl/Makefile.am plib-1.8.4/src/psl/Makefile.am
---- plib-1.8.4.orig/src/psl/Makefile.am	2008-04-17 13:46:45.000000000 +0100
-+++ plib-1.8.4/src/psl/Makefile.am	2008-04-17 14:13:43.000000000 +0100
+diff -Naur plib-1.8.5.orig/src/psl/Makefile.am plib-1.8.5/src/psl/Makefile.am
+--- plib-1.8.5.orig/src/psl/Makefile.am	2008-04-17 13:46:45.000000000 +0100
++++ plib-1.8.5/src/psl/Makefile.am	2008-04-17 14:13:43.000000000 +0100
 @@ -1,16 +1,18 @@
  
  if BUILD_PSL
@@ -95,13 +95,13 @@ diff -Naur plib-1.8.4.orig/src/psl/Makefile.am plib-1.8.4/src/psl/Makefile.am
                         pslContext.h pslFileIO.h pslLocal.h \
                         pslOpcodes.h pslSymbol.h
 +libplibpsl_la_LIBADD = ../util/libplibul.la
-+libplibpsl_la_LDFLAGS = -version-info 9:4:8
++libplibpsl_la_LDFLAGS = -version-info 9:5:8
  
  INCLUDES = -I$(top_srcdir)/src/util
  
-diff -Naur plib-1.8.4.orig/src/puAux/Makefile.am plib-1.8.4/src/puAux/Makefile.am
---- plib-1.8.4.orig/src/puAux/Makefile.am	2008-04-17 13:46:45.000000000 +0100
-+++ plib-1.8.4/src/puAux/Makefile.am	2008-04-17 14:08:34.000000000 +0100
+diff -Naur plib-1.8.5.orig/src/puAux/Makefile.am plib-1.8.5/src/puAux/Makefile.am
+--- plib-1.8.5.orig/src/puAux/Makefile.am	2008-04-17 13:46:45.000000000 +0100
++++ plib-1.8.5/src/puAux/Makefile.am	2008-04-17 14:08:34.000000000 +0100
 @@ -1,10 +1,10 @@
  if BUILD_PUAUX
  
@@ -121,13 +121,13 @@ diff -Naur plib-1.8.4.orig/src/puAux/Makefile.am plib-1.8.4/src/puAux/Makefile.a
                           puAuxChooser.cxx
 +libplibpuaux_la_LIBADD = ../util/libplibul.la ../pui/libplibpu.la \
 +	../fnt/libplibfnt.la ../sg/libplibsg.la
-+libplibpuaux_la_LDFLAGS = -version-info 9:4:8
++libplibpuaux_la_LDFLAGS = -version-info 9:5:8
  
  INCLUDES = -I$(top_srcdir)/src/sg  \
             -I$(top_srcdir)/src/pui \
-diff -Naur plib-1.8.4.orig/src/pui/Makefile.am plib-1.8.4/src/pui/Makefile.am
---- plib-1.8.4.orig/src/pui/Makefile.am	2008-04-17 13:46:45.000000000 +0100
-+++ plib-1.8.4/src/pui/Makefile.am	2008-04-17 14:09:12.000000000 +0100
+diff -Naur plib-1.8.5.orig/src/pui/Makefile.am plib-1.8.5/src/pui/Makefile.am
+--- plib-1.8.5.orig/src/pui/Makefile.am	2008-04-17 13:46:45.000000000 +0100
++++ plib-1.8.5/src/pui/Makefile.am	2008-04-17 14:09:12.000000000 +0100
 @@ -1,10 +1,10 @@
  if BUILD_PUI
  
@@ -142,17 +142,17 @@ diff -Naur plib-1.8.4.orig/src/pui/Makefile.am plib-1.8.4/src/pui/Makefile.am
          puArrowButton.cxx puDialogBox.cxx puFrame.cxx  puGroup.cxx        \
          puInput.cxx       puInterface.cxx puLocal.h    puMenuBar.cxx      \
 @@ -14,6 +14,8 @@
-         puDial.cxx        puVerticalMenu.cxx  puLargeInput.cxx            \
-         puFileSelector.cxx puComboBox.cxx puSelectBox.cxx puRange.cxx     \
-         puSpinBox.cxx     puScrollBar.cxx puInputBase.cxx
+         puDial.cxx        \
+         puRange.cxx	  \
+         puInputBase.cxx
 +libplibpu_la_LIBADD = ../util/libplibul.la ../fnt/libplibfnt.la
-+libplibpu_la_LDFLAGS = -version-info 9:4:8
++libplibpu_la_LDFLAGS = -version-info 9:5:8
  
  AM_CPPFLAGS = -I$(top_srcdir)/src/sg -I$(top_srcdir)/src/fnt
  AM_CPPFLAGS += -I$(top_srcdir)/src/util
-diff -Naur plib-1.8.4.orig/src/pw/Makefile.am plib-1.8.4/src/pw/Makefile.am
---- plib-1.8.4.orig/src/pw/Makefile.am	2008-04-17 13:46:45.000000000 +0100
-+++ plib-1.8.4/src/pw/Makefile.am	2008-04-17 14:13:46.000000000 +0100
+diff -Naur plib-1.8.5.orig/src/pw/Makefile.am plib-1.8.5/src/pw/Makefile.am
+--- plib-1.8.5.orig/src/pw/Makefile.am	2008-04-17 13:46:45.000000000 +0100
++++ plib-1.8.5/src/pw/Makefile.am	2008-04-17 14:13:46.000000000 +0100
 @@ -1,10 +1,11 @@
  if BUILD_PW
  
@@ -163,13 +163,13 @@ diff -Naur plib-1.8.4.orig/src/pw/Makefile.am plib-1.8.4/src/pw/Makefile.am
  
 -libplibpw_a_SOURCES = pw.cxx pwX11.cxx pwWindows.cxx pwMacOSX.cxx
 +libplibpw_la_SOURCES = pw.cxx pwX11.cxx pwWindows.cxx pwMacOSX.cxx
-+libplibpw_la_LDFLAGS = -version-info 9:4:8
++libplibpw_la_LDFLAGS = -version-info 9:5:8
  
  INCLUDES = -I$(top_srcdir)/src/util
  
-diff -Naur plib-1.8.4.orig/src/sg/Makefile.am plib-1.8.4/src/sg/Makefile.am
---- plib-1.8.4.orig/src/sg/Makefile.am	2008-04-17 13:46:45.000000000 +0100
-+++ plib-1.8.4/src/sg/Makefile.am	2008-04-17 14:14:23.000000000 +0100
+diff -Naur plib-1.8.5.orig/src/sg/Makefile.am plib-1.8.5/src/sg/Makefile.am
+--- plib-1.8.5.orig/src/sg/Makefile.am	2008-04-17 13:46:45.000000000 +0100
++++ plib-1.8.5/src/sg/Makefile.am	2008-04-17 14:14:23.000000000 +0100
 @@ -1,12 +1,14 @@
  if BUILD_SG
  
@@ -183,13 +183,13 @@ diff -Naur plib-1.8.4.orig/src/sg/Makefile.am plib-1.8.4/src/sg/Makefile.am
                        sgIsect.cxx sgdIsect.cxx \
                        sgPerlinNoise.cxx
 +libplibsg_la_LIBADD = ../util/libplibul.la
-+libplibsg_la_LDFLAGS = -version-info 9:4:8
++libplibsg_la_LDFLAGS = -version-info 9:5:8
  
  INCLUDES = -I$(top_srcdir)/src/util
  
-diff -Naur plib-1.8.4.orig/src/sl/Makefile.am plib-1.8.4/src/sl/Makefile.am
---- plib-1.8.4.orig/src/sl/Makefile.am	2008-04-17 13:46:45.000000000 +0100
-+++ plib-1.8.4/src/sl/Makefile.am	2008-04-17 14:12:02.000000000 +0100
+diff -Naur plib-1.8.5.orig/src/sl/Makefile.am plib-1.8.5/src/sl/Makefile.am
+--- plib-1.8.5.orig/src/sl/Makefile.am	2008-04-17 13:46:45.000000000 +0100
++++ plib-1.8.5/src/sl/Makefile.am	2008-04-17 14:12:02.000000000 +0100
 @@ -1,16 +1,19 @@
  if BUILD_SL
  
@@ -205,17 +205,17 @@ diff -Naur plib-1.8.4.orig/src/sl/Makefile.am plib-1.8.4/src/sl/Makefile.am
          slScheduler.cxx slMODdacio.cxx slMODfile.cxx \
          slMODinst.cxx slMODnote.cxx slMODPrivate.h slMODfile.h
 +libplibsl_la_LIBADD = ../util/libplibul.la
-+libplibsl_la_LDFLAGS = -version-info 9:4:8
++libplibsl_la_LDFLAGS = -version-info 9:5:8
  
 -libplibsm_a_SOURCES = slPortability.h smMixer.cxx
 +libplibsm_la_SOURCES = slPortability.h smMixer.cxx
-+libplibsm_la_LDFLAGS = -version-info 9:4:8
++libplibsm_la_LDFLAGS = -version-info 9:5:8
  
  INCLUDES = -I$(top_srcdir)/src/util
  
-diff -Naur plib-1.8.4.orig/src/ssg/Makefile.am plib-1.8.4/src/ssg/Makefile.am
---- plib-1.8.4.orig/src/ssg/Makefile.am	2008-04-17 13:46:45.000000000 +0100
-+++ plib-1.8.4/src/ssg/Makefile.am	2008-04-17 14:15:18.000000000 +0100
+diff -Naur plib-1.8.5.orig/src/ssg/Makefile.am plib-1.8.5/src/ssg/Makefile.am
+--- plib-1.8.5.orig/src/ssg/Makefile.am	2008-04-17 13:46:45.000000000 +0100
++++ plib-1.8.5/src/ssg/Makefile.am	2008-04-17 14:15:18.000000000 +0100
 @@ -1,10 +1,10 @@
  if BUILD_SSG
  
@@ -234,13 +234,13 @@ diff -Naur plib-1.8.4.orig/src/ssg/Makefile.am plib-1.8.4/src/ssg/Makefile.am
  	ssgSaveIV.cxx ssgAnimTransform.cxx\
  	ssgVertSplitter.h ssgVertSplitter.cxx ssgStatistics.cxx
 +libplibssg_la_LIBADD = ../util/libplibul.la ../sg/libplibsg.la
-+libplibssg_la_LDFLAGS = -version-info 9:4:8
++libplibssg_la_LDFLAGS = -version-info 9:5:8
  
  INCLUDES = -I$(top_srcdir)/src/sg -I$(top_srcdir)/src/util
  
-diff -Naur plib-1.8.4.orig/src/ssgAux/Makefile.am plib-1.8.4/src/ssgAux/Makefile.am
---- plib-1.8.4.orig/src/ssgAux/Makefile.am	2008-04-17 13:46:45.000000000 +0100
-+++ plib-1.8.4/src/ssgAux/Makefile.am	2008-04-17 14:14:50.000000000 +0100
+diff -Naur plib-1.8.5.orig/src/ssgAux/Makefile.am plib-1.8.5/src/ssgAux/Makefile.am
+--- plib-1.8.5.orig/src/ssgAux/Makefile.am	2008-04-17 13:46:45.000000000 +0100
++++ plib-1.8.5/src/ssgAux/Makefile.am	2008-04-17 14:14:50.000000000 +0100
 @@ -1,6 +1,6 @@
  if BUILD_SSGAUX
  
@@ -264,13 +264,13 @@ diff -Naur plib-1.8.4.orig/src/ssgAux/Makefile.am plib-1.8.4/src/ssgAux/Makefile
                            ssgaBillboards.cxx
 +libplibssgaux_la_LIBADD = ../util/libplibul.la ../ssg/libplibssg.la \
 +	../sg/libplibsg.la
-+libplibssgaux_la_LDFLAGS = -version-info 9:4:8
++libplibssgaux_la_LDFLAGS = -version-info 9:5:8
  
  INCLUDES = -I$(top_srcdir)/src/sg -I$(top_srcdir)/src/ssg
  INCLUDES += -I$(top_srcdir)/src/util
-diff -Naur plib-1.8.4.orig/src/util/Makefile.am plib-1.8.4/src/util/Makefile.am
---- plib-1.8.4.orig/src/util/Makefile.am	2008-04-17 13:46:45.000000000 +0100
-+++ plib-1.8.4/src/util/Makefile.am	2008-04-17 14:13:41.000000000 +0100
+diff -Naur plib-1.8.5.orig/src/util/Makefile.am plib-1.8.5/src/util/Makefile.am
+--- plib-1.8.5.orig/src/util/Makefile.am	2008-04-17 13:46:45.000000000 +0100
++++ plib-1.8.5/src/util/Makefile.am	2008-04-17 14:13:41.000000000 +0100
 @@ -1,11 +1,12 @@
  if BUILD_UL
  
@@ -282,7 +282,7 @@ diff -Naur plib-1.8.4.orig/src/util/Makefile.am plib-1.8.4/src/util/Makefile.am
 -libplibul_a_SOURCES = ul.cxx ulClock.cxx ulError.cxx ulLinkedList.cxx \
 +libplibul_la_SOURCES = ul.cxx ulClock.cxx ulError.cxx ulLinkedList.cxx \
          ulList.cxx ulLocal.h ulRTTI.cxx
-+libplibul_la_LDFLAGS = -version-info 9:4:8
++libplibul_la_LDFLAGS = -version-info 9:5:8
  
  endif
  

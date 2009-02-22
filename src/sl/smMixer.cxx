@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: smMixer.cxx,v 1.9 2002/11/30 00:41:49 sjbaker Exp $
+     $Id: smMixer.cxx 1732 2002-11-30 00:41:50Z sjbaker $
 */
 
 #include "sm.h"

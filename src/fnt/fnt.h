@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: fnt.h,v 1.16 2004/04/06 12:53:15 sjbaker Exp $
+     $Id: fnt.h 1923 2004-04-06 12:53:17Z sjbaker $
 */
 
 

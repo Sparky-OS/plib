@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgSaveVRML1.cxx,v 1.3 2002/09/02 06:05:48 sjbaker Exp $
+     $Id: ssgSaveVRML1.cxx 1568 2002-09-02 06:05:49Z sjbaker $
      
      --------------------------------------------------------------------
 

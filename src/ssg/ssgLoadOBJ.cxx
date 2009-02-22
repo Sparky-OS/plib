@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgLoadOBJ.cxx,v 1.23 2002/09/15 01:29:12 ude Exp $
+     $Id: ssgLoadOBJ.cxx 2020 2005-03-25 01:04:04Z wolfram_kuss $
 */
 
 //
@@ -201,6 +201,9 @@ static int leqi ( const char* string1, const char* string2 )
   return TRUE;
 }
 
+static char filename [ 1024 ] ;
+
+
 static void load_materials ( const char* fname )
 {
   num_mat = 0 ;
@@ -210,7 +213,20 @@ static void load_materials ( const char* fname )
 
   FILE* filein = fopen (path,"r") ;
   if ( filein == 0 )
-     return ;
+	{
+		char mtl_filename[ 1024 ];
+		strcpy(mtl_filename, filename);
+		if(NULL!=strrchr(mtl_filename, '/'))
+			*strrchr(mtl_filename, '/') = 0;
+		if(NULL!=strrchr(mtl_filename, '\\'))
+			*strrchr(mtl_filename, '\\') = 0;
+		strncat(mtl_filename, "\\", 1024);
+		strncat(mtl_filename, fname, 1024);
+
+		filein = fopen (mtl_filename,"r") ;
+		if ( filein == 0 )
+			return ; // give up finding the material file
+	}
 
   int index = -1 ;
 
@@ -346,7 +362,6 @@ static void add_mesh ( int mat_index )
 
   current_branch -> addKid ( vtab ) ;
 }
-
 
 static int obj_read ( FILE *filein )
 {
@@ -726,7 +741,6 @@ ssgEntity *ssgLoadOBJ ( const char *fname, const ssgLoaderOptions* options )
 
   current_branch   = NULL ;
 
-  char filename [ 1024 ] ;
   current_options -> makeModelPath ( filename, fname ) ;
 
   FILE *loader_fd = fopen ( filename, "ra" ) ;

@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: puSlider.cxx,v 1.26 2002/09/21 15:59:56 ude Exp $
+     $Id: puSlider.cxx 2088 2006-10-16 08:11:16Z bram $
 */
 
 
@@ -113,13 +113,13 @@ void puSlider::doHit ( int button, int updown, int x, int y )
   if ( updown != PU_DRAG )
     puMoveToLast ( this );
 
-  if ( button == PU_LEFT_BUTTON && updown == PU_UP )
+  if ( ( button == active_mouse_button ) && ( updown == PU_UP ) )
   {
     puDeactivateWidget () ;
     return ;
   }
 
-  if ( button == PU_LEFT_BUTTON )
+  if ( button == active_mouse_button )
   {
     int sd = isVertical() ;
     int sz = abox.max [sd] - abox.min [sd] ;
@@ -170,4 +170,14 @@ void puSlider::doHit ( int button, int updown, int x, int y )
   }
 }
 
+
+void puSlider::setSliderFraction ( float f )
+{
+  int i = isVertical() ? 1 : 0 ;
+  int sz = abox.max [i] - abox.min [i] ;  // Size of slider box, in pixels
+  float minf = 10.0f / sz ;               // fraction that makes a 10px handle
+
+  slider_fraction = (f<minf) ? minf : (f>=1.0f) ? 0.9f : f ;
+  puPostRefresh () ;
+}
 
