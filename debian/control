@@ -28,6 +28,7 @@ Architecture: any
 Depends: libplib1 (= ${binary:Version}), freeglut3-dev, libgl1-mesa-dev | libgl-dev, ${misc:Depends}
 Conflicts: plib1.8.4-dev
 Replaces: plib1.8.4-dev
+Provides: plib1.8.4-dev
 Description: Portability Libraries: Development package
  Provides a Joystick interface, a simple GUI built on top of OpenGL,
  some standard geometry functions, a sound library and a simple scene

@@ -1,3 +1,9 @@
+plib (1.8.5-2) experimental; urgency=low
+
+  * Add 'Provides: plib1.8.4-dev' to libplib-dev.
+
+ -- Bradley Smith <bradsmith@debian.org>  Tue, 24 Feb 2009 13:38:02 +0000
+
 plib (1.8.5-1) experimental; urgency=low
 
   * New upstream release. Closes: #475354.
