@@ -1,8 +1,7 @@
 Source: plib
 Section: devel
 Priority: extra
-Maintainer: Bradley Smith <brad@brad-smith.co.uk>
-Uploaders: Debian Games Team <pkg-games-devel@lists.alioth.debian.org>
+Maintainer: Bradley Smith <bradsmith@debian.org>
 Standards-Version: 3.8.0
 Build-Depends: libgl1-mesa-dev | libgl-dev,
                freeglut3-dev,

@@ -1,3 +1,10 @@
+plib (1.8.4-11) unstable; urgency=low
+
+  * Update maintainer email.
+  * Stop replacing ltmain.sh. Closes: #527506.
+
+ -- Bradley Smith <bradsmith@debian.org>  Sat, 09 May 2009 18:57:39 +0100
+
 plib (1.8.4-10) unstable; urgency=low
 
   * Bump shlibs version to 1.8.4-9. Closes: #487367.
