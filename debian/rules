@@ -23,7 +23,6 @@ configure: configure-stamp
 configure-stamp: $(QUILT_STAMPFN)
 	dh_testdir
 	autoreconf -i
-	cp debian/ltmain.sh .
 	LDFLAGS="$(LDFLAGS)" CFLAGS="$(CFLAGS)" \
 		./configure --prefix=/usr \
 		--host=$(DEB_HOST_GNU_TYPE)	--build=$(DEB_BUILD_GNU_TYPE)

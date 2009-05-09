@@ -1,3 +1,9 @@
+plib (1.8.5-3) experimental; urgency=low
+
+  * Stop replacing ltmain.sh. Closes: #527506.
+
+ -- Bradley Smith <bradsmith@debian.org>  Sat, 09 May 2009 19:00:25 +0100
+
 plib (1.8.5-2) experimental; urgency=low
 
   * Add 'Provides: plib1.8.4-dev' to libplib-dev.
