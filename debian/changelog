@@ -1,3 +1,10 @@
+plib (1.8.5-4) unstable; urgency=low
+
+  * Merge changes to unstable.
+  * Update Standards-Version to 3.8.1. (No changes).
+
+ -- Bradley Smith <bradsmith@debian.org>  Tue, 12 May 2009 11:39:47 +0100
+
 plib (1.8.5-3) experimental; urgency=low
 
   * Stop replacing ltmain.sh. Closes: #527506.

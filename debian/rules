@@ -42,7 +42,7 @@ clean: pre-clean unpatch
 	dh_testroot
 	rm -f build-stamp configure-stamp
 	find . -name "Makefile.in" | xargs rm -f
-	rm -f configure ltmain.sh aclocal.m4
+	rm -f configure ltmain.sh aclocal.m4 config.sub config.guess
 	dh_clean
 
 install: build
