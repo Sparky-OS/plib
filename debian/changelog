@@ -1,3 +1,10 @@
+plib (1.8.5-5) unstable; urgency=low
+
+  * Fix FTBFS on hurd. Thanks to Pino Toscano <pino@kde.org>.
+    Closes: #558790.
+
+ -- Bradley Smith <bradsmith@debian.org>  Mon, 14 Dec 2009 22:21:38 +0000
+
 plib (1.8.5-4) unstable; urgency=low
 
   * Merge changes to unstable.

@@ -1,3 +1,4 @@
-build_shared_libs
-remove_pthread_link
-misc_fixes
+00_fix_kfreebsd_FTBFS.diff
+01_fix_hurd_FTBFS.diff
+02_build_shared_libs.diff
+03_remove_pthread_link.diff

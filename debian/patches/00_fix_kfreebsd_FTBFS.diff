@@ -1,6 +1,8 @@
---- plib-1.8.5.orig/src/js/jsBSD.cxx
-+++ plib-1.8.5/src/js/jsBSD.cxx
-@@ -45,7 +45,7 @@
+Index: plib/src/js/jsBSD.cxx
+===================================================================
+--- plib.orig/src/js/jsBSD.cxx	2009-06-09 18:18:17.000000000 +0100
++++ plib/src/js/jsBSD.cxx	2009-12-14 22:12:02.000000000 +0000
+@@ -47,7 +47,7 @@
  #include <string.h>
  #include <errno.h>
  #include <sys/ioctl.h>
@@ -9,8 +11,10 @@
  # include <sys/joystick.h>
  #else
  # include <machine/joystick.h>		// For analog joysticks
---- plib-1.8.4.orig/src/sl/slDSP.cxx
-+++ plib-1.8.4/src/sl/slDSP.cxx
+Index: plib/src/sl/slDSP.cxx
+===================================================================
+--- plib.orig/src/sl/slDSP.cxx	2009-06-09 18:18:17.000000000 +0100
++++ plib/src/sl/slDSP.cxx	2009-12-14 22:12:02.000000000 +0000
 @@ -413,7 +413,7 @@
  /* NetBSD/OpenBSD 2.3 this should be very close to SUN Audio    */
  /* ------------------------------------------------------------ */
@@ -20,9 +24,11 @@
  void slDSP::open ( const char *device, int _rate, int _stereo, int _bps )
  {
  
---- plib-1.8.4.orig/src/sl/slPortability.h
-+++ plib-1.8.4/src/sl/slPortability.h
-@@ -59,8 +59,8 @@
+Index: plib/src/sl/slPortability.h
+===================================================================
+--- plib.orig/src/sl/slPortability.h	2009-06-09 18:18:17.000000000 +0100
++++ plib/src/sl/slPortability.h	2009-12-14 22:12:02.000000000 +0000
+@@ -59,7 +59,7 @@
  #  if defined(UL_LINUX)
  #    include <linux/soundcard.h>
  #    include <sys/ioctl.h>
@@ -31,7 +37,6 @@
  #    include <sys/soundcard.h>
  #  else
      /*
-       Tom thinks this file may be <sys/soundcard.h> under some
 @@ -75,7 +75,7 @@
  #endif
  
