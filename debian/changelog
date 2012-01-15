@@ -1,9 +1,10 @@
-plib (1.8.5-5+squeeze1) stable-security; urgency=high
+plib (1.8.5-5.1) unstable; urgency=high
 
-  * Non-maintainer upload by the Security Team.
+  * Non-maintainer upload.
   * Use vsnprintf to fix buffer overflow CVE-2011-4620 (Closes: #654785).
+  * Don't install .la file anymore (Closes: #633178).
 
- -- Aron Xu <aron@debian.org>  Thu, 01 Mar 2012 20:39:21 +0800
+ -- Luk Claes <luk@debian.org>  Sun, 15 Jan 2012 20:13:07 +0100
 
 plib (1.8.5-5) unstable; urgency=low
 
