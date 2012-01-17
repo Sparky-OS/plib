@@ -61,7 +61,7 @@ binary-arch: build install
 	dh_testroot
 	dh_installdirs
 	dh_installdocs
-	dh_install --fail-missing
+	dh_install -X.la --fail-missing
 	dh_installchangelogs ChangeLog
 	dh_link
 	dh_strip

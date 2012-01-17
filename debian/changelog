@@ -1,3 +1,10 @@
+plib (1.8.5-5.2) unstable; urgency=low
+
+  * Non-maintainer upload.
+  * Rebuild source to have -X .la (Closes: #656261).
+
+ -- Luk Claes <luk@debian.org>  Wed, 18 Jan 2012 00:30:12 +0100
+
 plib (1.8.5-5.1) unstable; urgency=high
 
   * Non-maintainer upload.
