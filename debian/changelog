@@ -1,3 +1,10 @@
+plib (1.8.5-5+squeeze1) stable-security; urgency=high
+
+  * Non-maintainer upload by the Security Team.
+  * Use vsnprintf to fix buffer overflow CVE-2011-4620 (Closes: #654785).
+
+ -- Aron Xu <aron@debian.org>  Thu, 01 Mar 2012 20:39:21 +0800
+
 plib (1.8.5-5) unstable; urgency=low
 
   * Fix FTBFS on hurd. Thanks to Pino Toscano <pino@kde.org>.

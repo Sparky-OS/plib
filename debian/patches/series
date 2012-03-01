@@ -2,3 +2,4 @@
 01_fix_hurd_FTBFS.diff
 02_build_shared_libs.diff
 03_remove_pthread_link.diff
+04_CVE-2011-4620.diff
