@@ -3,3 +3,4 @@
 02_build_shared_libs.diff
 03_remove_pthread_link.diff
 04_CVE-2011-4620.diff
+05_CVE-2012-4552.diff

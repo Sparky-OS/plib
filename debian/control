@@ -1,7 +1,7 @@
 Source: plib
 Section: devel
 Priority: extra
-Maintainer: Bradley Smith <bradsmith@debian.org>
+Maintainer: Debian QA Group <packages@qa.debian.org>
 Standards-Version: 3.8.1
 Build-Depends: libgl1-mesa-dev | libgl-dev, freeglut3-dev, libx11-dev, libxmu-dev, debhelper (>= 7), libxi-dev, quilt, autoconf, automake, libtool
 Homepage: http://plib.sourceforge.net/
