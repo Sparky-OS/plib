@@ -1,3 +1,9 @@
+plib (1.8.5-7) unstable; urgency=medium
+
+  * Enable hardened build flags
+
+ -- Moritz Muehlenhoff <jmm@debian.org>  Wed, 08 Jan 2014 18:55:31 +0100
+
 plib (1.8.5-6) unstable; urgency=high
 
   * QA upload.

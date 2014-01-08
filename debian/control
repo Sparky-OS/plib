@@ -5,8 +5,6 @@ Maintainer: Debian QA Group <packages@qa.debian.org>
 Standards-Version: 3.8.1
 Build-Depends: libgl1-mesa-dev | libgl-dev, freeglut3-dev, libx11-dev, libxmu-dev, debhelper (>= 7), libxi-dev, quilt, autoconf, automake, libtool
 Homepage: http://plib.sourceforge.net/
-Vcs-Git: http://git.brad-smith.co.uk/git/debian/pkg-plib.git
-Vcs-Browser: http://git.brad-smith.co.uk/?p=debian/pkg-plib.git
 
 Package: libplib1
 Section: libs
@@ -37,3 +35,8 @@ Description: Portability Libraries: Development package
  This package provides the static libraries, the header files and the
  development links to the shared libraries. You need this package if you
  want to compile software which needs plib.
+
+
+
+
+
