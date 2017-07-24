@@ -3,7 +3,16 @@ Section: devel
 Priority: extra
 Maintainer: Debian QA Group <packages@qa.debian.org>
 Standards-Version: 3.8.1
-Build-Depends: libgl1-mesa-dev | libgl-dev, freeglut3-dev, libx11-dev, libxmu-dev, debhelper (>= 10), libxi-dev, quilt, autoconf, automake, libtool
+Build-Depends: autoconf,
+               automake,
+               debhelper (>= 10),
+               freeglut3-dev,
+               libgl1-mesa-dev | libgl-dev,
+               libtool,
+               libx11-dev,
+               libxi-dev,
+               libxmu-dev,
+               quilt
 Homepage: http://plib.sourceforge.net/
 VCS-Browser: https://anonscm.debian.org/git/collab-maint/plib.git
 VCS-Git: https://anonscm.debian.org/git/collab-maint/plib.git
@@ -11,7 +20,10 @@ VCS-Git: https://anonscm.debian.org/git/collab-maint/plib.git
 Package: libplib1
 Section: libs
 Architecture: any
-Depends: freeglut3, libgl1-mesa-glx | libgl1, ${misc:Depends}, ${shlibs:Depends}
+Depends: freeglut3,
+         libgl1-mesa-glx | libgl1,
+         ${misc:Depends},
+         ${shlibs:Depends}
 Description: Portability Libraries: Run-time package
  Provides a Joystick interface, a simple GUI built on top of OpenGL,
  some standard geometry functions, a sound library and a simple scene
@@ -23,7 +35,10 @@ Description: Portability Libraries: Run-time package
 Package: libplib-dev
 Section: libdevel
 Architecture: any
-Depends: libplib1 (= ${binary:Version}), freeglut3-dev, libgl1-mesa-dev | libgl-dev, ${misc:Depends}
+Depends: freeglut3-dev,
+         libgl1-mesa-dev | libgl-dev,
+         libplib1 (= ${binary:Version}),
+         ${misc:Depends}
 Conflicts: plib1.8.4-dev
 Replaces: plib1.8.4-dev
 Provides: plib1.8.4-dev
@@ -35,8 +50,3 @@ Description: Portability Libraries: Development package
  This package provides the static libraries, the header files and the
  development links to the shared libraries. You need this package if you
  want to compile software which needs plib.
-
-
-
-
-
