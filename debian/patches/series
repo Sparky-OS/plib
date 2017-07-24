@@ -5,3 +5,4 @@
 04_CVE-2011-4620.diff
 06_spelling_errors.diff
 05_CVE-2012-4552.diff
+07_dont_break_joystick_system_calibration.diff

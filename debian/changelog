@@ -12,6 +12,9 @@ plib (1.8.5-8) UNRELEASED; urgency=medium
   * Enable hardening
   * Applying wrap-and-sort
   * Fix two spelling errors (new patch 06_spelling_errors.diff)
+  * Fix "jsJoystick::open() breaks system calibration on Linux" with the patch
+    from  the BTS. Thanks to Florent Rougon for providing it. (Closes: #787464)
+  * Bump S-V to 4.0.0 -- no changes necessary.
 
  -- Tobias Frost <tobi@debian.org>  Mon, 24 Jul 2017 19:08:20 +0200
 
