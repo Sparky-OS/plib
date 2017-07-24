@@ -1,4 +1,4 @@
-plib (1.8.5-8) UNRELEASED; urgency=medium
+plib (1.8.5-8) unstable; urgency=medium
 
   * QA upload.
   * Created repository on alioth --> Point VCS-* fields in d/control toward it.
@@ -16,7 +16,7 @@ plib (1.8.5-8) UNRELEASED; urgency=medium
     from  the BTS. Thanks to Florent Rougon for providing it. (Closes: #787464)
   * Bump S-V to 4.0.0 -- no changes necessary.
 
- -- Tobias Frost <tobi@debian.org>  Mon, 24 Jul 2017 19:08:20 +0200
+ -- Tobias Frost <tobi@debian.org>  Mon, 24 Jul 2017 21:24:48 +0200
 
 plib (1.8.5-7) unstable; urgency=medium
 
