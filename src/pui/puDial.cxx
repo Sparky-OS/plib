@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: puDial.cxx,v 1.26 2002/09/21 17:47:09 ude Exp $
+     $Id: puDial.cxx 2021 2005-05-06 18:31:27Z fayjf $
 */
 
 
@@ -118,13 +118,13 @@ void puDial::doHit ( int button, int updown, int x, int y )
   if ( updown != PU_DRAG )
     puMoveToLast ( this );
 
-  if ( button == PU_LEFT_BUTTON && updown == PU_UP )
+  if ( ( button == active_mouse_button ) && ( updown == PU_UP ) )
   {
     puDeactivateWidget () ;
     return ;
   }                                                                             
 
-  if ( button == PU_LEFT_BUTTON )
+  if ( button == active_mouse_button )
   {
     int x_cen = ( abox.max [0] + abox.min [0] ) / 2 ;
     int y_cen = ( abox.max [1] + abox.min [1] ) / 2 ;

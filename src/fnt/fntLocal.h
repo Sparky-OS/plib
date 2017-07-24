@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: fntLocal.h,v 1.8 2002/11/09 21:27:21 ude Exp $
+     $Id: fntLocal.h 1727 2002-11-09 21:27:21Z ude $
 */
 
 

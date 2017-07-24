@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgLoadXPlaneObj.cxx,v 1.3 2002/11/09 21:38:28 sjbaker Exp $
+     $Id: ssgLoadXPlaneObj.cxx 1728 2002-11-09 21:38:28Z sjbaker $
 */
 
 /*

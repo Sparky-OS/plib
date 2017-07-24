@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: slMODPrivate.h,v 1.7 2002/11/30 00:41:49 sjbaker Exp $
+     $Id: slMODPrivate.h 1732 2002-11-30 00:41:50Z sjbaker $
 */
 
 

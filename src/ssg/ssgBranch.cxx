@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgBranch.cxx,v 1.26 2004/02/16 20:51:12 stromberg Exp $
+     $Id: ssgBranch.cxx 1860 2004-02-16 20:51:12Z stromberg $
 */
 
 

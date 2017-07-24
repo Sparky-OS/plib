@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgBase.cxx,v 1.21 2002/09/15 01:29:11 ude Exp $
+     $Id: ssgBase.cxx 1673 2002-09-15 01:29:12Z ude $
 */
 
 

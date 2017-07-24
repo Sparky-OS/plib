@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: puAux.h,v 1.3 2004/09/22 21:09:35 smokydiamond Exp $
+     $Id: puAux.h 2094 2006-10-26 20:48:04Z fayjf $
 */
 
 #ifndef _PUI_AUX_WIDGETS_H_
@@ -27,7 +27,7 @@
 #include "pu.h"
 
 // Widget Class Bit Patterns
-// PUI classes take up 0x00000001 through 0x01000000
+// PUI classes take up 0x00000001 through 0x00020000
 
 #define PUCLASS_FILESELECTOR        0x00040000 /* Because FilePicker is obsolete */
 #define PUCLASS_BISLIDER            0x00080000
@@ -38,10 +38,11 @@
 #define PUCLASS_SELECTBOX           0x01000000
 #define PUCLASS_SPINBOX             0x02000000
 #define PUCLASS_SCROLLBAR           0x04000000
-#define PUCLASS_BISLIDERWITHENDS    0x02000000
-#define PUCLASS_SLIDERWITHINPUT     0x04000000
-#define PUCLASS_COMPASS             0x08000000
-#define PUCLASS_CHOOSER             0x10000000
+#define PUCLASS_BISLIDERWITHENDS    0x08000000
+#define PUCLASS_SLIDERWITHINPUT     0x10000000
+#define PUCLASS_COMPASS             0x20000000
+#define PUCLASS_CHOOSER             0x40000000
+#define PUCLASS_LIST                0x80000000
 
 
 // Widget Declarations
@@ -58,6 +59,7 @@ class puaBiSliderWithEnds ;
 class puaCompass          ;
 class puaSliderWithInput  ;
 class puaChooser          ;
+class puaList             ;
 
 
 // A File selector widget
@@ -138,20 +140,18 @@ class puaLargeInput : public puInputBase, public puGroup
   UL_TYPE_DATA
 
 protected:
-  int num_lines ;              // Number of lines of text in the box
-  int lines_in_window ;        // Number of lines showing in the window
-  int top_line_in_window ;     // Number of the first line in the window
-  float max_width ;            // Width of longest line of text in box, in pixels
+  int num_lines ;               // Number of lines of text in the box
+  int lines_in_window ;         // Number of lines showing in the window
+  int top_line_in_window ;      // Number of the first line in the window
+  float max_width ;             // Width of longest line of text in box, in pixels
   int slider_width ;
 
   puFrame *frame ;
 
-  puSlider *bottom_slider ;    // Horizontal slider at bottom of window
-  puScrollBar *right_slider ;  // Vertical slider at right of window
+  puSlider *bottom_slider ;     // Horizontal slider at bottom of window
+  puaScrollBar *right_slider ;  // Vertical slider at right of window
 
-  char *wrapped_text ;         // Pointer to word-wrapped text in the box
-
-  int arrow_count ;          // Number of up/down arrows above and below the right slider
+  int arrow_count ;             // Number of up/down arrows above and below the right slider
 
   void normalizeCursors ( void ) ;
   void removeSelectRegion ( void ) ;
@@ -162,8 +162,6 @@ public:
   puaLargeInput ( int x, int y, int w, int h, int arrows, int sl_width, int wrap_text = FALSE ) ;
   ~puaLargeInput ()
   {
-    delete [] wrapped_text ;
-
     if ( puActiveWidget() == this )
       puDeactivateWidget () ;
   }
@@ -192,18 +190,26 @@ public:
   void  setValue ( const char *s ) ;
   void  setText ( const char *l ) { setValue ( l ) ; }  /* DEPRECATED */
   char *getText ( void ) { return getStringValue () ; }  /* DEPRECATED */
-  char *getWrappedText ( void )
-  {
-    return ( wrapped_text == NULL ? getStringValue () : wrapped_text ) ;
-  }
   void  addNewLine ( const char *l ) ;
   void  addText ( const char *l ) ;
   void  appendText ( const char *l ) ;
   void  removeText ( int start, int end ) ;
+  char *getDisplayedText ( void )
+  {
+    return ( displayed_text == NULL ? getStringValue () : displayed_text ) ;
+  }
+  char *getWrappedText ( void )  // THIS FUNCTION IS DEPRECATED  3/21/06
+  {  return getDisplayedText () ;  }
 } ;
 
 
 // A box that contains a set of alternatives that drop down when the user clicks on the down-arrow
+// Defined constants telling how the callback got triggered.  This is needed for
+// cases in which the user has deleted the entry in the input box and wants that
+// entry deleted from the list of items.
+#define PUACOMBOBOX_CALLBACK_NONE      0
+#define PUACOMBOBOX_CALLBACK_INPUT     1
+#define PUACOMBOBOX_CALLBACK_ARROW     2
 class puaComboBox : public puGroup
 {
   UL_TYPE_DATA
@@ -218,11 +224,17 @@ protected:
   puArrowButton *arrow_btn ;
   puPopupMenu *popup_menu  ;
 
+  int callback_source ;
+
+  static void input_cb ( puObject *inp   ) ;
+  static void input_active_cb ( puObject *inp   ) ;
   static void input_down_cb ( puObject *inp   ) ;
   static void handle_arrow ( puObject *arrow  ) ;
   static void handle_popup ( puObject *popupm ) ;
 
   void update_widgets ( void ) ;
+  void update_current_item ( void ) ;
+  void setCallbackSource ( int s )  {  callback_source = s ;  }
 
 public:
   /* Not for application use ! */
@@ -230,6 +242,7 @@ public:
 
   void newList ( char ** _list ) ;
   int  getNumItems ( void ) const { return num_items ; }
+  char *getNewEntry ( void ) const { return input->getStringValue () ; }
 
   int  getCurrentItem ( void ) ;
   void setCurrentItem ( int item )
@@ -239,6 +252,7 @@ public:
       curr_item = item ;
       update_widgets () ;
 
+      callback_source = PUACOMBOBOX_CALLBACK_ARROW ;
       invokeCallback () ;
     }
   }
@@ -255,12 +269,31 @@ public:
 
   void setSize ( int w, int h ) ;
 
+  void setValue ( float f ) { puValue::setValue ( f ) ;  input->setValue ( f ) ; }
+  void setValue ( int i ) { puValue::setValue ( i ) ;  input->setValue ( i ) ; }
+  void setValue ( const char *s ) { puValue::setValue ( s ) ;  input->setValue ( s ) ; }
+  void setValue ( puValue *pv ) { puValue::setValue ( pv ) ;  input->setValue ( pv ) ; }
+
   void draw ( int dx, int dy ) ;
   int  checkHit ( int button, int updown, int x, int y ) ;
   int  checkKey ( int key, int updown ) ;
 
+  int  getCallbackSource ( void ) const  {  return callback_source ;  }
+
+  virtual void setColourScheme ( float r, float g, float b, float a = 1.0f ) ;
+  virtual void setColour ( int which, float r, float g, float b, float a = 1.0f ) ;
+
   puaComboBox ( int minx, int miny, int maxx, int maxy,
                 char **list, int editable = TRUE ) ;
+
+  ~puaComboBox ()
+  {
+    int i ;
+    for ( i = 0; i < num_items; i++ )
+      delete [] list[i] ;
+
+    delete [] list ;
+  }
 } ;
 
 
@@ -330,6 +363,9 @@ public:
   void setSize ( int w, int h ) ;
   void draw ( int dx, int dy ) ;
   int  checkKey ( int key, int updown ) ;
+
+  virtual void setColourScheme ( float r, float g, float b, float a = 1.0f ) ;
+  virtual void setColour ( int which, float r, float g, float b, float a = 1.0f ) ;
 
   puaSelectBox ( int minx, int miny, int maxx, int maxy,
                  char **list ) ;
@@ -758,7 +794,7 @@ public :
     point_size = 10.0f ;
 
     button_state = PU_UP ;
-    trigger_button = PU_LEFT_BUTTON ;
+    trigger_button = active_mouse_button ;
     mouse_x = mouse_y = mouse_z = 0.0f ;
     translation_sensitivity = 1.0f ;
 
@@ -834,6 +870,60 @@ public:
   static void menuCleanup  ( puObject * ) ;
 } ;
 
+
+/**
+ * A scrolling list for PUI.
+ *
+ * Believe it or not, PUI does not have one of these.
+ *
+ *  This widget consists of a puListBox, a slider and two
+ *  arrow buttons. This makes the ListBox scrollable,
+ *  very handy if the box is too small to show all items
+ *  at once.
+ *
+ *  (Original code taken from FlightGear 0.9.6 sources,
+ *   modified by Jan Reucker)
+ */
+class puaList : public puGroup
+{
+  UL_TYPE_DATA
+
+  char ** _contents;
+  puFrame * _frame;
+  puSlider * _slider;
+  puArrowButton * _up_arrow;
+  puArrowButton * _down_arrow;
+  int _style;
+  int _sw;       // slider width
+  int _width, _height;
+
+protected:
+  virtual void init (int w, int h, short transparent);
+  puListBox * _list_box;
+
+public:
+  puaList (int x, int y, int w, int h, int sl_width = 20);
+  puaList (int x, int y, int w, int h, char ** contents, int sl_width = 20);
+  puaList (int x, int y, int w, int h, short transparent, int sl_width = 20);
+  puaList (int x, int y, int w, int h, short transparent, char ** contents, int sl_width = 20);
+  virtual ~puaList ();
+
+  virtual void newList (char ** contents);
+
+  virtual char * getStringValue ();
+  virtual int    getIntegerValue ();
+  virtual void   getValue (char **ps);
+  virtual void   getValue (int  *i);
+
+  virtual void   setColourScheme (float r, float g, float b, float a);
+  virtual void   setColour (int which, float r, float g, float b, float a);
+  virtual void   setSize (int w, int h);
+
+  int  getNumVisible ( void ) const { return _list_box->getNumVisible(); }
+  int  getNumItems   ( void ) const { return _list_box->getNumItems(); }
+  int  getTopItem    ( void ) const { return _list_box->getTopItem(); }
+  void setTopItem    ( int item_index );
+};
 
 #endif
 

@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgconf.h,v 1.14 2004/09/14 12:19:05 wolfram_kuss Exp $
+     $Id: ssgconf.h 1959 2004-09-14 12:19:05Z wolfram_kuss $
 */
 
 #ifndef _INCLUDED_SSGCONF_H_

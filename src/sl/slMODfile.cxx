@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: slMODfile.cxx,v 1.9 2003/06/02 23:49:44 puggles Exp $
+     $Id: slMODfile.cxx 1770 2003-06-02 23:49:44Z puggles $
 */
 
 

@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgLoadX.cxx,v 1.23 2004/12/02 21:26:39 wolfram_kuss Exp $
+     $Id: ssgLoadX.cxx 2065 2006-01-05 21:38:31Z fayjf $
 */
 
 //
@@ -419,8 +419,11 @@ static int HandleTextureCoords(const char * /* sName */, const char *firstToken)
 		parser.expectNextToken(";");
 		if(i==nNoOfVertices-1)
 			parser.expectNextToken(";");
-		else
-			parser.expectNextToken(",");
+    // Commented out by J. Reucker 2005-12-16
+    // Some .x export plugins forget to add the ",", but the
+    // parser will work with and without "," if it doesn't expect it
+		//~ else
+			//~ parser.expectNextToken(",");
 
 		currentMesh.addPerVertexTextureCoordinate2( tv ) ;
 	}
@@ -475,11 +478,16 @@ static int HandleMeshMaterialList(const char * /* sName */, const char *firstTok
 		}
 	}
 	while(TRUE)
-	{ char *nextToken =parser.getNextToken(0);
+	{
+      char *nextToken =parser.getNextToken(0);
 	  if (0==strcmp("}", nextToken))
 		{ if ( nMaterialsRead < nMaterials )
 		    parser.error("Too few Materials!\n");
 			//else	parser.error("Success! MeshMaterialList!\n");
+            for (int i = 0; i < globalMaterialList->getNum(); i++)
+            {
+              currentMesh.addMaterial(globalMaterialList->get(i));
+            }
 			return TRUE; // Mesh is finished. success
 		}
 		if(ulStrEqual ("{", nextToken) )

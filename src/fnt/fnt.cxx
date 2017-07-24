@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: fnt.cxx,v 1.13 2004/08/05 00:41:53 puggles Exp $
+     $Id: fnt.cxx 1939 2004-08-05 00:41:53Z puggles $
 */
 
 #include "fntLocal.h"

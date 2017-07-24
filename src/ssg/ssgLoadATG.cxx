@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgLoadATG.cxx,v 1.19 2004/10/04 08:11:26 wolfram_kuss Exp $
+     $Id: ssgLoadATG.cxx 1970 2004-10-04 08:11:26Z wolfram_kuss $
 */
 /* 
  .scenery loader for SSG/PLIB

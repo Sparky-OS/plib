@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: sgd.cxx,v 1.15 2004/08/05 01:07:09 puggles Exp $
+     $Id: sgd.cxx 1944 2004-08-05 01:07:09Z puggles $
 */
 
 

@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: pslOpcodes.h,v 1.14 2002/09/22 18:25:16 sjbaker Exp $
+     $Id: pslOpcodes.h 1700 2002-09-22 18:25:16Z sjbaker $
 */
 
 

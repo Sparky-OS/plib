@@ -19,7 +19,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgTweenController.cxx,v 1.7 2004/12/29 07:19:40 sjbaker Exp $
+     $Id: ssgTweenController.cxx 1996 2004-12-29 07:19:40Z sjbaker $
 */
 
 

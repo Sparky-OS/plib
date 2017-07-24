@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: pslContext.h,v 1.15 2002/09/22 20:49:05 ude Exp $
+     $Id: pslContext.h 1703 2002-09-22 20:49:05Z ude $
 */
 
 

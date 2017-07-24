@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: pslSymbols.cxx,v 1.13 2002/09/08 22:17:32 sjbaker Exp $
+     $Id: pslSymbols.cxx 1626 2002-09-08 22:17:32Z sjbaker $
 */
 
 

@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ul.cxx,v 1.35 2005/01/04 23:10:17 wolfram_kuss Exp $
+     $Id: ul.cxx 2129 2007-10-16 00:45:26Z fayjf $
 */
 
 
@@ -123,18 +123,12 @@ ulDirEnt* ulReadDir ( ulDir* dir )
   strcpy( dir->curr.d_name, direntp->d_name );
 #endif
 
-  char path[ 1000 + UL_NAME_MAX+1 ];
-  sprintf( path, "%s/%s", dir->dirname, dir->curr.d_name );
-
   //determine if this entry is a directory
 #ifdef UL_MSVC
-  struct _stat buf;
-  int result = _stat(path,&buf);
-  if ( result == 0 )
-    dir->curr.d_isdir = (buf.st_mode & _S_IFDIR) != 0 ;
-  else
-    dir->curr.d_isdir = false ;
-#else
+  dir->curr.d_isdir = ( dir->data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY ) != 0;
+ #else
+  char path[ 1000 + UL_NAME_MAX+1 ];
+  sprintf( path, "%s/%s", dir->dirname, dir->curr.d_name );
   struct stat buf ;
   if ( stat(path,&buf) == 0 )
     dir->curr.d_isdir = (buf.st_mode & S_IFDIR) != 0 ;

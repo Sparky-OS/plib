@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgaCloudLayer.cxx,v 1.2 2003/08/26 21:36:04 nmcevoy Exp $
+     $Id: ssgaCloudLayer.cxx 1793 2003-08-26 21:36:53Z nmcevoy $
 */
 
 // Written by Curtis Olson, started June 2000.

@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: netSocket.h,v 1.20 2004/03/28 03:58:24 sjbaker Exp $
+     $Id: netSocket.h 2052 2005-11-10 20:55:54Z fayjf $
 */
 
 /****
@@ -40,7 +40,6 @@
 #ifndef NET_SOCKET_H
 #define NET_SOCKET_H
 
-
 #include "ul.h"
 #include <errno.h>
 
@@ -61,8 +60,9 @@ public:
 
   void set ( const char* host, int port ) ;
   const char* getHost () const ;
-  int getPort() const ;
-
+  unsigned int getPort() const ;
+  unsigned int getIP () const ;
+  unsigned int getFamily () const ;
   static const char* getLocalHost () ;
 
   bool getBroadcast () const ;
@@ -85,7 +85,7 @@ public:
   void setHandle (int handle) ;
   
   bool  open        ( bool stream=true ) ;
-  void  close		    ( void ) ;
+  void  close       ( void ) ;
   int   bind        ( const char* host, int port ) ;
   int   listen	    ( int backlog ) ;
   int   accept      ( netAddress* addr ) ;

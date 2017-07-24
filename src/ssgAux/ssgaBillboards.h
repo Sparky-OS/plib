@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgaBillboards.h,v 1.2 2004/01/21 16:30:20 stromberg Exp $
+     $Id: ssgaBillboards.h 1844 2004-01-21 16:30:20Z stromberg $
 */
 
 /* 

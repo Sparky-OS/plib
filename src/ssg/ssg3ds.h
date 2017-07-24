@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssg3ds.h,v 1.5 2002/09/02 06:05:47 sjbaker Exp $
+     $Id: ssg3ds.h 2108 2006-12-11 20:42:05Z fayjf $
 */
 
 /*******************************************************
@@ -71,6 +71,7 @@ static const int CHUNK_KEYFRAMER       = 0xB000;
 static const int CHUNK_FRAMES          = 0xB008;
 static const int CHUNK_KEYFRAME_MESH   = 0xB002;
 static const int CHUNK_FRAME_OBJNAME   = 0xB010;
+static const int CHUNK_FRAME_DUMMYNAME = 0xB011;
 static const int CHUNK_FRAME_PIVOT     = 0xB013;
 static const int CHUNK_FRAME_POSITION  = 0xB020;
 static const int CHUNK_FRAME_ROTATION  = 0xB021;

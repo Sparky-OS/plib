@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgLoadMD2.cxx,v 1.15 2002/09/02 06:05:48 sjbaker Exp $
+     $Id: ssgLoadMD2.cxx 1568 2002-09-02 06:05:49Z sjbaker $
 */
 
 /***************************************************************************

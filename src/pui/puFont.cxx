@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: puFont.cxx,v 1.24 2004/08/05 01:05:48 puggles Exp $
+     $Id: puFont.cxx 1943 2004-08-05 01:05:48Z puggles $
 */
 
 

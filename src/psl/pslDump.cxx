@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: pslDump.cxx,v 1.22 2002/09/22 18:25:16 sjbaker Exp $
+     $Id: pslDump.cxx 1700 2002-09-22 18:25:16Z sjbaker $
 */
 
 

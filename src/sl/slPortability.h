@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: slPortability.h,v 1.14 2003/05/18 13:45:04 puggles Exp $
+     $Id: slPortability.h 2013 2005-01-16 06:03:31Z sjbaker $
 */
 
 
@@ -60,7 +60,7 @@
 #    include <linux/soundcard.h>
 #    include <sys/ioctl.h>
 #  elif defined(__FreeBSD__)
-#    include <machine/soundcard.h>
+#    include <sys/soundcard.h>
 #  else
     /*
       Tom thinks this file may be <sys/soundcard.h> under some

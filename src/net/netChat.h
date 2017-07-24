@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: netChat.h,v 1.5 2002/09/02 06:05:44 sjbaker Exp $
+     $Id: netChat.h 1568 2002-09-02 06:05:49Z sjbaker $
 */
 
 /****

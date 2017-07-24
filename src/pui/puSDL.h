@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: puSDL.h,v 1.1 2004/02/16 13:49:03 stromberg Exp $
+     $Id: puSDL.h 2130 2007-11-18 21:46:37Z fayjf $
 */
 
 #ifndef _PU_SDL_H_
@@ -29,7 +29,7 @@
 #endif
 
 #include "pu.h"
-#include <SDL/SDL.h>
+#include "SDL.h"
 
 
 inline int puGetWindowSDL ()

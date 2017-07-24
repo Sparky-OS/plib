@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: puAuxSelectBox.cxx,v 1.3 2004/03/21 19:03:23 sjbaker Exp $
+     $Id: puAuxSelectBox.cxx 2084 2006-05-02 16:28:07Z bram $
 */
 
 
@@ -45,6 +45,7 @@ void puaSelectBox::update_widgets ( void )
   /* There are some items */
   {
     setValue ( list[curr_item] ) ;
+    input->setValue( list[curr_item] );
 
     if ( curr_item == 0 )
     /* Current item is first item, deactivate 'down' button */
@@ -146,6 +147,24 @@ int puaSelectBox::checkKey ( int key, int updown )
   }
 
   return TRUE ;
+}
+
+void puaSelectBox::setColourScheme ( float r, float g, float b, float a )
+{
+  puObject::setColourScheme ( r, g, b, a ) ;
+  setChildColourScheme( PUCLASS_INPUT,
+      colour [ PUCOL_EDITFIELD ][0],
+      colour [ PUCOL_EDITFIELD ][1],
+      colour [ PUCOL_EDITFIELD ][2],
+      colour [ PUCOL_EDITFIELD ][3] ) ;
+}
+
+void puaSelectBox::setColour ( int which, float r, float g, float b, float a )
+{
+  if (which == PUCOL_EDITFIELD)
+    input->setColourScheme ( r, g, b, a ) ;
+  else
+    puObject::setColour ( which, r, g, b, a ) ;
 }
 
 

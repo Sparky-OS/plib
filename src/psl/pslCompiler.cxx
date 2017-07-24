@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: pslCompiler.cxx,v 1.29 2003/01/06 05:10:13 sjbaker Exp $
+     $Id: pslCompiler.cxx 1745 2003-01-06 05:10:14Z sjbaker $
 */
 
 

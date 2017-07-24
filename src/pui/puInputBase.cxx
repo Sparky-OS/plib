@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: puInputBase.cxx,v 1.1 2002/09/27 23:57:33 ude Exp $
+     $Id: puInputBase.cxx 1709 2002-09-27 23:57:33Z ude $
 */
 
 

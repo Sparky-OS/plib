@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: jsWindows.cxx,v 1.6 2004/12/02 20:11:56 wolfram_kuss Exp $
+     $Id: jsWindows.cxx 2114 2006-12-21 20:53:13Z fayjf $
 */
 
 #include "js.h"
@@ -105,6 +105,7 @@ void jsJoystick::open ()
 
   error = ( joyGetDevCaps( os->js_id, &(os->jsCaps), sizeof(os->jsCaps) )
                  != JOYERR_NOERROR ) ;
+  num_buttons = os->jsCaps.wNumButtons ;
   if ( os->jsCaps.wNumAxes == 0 )
   {
     num_axes = 0 ;
@@ -162,11 +163,13 @@ jsJoystick::jsJoystick ( int ident )
   id = ident ;
   os = new struct os_specific_s;
 
-  switch ( ident )
-  {
-    case 0  : os->js_id = JOYSTICKID1 ; open () ; break ;
-    case 1  : os->js_id = JOYSTICKID2 ; open () ; break;
-    default :    num_axes = 0 ; setError () ; break ;
+  if (ident >= 0 && ident < (int)joyGetNumDevs()) {
+        os->js_id = JOYSTICKID1 + ident;
+        open();
+  }
+  else {
+        num_axes = 0;
+        setError();
   }
 }
 

@@ -19,7 +19,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgTween.cxx,v 1.14 2004/12/29 07:19:40 sjbaker Exp $
+     $Id: ssgTween.cxx 1996 2004-12-29 07:19:40Z sjbaker $
 */
 
 

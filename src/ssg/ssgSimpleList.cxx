@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgSimpleList.cxx,v 1.14 2004/01/25 16:50:04 wolfram_kuss Exp $
+     $Id: ssgSimpleList.cxx 2057 2005-12-06 14:25:18Z bram $
 */
 
 
@@ -28,11 +28,13 @@ void ssgSimpleList::copy_from ( ssgSimpleList *src, int clone_flags )
 {
   ssgBase::copy_from ( src, clone_flags ) ;
 
-  delete [] list ;
+  if ( own_mem )
+    delete [] list ;
   size_of = src -> getSizeOf () ;
   total   = src -> getNum () ;
   limit   = total ;
   list    = new char [ limit * size_of ] ;
+  own_mem = true ;
   memcpy ( list, src->raw_get ( 0 ), limit * size_of ) ;
 }
 

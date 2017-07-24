@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgLoaderWriterStuff.h,v 1.23 2004/05/04 12:35:15 wolfram_kuss Exp $
+     $Id: ssgLoaderWriterStuff.h 1935 2004-05-04 12:37:33Z wolfram_kuss $
 */
 
 //#include  "ssgLocal.h"

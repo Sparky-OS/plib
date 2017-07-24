@@ -19,7 +19,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: puPW.h,v 1.1 2004/02/17 01:43:21 sjbaker Exp $
+     $Id: puPW.h 1863 2004-02-17 01:43:21Z sjbaker $
 */
 
 #ifndef _PU_PW_H_

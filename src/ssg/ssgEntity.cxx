@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgEntity.cxx,v 1.28 2004/09/13 11:49:36 wolfram_kuss Exp $
+     $Id: ssgEntity.cxx 1954 2004-09-13 11:49:36Z wolfram_kuss $
 */
 
 

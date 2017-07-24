@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgState.cxx,v 1.12 2003/11/20 14:01:05 stromberg Exp $
+     $Id: ssgState.cxx 1810 2003-11-20 14:01:05Z stromberg $
 */
 
 

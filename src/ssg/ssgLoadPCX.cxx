@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgLoadPCX.cxx,v 1.5 2004/09/26 09:27:28 bram Exp $
+     $Id: ssgLoadPCX.cxx 1963 2004-09-26 09:27:28Z bram $
 */
 
 //===========================================================================
@@ -29,7 +29,7 @@
 //
 // Author: Wolfram Kuss
 //
-// Revision: $Id: ssgLoadPCX.cxx,v 1.5 2004/09/26 09:27:28 bram Exp $
+// Revision: $Id: ssgLoadPCX.cxx 1963 2004-09-26 09:27:28Z bram $
 //
 // Description: Loads PCX texture files. Only 8 bit indexed for now.
 //

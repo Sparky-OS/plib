@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgList.cxx,v 1.9 2004/09/13 11:16:43 wolfram_kuss Exp $
+     $Id: ssgList.cxx 1949 2004-09-13 11:16:43Z wolfram_kuss $
 */
 
 

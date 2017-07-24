@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgContext.cxx,v 1.20 2002/12/02 15:04:06 sjbaker Exp $
+     $Id: ssgContext.cxx 1736 2002-12-02 15:04:06Z sjbaker $
 */
 
 

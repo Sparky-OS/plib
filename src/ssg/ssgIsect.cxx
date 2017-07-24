@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgIsect.cxx,v 1.6 2002/10/26 19:00:55 sjbaker Exp $
+     $Id: ssgIsect.cxx 1719 2002-10-26 19:00:56Z sjbaker $
 */
 
 

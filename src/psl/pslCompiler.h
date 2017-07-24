@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: pslCompiler.h,v 1.34 2004/08/05 00:57:37 puggles Exp $
+     $Id: pslCompiler.h 1941 2004-08-05 00:57:38Z puggles $
 */
 
 

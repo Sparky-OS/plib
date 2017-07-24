@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: puButtonBox.cxx,v 1.15 2002/09/02 06:05:45 sjbaker Exp $
+     $Id: puButtonBox.cxx 1568 2002-09-02 06:05:49Z sjbaker $
 */
 
 

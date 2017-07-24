@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: psl.h,v 1.27 2004/04/06 12:53:15 sjbaker Exp $
+     $Id: psl.h 2072 2006-03-25 00:35:57Z bram $
 */
 
 #ifndef _PSL_H
@@ -73,6 +73,7 @@ protected:
 public:
 
   pslNumber () { t = PSL_VOID ; s = NULL ; }
+  virtual ~pslNumber () { }
 
   virtual void set ( int                ) = 0 ;
   virtual void set ( float              ) = 0 ;
@@ -136,6 +137,7 @@ class pslVariable : public pslNumber
 public:
 
   pslVariable () { array = NULL ; array_size = 0 ; }
+  virtual ~pslVariable () { }
 
   void setArrayType ( pslType _type, int arraysize )
   {
@@ -252,6 +254,7 @@ public:
 class pslValue : public pslNumber
 {
 public:
+  virtual ~pslValue () { }
   virtual void set ()                { t = PSL_VOID   ; }
   virtual void set ( int         v ) { t = PSL_INT    ; i = v ; }
   virtual void set ( float       v ) { t = PSL_FLOAT  ; f = v ; }

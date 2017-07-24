@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgLeaf.cxx,v 1.25 2004/09/13 11:33:58 wolfram_kuss Exp $
+     $Id: ssgLeaf.cxx 1952 2004-09-13 11:33:58Z wolfram_kuss $
 */
 
 

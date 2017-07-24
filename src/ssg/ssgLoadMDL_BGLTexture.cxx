@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgLoadMDL_BGLTexture.cxx,v 1.6 2004/05/04 12:45:47 wolfram_kuss Exp $
+     $Id: ssgLoadMDL_BGLTexture.cxx 2117 2007-09-13 23:21:09Z fayjf $
 */
 
 //===========================================================================
@@ -30,7 +30,7 @@
 // Author: Thomas Engh Sevaldrud <tse@math.sintef.no>
 //         Juergen Marquardt <juergen_marquardt@t-online.de>
 //
-// Revision: $Id: ssgLoadMDL_BGLTexture.cxx,v 1.6 2004/05/04 12:45:47 wolfram_kuss Exp $
+// Revision: $Id: ssgLoadMDL_BGLTexture.cxx 2117 2007-09-13 23:21:09Z fayjf $
 //
 // Description:
 //
@@ -316,24 +316,22 @@ bool ssgLoadMDLTexture ( const char *fname, ssgTextureInfo* info )
   FILE *tfile;
   int index = 0;
   if ( (tfile = fopen(fname, "rb")) == NULL) {
-#ifdef UL_BB
-		char *p = strrchr((char*)fname,'_');
-#else
-		char *p = strrchr(fname,'_');
-#endif
+    char *dupfname = strdup( fname);
+    char *p = strrchr( dupfname,'_');
     if (p != 0) {
       *p = '\0';
       p++;
       index = atoi (p);
-      if ( (tfile = fopen(fname, "rb")) == NULL) {
-        ulSetError( UL_WARNING, "ssgLoadTexture: Failed to load '%s'.", fname );
+      if ( (tfile = fopen(dupfname, "rb")) == NULL) {
+        ulSetError( UL_WARNING, "ssgLoadTexture: Failed to load '%s'.", dupfname );
+        free( dupfname);
         return false ;
       }
-      p--;
-      *p = '_';
+      free( dupfname);
     }
     else {
       ulSetError( UL_WARNING, "ssgLoadTexture: Failed to load '%s'.", fname );
+      free( dupfname);
       return false ;
     }
   }

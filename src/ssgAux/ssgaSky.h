@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgaSky.h,v 1.3 2003/09/26 14:54:20 sjbaker Exp $
+     $Id: ssgaSky.h 2073 2006-03-27 08:09:54Z bram $
 */
 
 // Written by Curtis Olson, started December 1997.
@@ -104,7 +104,7 @@ public:
   ssgaCelestialBodyList ( int init = 3 )
 	  : ssgSimpleList ( sizeof(ssgaCelestialBody*), init ) { }
 
-  ssgaCelestialBodyList::~ssgaCelestialBodyList () { removeAll(); }
+  ~ssgaCelestialBodyList () { removeAll(); }
 
   int getNum (void) { return total ; }
 
@@ -192,7 +192,7 @@ public:
   ssgaCloudLayerList ( int init = 3 )
 	  : ssgSimpleList ( sizeof(ssgaCloudLayer*), init ) { }
 
-  ssgaCloudLayerList::~ssgaCloudLayerList () { removeAll(); }
+  ~ssgaCloudLayerList () { removeAll(); }
 
   int getNum (void) { return total ; }
 

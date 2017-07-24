@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: fntTXF.cxx,v 1.19 2002/12/01 18:21:46 sjbaker Exp $
+     $Id: fntTXF.cxx 1735 2002-12-01 18:21:48Z sjbaker $
 */
 
 

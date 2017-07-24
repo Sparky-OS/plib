@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgKeyFlier.h,v 1.8 2004/04/06 13:32:26 sjbaker Exp $
+     $Id: ssgKeyFlier.h 1924 2004-04-06 13:32:26Z sjbaker $
 */
 
 

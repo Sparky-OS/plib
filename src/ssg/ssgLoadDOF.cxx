@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgLoadDOF.cxx,v 1.1 2003/01/29 19:33:41 sjbaker Exp $
+     $Id: ssgLoadDOF.cxx 1748 2003-01-29 19:33:41Z sjbaker $
 */
 
 

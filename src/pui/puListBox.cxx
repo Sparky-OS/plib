@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: puListBox.cxx,v 1.23 2002/09/02 06:05:46 sjbaker Exp $
+     $Id: puListBox.cxx 2088 2006-10-16 08:11:16Z bram $
 */
 
 /****
@@ -74,10 +74,11 @@ void puListBox::newList ( char ** _list )
 void puListBox::setTopItem( int item_index )
 {
   top = item_index ;
-  if ( top < 0 )
+  int visible = getNumVisible();
+  if ( top < 0 || num <= visible )
     top = 0 ;
-  else if ( top > num-1 )
-    top = num-1;
+  else if ( num > 0 && top > num-visible )
+    top = num-visible;
 
   puPostRefresh () ;
 }
@@ -114,9 +115,15 @@ void puListBox::draw ( int dx, int dy )
     for ( int i = top ; i < num && i < top + num_vis ; i++ )
     {
       if ( i == selected )
-        glColor4f ( 1.0f, 1.0f, 1.0f, 1.0f ) ;
+        glColor4f ( (colour [ PUCOL_BACKGROUND ][0] + colour [ PUCOL_LABEL ][0]) / 2.0f,
+                    (colour [ PUCOL_BACKGROUND ][1] + colour [ PUCOL_LABEL ][1]) / 2.0f,
+                    (colour [ PUCOL_BACKGROUND ][2] + colour [ PUCOL_LABEL ][2]) / 2.0f,
+                    (colour [ PUCOL_BACKGROUND ][3] + colour [ PUCOL_LABEL ][3]) / 2.0f );
       else
-        glColor4f ( 0.0f, 0.0f, 0.0f, 1.0f ) ;
+        glColor4f ( colour [ PUCOL_LABEL ][0],
+                    colour [ PUCOL_LABEL ][1],
+                    colour [ PUCOL_LABEL ][2],
+                    colour [ PUCOL_LABEL ][3] ) ;
 
       int x = PUSTR_LGAP ;
       int y = yinc * ((i-top)+1) ;
@@ -166,9 +173,9 @@ void puListBox::doHit ( int button, int updown, int x, int y )
     puDeactivateWidget () ;
   }
 
-  if ( button == PU_LEFT_BUTTON )
+  if ( button == active_mouse_button )
   {
-    if ( updown == active_mouse_edge || active_mouse_edge == PU_UP_AND_DOWN )
+    if ( ( updown == active_mouse_edge ) || ( active_mouse_edge == PU_UP_AND_DOWN ) )
     {
       lowlight () ;
     

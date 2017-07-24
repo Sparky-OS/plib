@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: slDSP.cxx,v 1.22 2003/07/04 14:33:03 puggles Exp $
+     $Id: slDSP.cxx 1775 2003-07-04 14:33:03Z puggles $
 */
 
 

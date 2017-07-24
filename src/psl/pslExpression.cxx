@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: pslExpression.cxx,v 1.18 2002/09/22 18:25:16 sjbaker Exp $
+     $Id: pslExpression.cxx 1700 2002-09-22 18:25:16Z sjbaker $
 */
 
 

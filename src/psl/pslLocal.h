@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: pslLocal.h,v 1.17 2002/09/27 15:45:06 sjbaker Exp $
+     $Id: pslLocal.h 1707 2002-09-27 15:45:06Z sjbaker $
 */
 
 

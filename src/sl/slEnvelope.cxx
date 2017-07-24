@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: slEnvelope.cxx,v 1.7 2004/04/06 14:26:03 sjbaker Exp $
+     $Id: slEnvelope.cxx 1926 2004-04-06 14:26:03Z sjbaker $
 */
 
 

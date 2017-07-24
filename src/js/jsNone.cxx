@@ -17,7 +17,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: jsNone.cxx,v 1.4 2004/09/21 11:45:55 smokydiamond Exp $
+     $Id: jsNone.cxx 1960 2004-09-21 11:45:55Z smokydiamond $
 */
 
 #include "js.h"

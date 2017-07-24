@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: slPlayer.cxx,v 1.5 2004/04/06 13:32:26 sjbaker Exp $
+     $Id: slPlayer.cxx 1924 2004-04-06 13:32:26Z sjbaker $
 */
 
 

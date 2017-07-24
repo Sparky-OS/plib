@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: fntBitmap.cxx,v 1.1 2004/02/15 19:51:23 stromberg Exp $
+     $Id: fntBitmap.cxx 2036 2005-07-14 16:37:55Z fayjf $
 */
 
 
@@ -71,7 +71,8 @@ void fntBitmapFont::putch ( sgVec3 curpos, float pointsize, float italic, char c
     if (c == '\n') {
 	curpos[1] -= height;
     } else {
-	glRasterPos3fv(curpos);
+        glRasterPos2i(0,0); // beware - coordinate may be negative
+        glBitmap(0, 0, 0, 0, curpos[0], curpos[1], NULL);
 	int i = (GLubyte) c - first;
 	if (i >= 0 && i < count) {
 	    glBitmap(data[i][0], height, xorig, yorig, (float) data[i][0], 0, data[i] + 1);
@@ -84,12 +85,14 @@ void fntBitmapFont::putch ( sgVec3 curpos, float pointsize, float italic, char c
 void fntBitmapFont::puts ( sgVec3 curpos, float pointsize, float italic, const char *s ) 
 {
     float x0 = curpos[0];
-    glRasterPos3fv(curpos);    
+    glRasterPos2i(0,0); // beware - coordinate may be negative
+    glBitmap(0, 0, 0, 0, curpos[0], curpos[1], NULL);
     for (int i = 0; s[i] != '\0'; i++) {
 	if (s[i] == '\n') {
 	    curpos[0] = x0;
 	    curpos[1] -= height;
-	    glRasterPos3fv(curpos);
+            glRasterPos2i(0,0); // beware - coordinate may be negative
+            glBitmap(0, 0, 0, 0, curpos[0], curpos[1], NULL);
 	} else {
 	    int j = (GLubyte) s[i] - first;
 	    if (j >= 0 && j < count) {
@@ -542,11 +545,11 @@ static const GLubyte Helvetica12_Character_098[] = {  7,  0,  0,  0,176,200,136,
 static const GLubyte Helvetica12_Character_099[] = {  7,  0,  0,  0,112,136,128,128,128,136,112,  0,  0,  0,  0,  0}; /* "c" */
 static const GLubyte Helvetica12_Character_100[] = {  7,  0,  0,  0,104,152,136,136,136,152,104,  8,  8,  0,  0,  0}; /* "d" */
 static const GLubyte Helvetica12_Character_101[] = {  7,  0,  0,  0,112,136,128,248,136,136,112,  0,  0,  0,  0,  0}; /* "e" */
-static const GLubyte Helvetica12_Character_102[] = {  3,  0,  0,  0, 64, 64, 64, 64, 64, 64,224, 64, 48,  0,  0,  0}; /* "f" */
+static const GLubyte Helvetica12_Character_102[] = {  4,  0,  0,  0, 64, 64, 64, 64, 64, 64,224, 64, 48,  0,  0,  0}; /* "f" */
 static const GLubyte Helvetica12_Character_103[] = {  7,112,136,  8,104,152,136,136,136,152,104,  0,  0,  0,  0,  0}; /* "g" */
 static const GLubyte Helvetica12_Character_104[] = {  7,  0,  0,  0,136,136,136,136,136,200,176,128,128,  0,  0,  0}; /* "h" */
 static const GLubyte Helvetica12_Character_105[] = {  3,  0,  0,  0,128,128,128,128,128,128,128,  0,128,  0,  0,  0}; /* "i" */
-static const GLubyte Helvetica12_Character_106[] = {  3,128, 64, 64, 64, 64, 64, 64, 64, 64, 64,  0, 64,  0,  0,  0}; /* "j" */
+static const GLubyte Helvetica12_Character_106[] = {  4,128, 64, 64, 64, 64, 64, 64, 64, 64, 64,  0, 64,  0,  0,  0}; /* "j" */
 static const GLubyte Helvetica12_Character_107[] = {  6,  0,  0,  0,136,144,160,192,192,160,144,128,128,  0,  0,  0}; /* "k" */
 static const GLubyte Helvetica12_Character_108[] = {  3,  0,  0,  0,128,128,128,128,128,128,128,128,128,  0,  0,  0}; /* "l" */
 static const GLubyte Helvetica12_Character_109[] = {  9,  0,  0,  0,  0,  0,  0,146,  0,146,  0,146,  0,146,  0,146,  0,218,  0,164,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0}; /* "m" */

@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgTexture.cxx,v 1.22 2002/09/02 06:05:49 sjbaker Exp $
+     $Id: ssgTexture.cxx 2123 2007-09-15 13:24:45Z fayjf $
 */
 
 
@@ -27,13 +27,17 @@
 
 void ssgTexture::copy_from ( ssgTexture *src, int clone_flags )
 {
-  ssgBase::copy_from ( src, clone_flags ) ;
+  if ( this != src )
+  {
+    /* Avoid meaningless assignments (OK) and corrupting file name (important) when copying to self */
+    ssgBase::copy_from ( src, clone_flags ) ;
 
-  wrapu  = src -> wrapu  ;
-  wrapv  = src -> wrapv  ;
-  mipmap = src -> mipmap ;
+    wrapu  = src -> wrapu  ;
+    wrapv  = src -> wrapv  ;
+    mipmap = src -> mipmap ;
 
-  setFilename ( src -> getFilename () ) ;
+    setFilename ( src -> getFilename () ) ;
+  }
 
   alloc_handle () ;
   ssgTextureInfo info ;

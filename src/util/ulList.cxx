@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
  
-     $Id: ulList.cxx,v 1.7 2002/11/30 00:41:50 sjbaker Exp $
+     $Id: ulList.cxx 1732 2002-11-30 00:41:50Z sjbaker $
 */
  
  

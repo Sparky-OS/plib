@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgLoadAC.cxx,v 1.36 2005/01/15 20:36:46 sjbaker Exp $
+     $Id: ssgLoadAC.cxx 2086 2006-09-30 08:41:21Z bram $
 */
 
 
@@ -895,7 +895,7 @@ ssgEntity *ssgLoadAC ( const char *fname, const ssgLoaderOptions* options )
   sgSetVec2 ( texrep, 1.0, 1.0 ) ;
   sgSetVec2 ( texoff, 0.0, 0.0 ) ;
 
-  loader_fd = fopen ( filename, "ra" ) ;
+  loader_fd = fopen ( filename, "r" ) ;
 
   if ( loader_fd == NULL )
   {
@@ -935,6 +935,13 @@ ssgEntity *ssgLoadAC ( const char *fname, const ssgLoaderOptions* options )
     else
       search ( top_tags, s ) ;
   }
+
+  for (int i = 0; i < num_materials; i++)
+  {
+    delete mlist[i];
+    mlist[i]=0;
+  }
+  num_materials=0;
 
   delete [] current_tfname ;
   current_tfname = NULL ;

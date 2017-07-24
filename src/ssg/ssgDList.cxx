@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgDList.cxx,v 1.12 2004/12/29 07:19:40 sjbaker Exp $
+     $Id: ssgDList.cxx 1996 2004-12-29 07:19:40Z sjbaker $
 */
 
 

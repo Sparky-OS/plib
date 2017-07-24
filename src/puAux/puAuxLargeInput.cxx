@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: puAuxLargeInput.cxx,v 1.3 2004/03/21 19:03:23 sjbaker Exp $
+     $Id: puAuxLargeInput.cxx 2068 2006-03-20 15:17:35Z fayjf $
 */
 
 
@@ -31,7 +31,7 @@ UL_RTTI_DEF2(puaLargeInput,puInputBase,puGroup)
 
 static void puaLargeInputHandleRightSlider ( puObject *slider )
 {
-  float val = ((puScrollBar *)slider)->getMaxValue () - slider->getFloatValue () ;
+  float val = ((puaScrollBar *)slider)->getMaxValue () - slider->getFloatValue () ;
 
   puaLargeInput* text = (puaLargeInput*) slider->getUserData () ;
   //int lines_in_window = text->getLinesInWindow () ; 
@@ -97,8 +97,8 @@ puaLargeInput::puaLargeInput ( int x, int y, int w, int h, int arrows, int sl_wi
 //    bottom_slider->setCBMode( PUSLIDER_DELTA );
   }
 
-  right_slider = new puScrollBar ( w - slider_width, (bottom_slider?slider_width:0),
-                                   h - (bottom_slider?slider_width:0), arrows, TRUE, slider_width ) ,
+  right_slider = new puaScrollBar ( w - slider_width, (bottom_slider?slider_width:0),
+                                    h - (bottom_slider?slider_width:0), arrows, TRUE, slider_width ) ,
   right_slider->setValue ( 1.0f ) ;    // All the way to the top
 //  right_slider->setDelta(0.1f);
   right_slider->setSliderFraction (1.0f) ;
@@ -107,7 +107,6 @@ puaLargeInput::puaLargeInput ( int x, int y, int w, int h, int arrows, int sl_wi
   right_slider->setUserData ( this ) ;
   right_slider->setCallback ( puaLargeInputHandleRightSlider ) ;
 
-  wrapped_text = NULL ;
   setValue ( "\n" ) ;
 
   close  () ;
@@ -145,7 +144,7 @@ void puaLargeInput::setSelectRegion ( int s, int e )
 {
   select_start_position = s ;
   select_end_position   = e ;
-  char *lin_ptr = ( bottom_slider ? getStringValue () : getWrappedText () ) ;
+  char *lin_ptr = ( bottom_slider ? getStringValue () : getDisplayedText () ) ;
   char *text_start = lin_ptr ;
 
   if ( num_lines > lines_in_window )
@@ -172,16 +171,20 @@ void puaLargeInput::setSelectRegion ( int s, int e )
 
     if ( top_line_in_window < 0 ) top_line_in_window = 0 ;
 
-    right_slider->setValue ( 1.0f - float(top_line_in_window) / float(num_lines - lines_in_window) ) ;
+    right_slider->setValue ( num_lines - lines_in_window - top_line_in_window ) ;
   }
 }
 
 void  puaLargeInput::selectEntireLine ( void )
 {
-  char *temp_text = ( bottom_slider ? getStringValue () : getWrappedText () ) ;
+  char *temp_text = ( bottom_slider ? getStringValue () : getDisplayedText () ) ;
    
   if ( select_start_position < 0 )
       select_start_position = 0 ;
+
+  if ( ( *(temp_text + select_start_position + 1) != '\n' ) &&
+       ( *(temp_text + select_start_position) != '\0' ) )
+    select_start_position ++ ;
 
   while ( ( select_start_position > 0 ) && ( *(temp_text + select_start_position) != '\n' ) )
     select_start_position -- ;
@@ -323,7 +326,7 @@ void  puaLargeInput::setValue ( const char *s )
 
   float line_width = 0.0f ;       // Width of current line
   if ( !bottom_slider ) wrapText () ;
-  char *this_char = ( bottom_slider ? getStringValue () : getWrappedText () ) ;   // Pointer to character in text
+  char *this_char = ( bottom_slider ? getStringValue () : getDisplayedText () ) ;   // Pointer to character in text
 
   num_lines = 0 ;
 
@@ -415,7 +418,7 @@ void puaLargeInput::draw ( int dx, int dy )
 
    /* Removed IF statement to permit highlighting to remain even when widget not active - JCJ 13 Jun 2002 */
     
-    char *val = bottom_slider ? getStringValue () : getWrappedText () ;
+    char *val = bottom_slider ? getStringValue () : getDisplayedText () ;
 
     // Highlight the select area
 
@@ -524,7 +527,7 @@ void puaLargeInput::draw ( int dx, int dy )
                     colour [ PUCOL_LEGEND ][3] / 2.0f ) ; // 50% more transparent
 
       char *val ;                   // Pointer to the actual text in the box
-      val = bottom_slider ? getStringValue () : getWrappedText () ;
+      val = bottom_slider ? getStringValue () : getDisplayedText () ;
 
       if ( val )
       {
@@ -629,7 +632,7 @@ void puaLargeInput::draw ( int dx, int dy )
     if ( accepting )
     { 
       char *val ;                   // Pointer to the actual text in the box
-      val = bottom_slider ? getStringValue () : getWrappedText () ;
+      val = bottom_slider ? getStringValue () : getDisplayedText () ;
 
       // Draw the 'I' bar cursor.
 
@@ -731,7 +734,7 @@ void puaLargeInput::doHit ( int button, int updown, int x, int y )
   if ( updown != PU_DRAG )
     puMoveToLast ( this );
 
-  if ( button == PU_LEFT_BUTTON )
+  if ( button == active_mouse_button )
   {
     // Most GUI's activate a button on button-UP not button-DOWN.
 
@@ -760,7 +763,7 @@ void puaLargeInput::doHit ( int button, int updown, int x, int y )
 
     // Get the line number and position on the line of the mouse
 
-    char *strval = bottom_slider ? getStringValue () : getWrappedText () ;
+    char *strval = bottom_slider ? getStringValue () : getDisplayedText () ;
     char *tmpval = ulStrDup ( strval ) ;
 
     int i = strlen ( tmpval ) ;
@@ -789,7 +792,7 @@ void puaLargeInput::doHit ( int button, int updown, int x, int y )
       int length, prev_length = 0 ;
       while ( x <= (length = legendFont.getStringWidth ( start_of_line )
                     + abox.min[0] + beg_pos) &&
-              i >= 0 )
+              i > 0 )
       {
         prev_length = length ;
         tmpval[--i] = '\0' ;
@@ -861,7 +864,7 @@ int puaLargeInput::checkKey ( int key, int updown )
   normalizeCursors () ;
 
   //char *old_text = getStringValue () ;
-  char *old_text = bottom_slider ? getStringValue () : getWrappedText () ;
+  char *old_text = bottom_slider ? getStringValue () : getDisplayedText () ;
   int lines_in_window = getLinesInWindow () ;  /* Added lines_in_window and num_lines to allow for "END" */
   int num_lines = getNumLines () ;             /* and PGUP/DOWN to work properly        - JCJ 20 Jun 2002 */
   int line_width = 0 ;                         /* Width of current line (for bottomslider) */
@@ -1202,27 +1205,27 @@ int puaLargeInput::checkKey ( int key, int updown )
 
 void puaLargeInput::wrapText ( void )
 {
-  // Wrap the text in "text" and put it in "wrapped_text"
+  // Wrap the text in "text" and put it in "displayed_text"
 
-  delete [] wrapped_text ;
-  wrapped_text = ulStrDup ( getStringValue () ) ;
+  delete [] displayed_text ;
+  displayed_text = ulStrDup ( getStringValue () ) ;
 
-  char *wrapped_text_wp = wrapped_text,
+  char *displayed_text_wp = displayed_text,
        *space_ptr,
        *old_space_ptr ;
 
   /* Somewhat inspired by tuxracer */
-  while ( *wrapped_text_wp != '\0' )
+  while ( *displayed_text_wp != '\0' )
   {
     old_space_ptr = NULL ;
-    space_ptr = strchr ( wrapped_text_wp, ' ' ) ;
+    space_ptr = strchr ( displayed_text_wp, ' ' ) ;
 
     while (1)
     {
       if ( space_ptr != NULL )
         *space_ptr = '\0' ;
 
-      if ( legendFont.getStringWidth ( wrapped_text_wp ) >
+      if ( legendFont.getStringWidth ( displayed_text_wp ) >
            (   ( abox.max[0] - abox.min[0] )
              - slider_width
              - PUSTR_LGAP
@@ -1239,8 +1242,8 @@ void puaLargeInput::wrapText ( void )
         break ;
 
       // Check for carriage return in the original string
-      if ( strrchr ( wrapped_text_wp, '\n' ) > wrapped_text_wp )
-        wrapped_text_wp = strrchr ( wrapped_text_wp, '\n' ) + 1 ;
+      if ( strrchr ( displayed_text_wp, '\n' ) > displayed_text_wp )
+        displayed_text_wp = strrchr ( displayed_text_wp, '\n' ) + 1 ;
 
       *space_ptr = ' ' ;
 
@@ -1251,11 +1254,11 @@ void puaLargeInput::wrapText ( void )
     /* Either string is too wide for area, or the entire remaining portion
        of string fits in area (space_ptr == NULL). */
     {
-      wrapped_text_wp += strlen (wrapped_text_wp) ;
+      displayed_text_wp += strlen (displayed_text_wp) ;
 
       if ( space_ptr != NULL )
       /* Advance past the NULL since there's more string left */
-        wrapped_text_wp += 1 ;
+        displayed_text_wp += 1 ;
     }
     else
     {
@@ -1263,7 +1266,7 @@ void puaLargeInput::wrapText ( void )
         *space_ptr = ' ' ;
       *old_space_ptr = '\n' ;
 
-      wrapped_text_wp = old_space_ptr + 1 ;
+      displayed_text_wp = old_space_ptr + 1 ;
     }
   }
 }

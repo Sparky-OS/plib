@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgSaveASE.cxx,v 1.14 2004/09/13 12:11:56 wolfram_kuss Exp $
+     $Id: ssgSaveASE.cxx 1957 2004-09-13 12:11:56Z wolfram_kuss $
 */
 
 //

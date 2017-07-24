@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: puAuxFileSelector.cxx,v 1.2 2004/03/21 19:03:23 sjbaker Exp $
+     $Id: puAuxFileSelector.cxx 1902 2004-03-21 19:03:23Z sjbaker $
 */
 
 /****

@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: puInterface.cxx,v 1.19 2003/12/16 23:16:04 puggles Exp $
+     $Id: puInterface.cxx 1834 2003-12-16 23:16:04Z puggles $
 */
 
 

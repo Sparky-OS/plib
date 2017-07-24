@@ -19,7 +19,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgSaveFLT.cxx,v 1.4 2003/01/04 02:55:55 sjbaker Exp $
+     $Id: ssgSaveFLT.cxx 1744 2003-01-04 02:55:56Z sjbaker $
 */
 
 /*******************************************************

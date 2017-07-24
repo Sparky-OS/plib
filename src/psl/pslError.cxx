@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: pslError.cxx,v 1.8 2002/09/15 14:32:53 ude Exp $
+     $Id: pslError.cxx 1685 2002-09-15 14:32:53Z ude $
 */
 
 

@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: slMODPlayer.cxx,v 1.5 2002/09/02 06:05:47 sjbaker Exp $
+     $Id: slMODPlayer.cxx 1568 2002-09-02 06:05:49Z sjbaker $
 */
 
 

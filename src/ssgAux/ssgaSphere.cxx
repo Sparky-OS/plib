@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgaSphere.cxx,v 1.1 2003/07/26 06:16:19 nmcevoy Exp $
+     $Id: ssgaSphere.cxx 2015 2005-02-02 15:48:09Z sjbaker $
 */
 
 // Pulled straight out of MesaGLU/quadratic.c
@@ -122,3 +122,4 @@ ssgBranch *ssgaMakeSphere(
 
   return sphere;
 }
+

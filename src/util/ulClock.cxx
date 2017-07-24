@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ulClock.cxx,v 1.10 2002/12/01 18:21:48 sjbaker Exp $
+     $Id: ulClock.cxx 1735 2002-12-01 18:21:48Z sjbaker $
 */
 
 

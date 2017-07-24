@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgMSFSPalette.h,v 1.5 2002/09/02 06:05:48 sjbaker Exp $
+     $Id: ssgMSFSPalette.h 1568 2002-09-02 06:05:49Z sjbaker $
 */
 
 #ifndef __SSGMSFSPALETTE

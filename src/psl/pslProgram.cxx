@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: pslProgram.cxx,v 1.18 2004/08/05 00:57:38 puggles Exp $
+     $Id: pslProgram.cxx 1941 2004-08-05 00:57:38Z puggles $
 */
 
 

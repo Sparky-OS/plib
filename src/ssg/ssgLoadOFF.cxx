@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgLoadOFF.cxx,v 1.12 2004/10/04 08:11:26 wolfram_kuss Exp $
+     $Id: ssgLoadOFF.cxx 1970 2004-10-04 08:11:26Z wolfram_kuss $
 */
 
 //

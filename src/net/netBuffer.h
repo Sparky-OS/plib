@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: netBuffer.h,v 1.9 2004/03/21 18:19:11 sjbaker Exp $
+     $Id: netBuffer.h 1901 2004-03-21 18:19:11Z sjbaker $
 */
 
 /****

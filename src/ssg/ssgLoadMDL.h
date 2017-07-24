@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgLoadMDL.h,v 1.10 2002/09/02 06:05:48 sjbaker Exp $
+     $Id: ssgLoadMDL.h 1568 2002-09-02 06:05:49Z sjbaker $
 */
 
 //===========================================================================
@@ -29,7 +29,7 @@
 //                                                                           
 // Author: Thomas Engh Sevaldrud <tse@math.sintef.no>
 //                                                                           
-// Revision: $Id: ssgLoadMDL.h,v 1.10 2002/09/02 06:05:48 sjbaker Exp $
+// Revision: $Id: ssgLoadMDL.h 1568 2002-09-02 06:05:49Z sjbaker $
 //                                                                           
 // Description:
 //                                                                           

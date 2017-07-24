@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: netChannel.h,v 1.9 2004/03/21 17:41:07 sjbaker Exp $
+     $Id: netChannel.h 1899 2004-03-21 17:41:07Z sjbaker $
 */
 
 /****

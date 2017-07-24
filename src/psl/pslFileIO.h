@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: pslFileIO.h,v 1.4 2003/01/06 05:10:14 sjbaker Exp $
+     $Id: pslFileIO.h 1745 2003-01-06 05:10:14Z sjbaker $
 */
 
 char *_pslGetFname        () ;

@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: pu.h,v 1.148 2004/08/05 01:05:48 puggles Exp $
+     $Id: pu.h 2091 2006-10-19 14:39:35Z fayjf $
 */
 
 #ifndef _PU_H_
@@ -185,7 +185,8 @@ extern puFont PUFONT_HELVETICA_18   ;
 #define PUCOL_LABEL      3
 #define PUCOL_LEGEND     4
 #define PUCOL_MISC       5
-#define PUCOL_MAX        6
+#define PUCOL_EDITFIELD  6
+#define PUCOL_MAX        7
 
 #define PUSLIDER_CLICK   0
 #define PUSLIDER_ALWAYS  1
@@ -215,6 +216,10 @@ extern puFont PUFONT_HELVETICA_18   ;
 
 #define PU_RADIO_BUTTON_SIZE 16
 
+/* When to deactivate a widget and call its down callback */
+#define PUDEACTIVATE_ON_MOUSE_CLICK                0
+#define PUDEACTIVATE_ON_NEXT_WIDGET_ACTIVATION     1
+
 extern int puRefresh ; /* Should not be used directly by applications any
                           longer. Instead, use puPostRefresh () and
                           puNeedRefresh (). */
@@ -237,17 +242,6 @@ extern int puRefresh ; /* Should not be used directly by applications any
 #define PUCLASS_ARROW            0x00008000
 #define PUCLASS_LISTBOX          0x00010000
 #define PUCLASS_DIAL             0x00020000
-#define PUCLASS_FILEPICKER       0x00040000
-/* Remove the following when their deprecated classes are removed */
-#define PUCLASS_FILESELECTOR     0x00040000 /* Because FilePicker is obsolete */
-#define PUCLASS_BISLIDER         0x00080000
-#define PUCLASS_TRISLIDER        0x00100000
-#define PUCLASS_VERTMENU         0x00200000
-#define PUCLASS_LARGEINPUT       0x00400000
-#define PUCLASS_COMBOBOX         0x00800000
-#define PUCLASS_SELECTBOX        0x01000000
-#define PUCLASS_SPINBOX          0x02000000
-#define PUCLASS_SCROLLBAR        0x04000000
 
 class puValue            ;
 class puObject           ;
@@ -262,20 +256,10 @@ class puPopup            ;
 class puPopupMenu        ;
 class puMenuBar          ;
 class puInput            ;
-class puSpinBox          ; /* DEPRECATED 1/26/04 */
 class puSlider           ;
 class puListBox          ;
 class puArrowButton      ;
 class puDial             ;
-class puFilePicker       ; /* DEPRECATED */
-class puFileSelector     ; /* DEPRECATED 1/26/04 */
-class puBiSlider         ; /* DEPRECATED 1/26/04 */
-class puTriSlider        ; /* DEPRECATED 1/26/04 */
-class puVerticalMenu     ; /* DEPRECATED 1/26/04 */
-class puLargeInput       ; /* DEPRECATED 1/26/04 */
-class puComboBox         ; /* DEPRECATED 1/26/04 */
-class puSelectBox        ; /* DEPRECATED 1/26/04 */
-class puScrollBar        ; /* DEPRECATED 1/26/04 */
 
 // Global function to move active object to the end of the "dlist"
 // so it is displayed in front of everything else
@@ -297,7 +281,7 @@ struct puBox
   int  isEmpty ( void ) const { return min[0]>max[0] || min[1]>max[1] ; }
 } ;
 
-#define PUSTRING_MAX 80
+#define PUSTRING_MAX 256
 
 /* With many memory managers, allocating powers of two is more efficient */
 #define PUSTRING_INITIAL 64
@@ -532,11 +516,11 @@ public:
 
   int  getValue ( void ) { return getIntegerValue () ; } /* Obsolete ! */
 
-  int   getIntegerValue ( void ) { re_eval () ; return *getIntegerp () ; }
-  float getFloatValue ( void )   { re_eval () ; return *getFloaterp () ; }
-  char  getCharValue ( void )    { re_eval () ; return getStringp ()[0]; }
-  char *getStringValue ( void )  { re_eval () ; return getStringp   () ; }
-  bool  getBooleanValue ( void ) { re_eval () ; return *getBooleanp () ; }
+  virtual int   getIntegerValue ( void ) { re_eval () ; return *getIntegerp () ; }
+  virtual float getFloatValue ( void )   { re_eval () ; return *getFloaterp () ; }
+  virtual char  getCharValue ( void )    { re_eval () ; return getStringp ()[0]; }
+  virtual char *getStringValue ( void )  { re_eval () ; return getStringp   () ; }
+  virtual bool  getBooleanValue ( void ) { re_eval () ; return *getBooleanp () ; }
 
   /* RTTI */
   ulRTTItypeid getTypeInfo ( void ) const { return RTTI_vinfo () ; }
@@ -580,6 +564,7 @@ protected:
   puGroup *parent ;
 
   int active_mouse_edge ; /* is it PU_UP or PU_DOWN (or both) that activates this? */
+  int active_mouse_button ;  /* which mouse button or buttons activate this */
   int style       ;
   int visible     ;
   int active      ;
@@ -598,6 +583,8 @@ protected:
   puRenderCallback r_cb ;
   void *render_data ;
   int border_thickness ;
+
+  short when_to_deactivate ;  /* On next mouseclick or on next widget activation */
 
   virtual void draw_legend ( int dx, int dy ) ;
   virtual void draw_label  ( int dx, int dy ) ;
@@ -718,6 +705,12 @@ public:
   void  setActiveDirn ( int e ) { active_mouse_edge = e ; }
   int   getActiveDirn ( void ) const { return active_mouse_edge ; }
 
+  void  setActiveButton ( int b ) { active_mouse_button = b ; }
+  int   getActiveButton ( void ) const { return active_mouse_button ; }
+
+  void  setWhenToDeactivate ( short d )  { when_to_deactivate = d ;  }
+  short getWhenToDeactivate ( void ) const  { return when_to_deactivate ;  }
+
   void  setLegend ( const char *l ) { legend = l ; recalc_bbox() ; puPostRefresh () ; }
   const char *getLegend ( void ) const { return legend ; }
 
@@ -777,13 +770,13 @@ public:
 
   int  getStyle ( void ) const { return style ; }
 
-  void setColourScheme ( float r, float g, float b, float a = 1.0f ) ;
+  virtual void setColourScheme ( float r, float g, float b, float a = 1.0f ) ;
   void setColorScheme ( float r, float g, float b, float a = 1.0f )
   {
     setColourScheme ( r, g, b, a ) ;
   }
 
-  void setColour ( int which, float r, float g, float b, float a = 1.0f )
+  virtual void setColour ( int which, float r, float g, float b, float a = 1.0f )
   {
     puSetColour ( colour [ which ], r, g, b, a ) ;
     puPostRefresh () ;
@@ -1118,6 +1111,10 @@ public:
     puRange_init ( minval, maxval, step ) ;
   }
 
+  virtual ~puRange()
+  {
+  }
+
   float getMaxValue ( void ) const     { return maximum_value ; }
   virtual void setMaxValue ( float f ) { maximum_value = f    ; }
 
@@ -1200,173 +1197,9 @@ public:
   
   int  isVertical ( void ) const { return vert ; }
 
-  void setSliderFraction ( float f ) { slider_fraction = (f<=0.0f) ? 0.1f : (f>=1.0f) ? 0.9f : f ; puPostRefresh () ; }
+  void setSliderFraction ( float f ) ;
   float getSliderFraction ( void ) const { return slider_fraction ; }
 } ;
-
-
-//**********************************************************************************
-//* THIS CLASS IS DEPRECATED 1/26/04 -- please link to "puAux" and use puaBiSlider *
-//**********************************************************************************
-class puBiSlider : public puSlider
-{
-  UL_TYPE_DATA
-
-protected:
-  float current_max ;
-  float current_min ;
-
-  int active_button ;  // Zero for none, one for min, two for max
-public:
-  void doHit ( int button, int updown, int x, int y ) ;
-  void draw  ( int dx, int dy ) ;
-  puBiSlider ( int minx, int miny, int sz, int vertical = FALSE ) :
-     puSlider ( minx, miny, sz, vertical )
-  {
-    type |= PUCLASS_BISLIDER ;
-    setMaxValue ( 1.0f ) ;
-    setMinValue ( 0.0f ) ;
-    setStepSize ( 1.0f ) ;
-    current_max = 1.0f ;
-    current_min = 0.0f ;
-    active_button = 0 ;
-  }
-
-  /* Alternate constructor which lets you explicitly set width */
-
-  puBiSlider ( int minx, int miny, int sz, int vertical, int width ) :
-     puSlider ( minx, miny, sz, vertical, width )
-  {
-    type |= PUCLASS_BISLIDER ;
-    setMaxValue ( 1.0f ) ;
-    setMinValue ( 0.0f ) ;
-    setStepSize ( 1.0f ) ;
-    current_max = 1.0f ;
-    current_min = 0.0f ;
-    active_button = 0 ;
-  }
-
-  void setMaxValue ( float i )
-  {
-    maximum_value = i ;
-    slider_fraction = 1.0f / ( getMaxValue() - getMinValue() + 1.0f ) ;
-    puPostRefresh () ;
-  }
-
-
-  void setMinValue ( float i )
-  {
-    minimum_value = i ;
-    slider_fraction = 1.0f / ( getMaxValue() - getMinValue() + 1.0f ) ;
-    puPostRefresh () ;
-  }
-
-  void setCurrentMax ( int i ) { current_max = (float) i ; puPostRefresh () ; } /* DEPRECATED */
-  void setCurrentMax ( float f ) { current_max = f ; puPostRefresh () ; }
-  float getCurrentMax ( void ) const { return current_max ; }
-
-  void setCurrentMin ( int i ) { current_min = (float) i ; puPostRefresh () ; } /* DEPRECATED */
-  void setCurrentMin ( float f ) { current_min = f ; puPostRefresh () ; }
-  float getCurrentMin ( void ) const { return current_min ; }
-
-  void setActiveButton ( int i ) { active_button = i ; }
-  int getActiveButton ( void ) const { return active_button ; }
-} ;
-//**********************************************************************************
-//* THIS CLASS IS DEPRECATED 1/26/04 -- please link to "puAux" and use puaBiSlider *
-//**********************************************************************************
-
-
-//***********************************************************************************
-//* THIS CLASS IS DEPRECATED 1/26/04 -- please link to "puAux" and use puaTriSlider *
-//***********************************************************************************
-class puTriSlider : public puBiSlider
-{
-  UL_TYPE_DATA
-
-protected:
-  // "active_button" is now zero for none, one for min, two for middle, three for max
-  int freeze_ends ;  // true to make end sliders unmovable
-public:
-  void doHit ( int button, int updown, int x, int y ) ;
-  void draw  ( int dx, int dy ) ;
-  puTriSlider ( int minx, int miny, int sz, int vertical = FALSE ) :
-     puBiSlider ( minx, miny, sz, vertical )
-  {
-    type |= PUCLASS_TRISLIDER ;
-    freeze_ends = TRUE ;
-  }
-
-  /* Alternate constructor which lets you explicitly set width */
-
-  puTriSlider ( int minx, int miny, int sz, int vertical, int width ) :
-     puBiSlider ( minx, miny, sz, vertical, width )
-  {
-    type |= PUCLASS_TRISLIDER ;
-    freeze_ends = TRUE ;
-  }
-
-  int getFreezeEnds ( void ) const { return freeze_ends ; }
-  void setFreezeEnds ( int val )   { freeze_ends = val ; puPostRefresh () ; }
-} ;
-//***********************************************************************************
-//* THIS CLASS IS DEPRECATED 1/26/04 -- please link to "puAux" and use puaTriSlider *
-//***********************************************************************************
-
-
-//***********************************************************************************
-//* THIS CLASS IS DEPRECATED 1/26/04 -- please link to "puAux" and use puaScrollBar *
-//***********************************************************************************
-class puScrollBar : public puSlider
-{
-  UL_TYPE_DATA
-
-protected:
-  int arrow_count ;
-  int fast_up_arrow_active, fast_down_arrow_active ;
-  int up_arrow_active, down_arrow_active ;
-
-public:
-  void doHit ( int button, int updown, int x, int y ) ;
-  void draw  ( int dx, int dy ) ;
-  puScrollBar ( int minx, int miny, int sz, int arrows, int vertical = FALSE ) :
-     puSlider ( minx, miny, sz, vertical )
-  {
-    type |= PUCLASS_SCROLLBAR ;
-    arrow_count = arrows ;
-    fast_up_arrow_active = fast_down_arrow_active = up_arrow_active = down_arrow_active = FALSE ;
-  }
-
-  /* Alternate constructor which lets you explicitly set width */
-
-  puScrollBar ( int minx, int miny, int sz, int arrows, int vertical, int width ) :
-     puSlider ( minx, miny, sz, vertical, width )
-  {
-    type |= PUCLASS_SCROLLBAR ;
-    arrow_count = arrows ;
-    fast_up_arrow_active = fast_down_arrow_active = up_arrow_active = down_arrow_active = FALSE ;
-  }
-
-  void setMaxValue ( float f )
-  {
-    maximum_value = f ;
-    slider_fraction = 1.0f / ( getMaxValue() - getMinValue() + 1.0f ) ;
-    puPostRefresh () ;
-  }
-
-
-  void setMinValue ( float i )
-  {
-    minimum_value = i ;
-    slider_fraction = 1.0f / ( getMaxValue() - getMinValue() + 1.0f ) ;
-    puPostRefresh () ;
-  }
-} ;
-//***********************************************************************************
-//* THIS CLASS IS DEPRECATED 1/26/04 -- please link to "puAux" and use puaScrollBar *
-//***********************************************************************************
-
-
 
 
 class puListBox : public puButton
@@ -1484,39 +1317,6 @@ public:
 } ;
 
 
-//**************************************************************************************
-//* THIS CLASS IS DEPRECATED 1/26/04 -- please link to "puAux" and use puaVerticalMenu *
-//**************************************************************************************
-class puVerticalMenu : public puGroup
-{
-  UL_TYPE_DATA
-
-protected:
-public:
-  puVerticalMenu ( int x = -1, int y = -1 ) :
-
-  puGroup ( x < 0 ? puGetWindowWidth() -
-                     ( puGetDefaultLegendFont().getStringWidth ( " " )
-                       + PUSTR_TGAP + PUSTR_BGAP ) : x,
-
-          y < 0 ? puGetWindowHeight() -
-                   ( puGetDefaultLegendFont().getStringHeight ()
-                     + PUSTR_TGAP + PUSTR_BGAP ) : y)
-  {
-    type |= PUCLASS_VERTMENU ;
-    floating = TRUE ;  // DEPRECATED! -- we need to replace this code.
-    if ( y < 0 ) { setVStatus( TRUE ) ; } /* It is now supposed to stick to the top left - JCJ*/
-  }
-
-  void add_submenu ( const char *str, char *items[], puCallback _cb[],
-                     void *_user_data[] = NULL ) ;
-  void close ( void ) ;
-} ;
-//**************************************************************************************
-//* THIS CLASS IS DEPRECATED 1/26/04 -- please link to "puAux" and use puaVerticalMenu *
-//**************************************************************************************
-
-
 class puInputBase
 {
   UL_TYPE_DATA
@@ -1528,6 +1328,8 @@ protected:
   int select_end_position ;
   char *valid_data ;
   int input_disabled ;
+
+  char *displayed_text ;          // Pointer to text as it is displayed in the box (chopped or word-wrapped)
 
   puObject *widget ; /* Pointer to associated input box widget */
 
@@ -1590,19 +1392,27 @@ public:
     select_start_position = -1 ;
     select_end_position = -1 ;
     valid_data = NULL;
+    displayed_text = NULL ;
 
     widget = (puObject *)NULL ;
 
     input_disabled = FALSE ;
   }
 
-  virtual ~puInputBase () { delete [] valid_data ; }
+  virtual ~puInputBase () { delete [] valid_data ;  delete [] displayed_text ;  }
 } ;
 
 
 class puInput : public puInputBase, public puObject
 {
   UL_TYPE_DATA
+
+  int display_starting_point ;
+
+  char *getDisplayedText ( void )
+  {
+    return ( displayed_text == NULL ? getStringValue () : displayed_text ) ;
+  }
 
 public:
   void draw     ( int dx, int dy ) ;
@@ -1621,82 +1431,48 @@ public:
   {
     type |= PUCLASS_INPUT ;
 
-    setColourScheme ( 0.8f, 0.7f, 0.7f ) ; /* Yeukky Pink */
+    display_starting_point = 0 ;
+
+    setColourScheme ( colour [ PUCOL_EDITFIELD ][0],
+                      colour [ PUCOL_EDITFIELD ][1],
+                      colour [ PUCOL_EDITFIELD ][2],
+                      colour [ PUCOL_EDITFIELD ][3] ) ;
     setColour ( PUCOL_MISC, 0.1f, 0.1f, 1.0f ) ; /* Colour of 'I' bar cursor */
 
     widget = this ;
   }
-} ;
 
-//*********************************************************************************
-//* THIS CLASS IS DEPRECATED 1/26/04 -- please link to "puAux" and use puaSpinBox *
-//*********************************************************************************
-class puSpinBox : public puRange, public puGroup
-{
-  UL_TYPE_DATA
-
-protected :
-  puInput *input_box ;
-  puArrowButton *up_arrow ;
-  puArrowButton *down_arrow ;
-
-  int arrow_position ;
-
-public :
-  /* Whether the arrows are on the LEFT of the input box (0) or RIGHT (1 DEFAULT) */
-  int getArrowPosition ( void ) const { return arrow_position ; }
-  /* Offered as a proportion of the input box height. Default = 0.5 */
-  void setArrowHeight ( float height )
+  virtual void setValue ( puValue *pv )
   {
-    puBox ibox = *(input_box->getABox()) ;
-    int size = int(height * ( ibox.max[1] - ibox.min[1] )) ;
-    up_arrow->setSize ( size, size ) ;
-    down_arrow->setSize ( size, size ) ;
-    int xpos = getArrowPosition () ? ibox.max[0] : ibox.min[0] - size ;
-    int ymid = ( ibox.max[1] + ibox.min[1] ) / 2 ;
-    if ( getArrowPosition () == 0 )  /* Arrows are on the left, adjust the x-position of the input box */
-    {
-      ibox.min[0] -= xpos ;
-      input_box->setPosition ( ibox.min[0], ibox.min[1] ) ;
-      abox.min[0] += xpos ;
-      xpos = 0 ;
-    }
-
-    if ( height > 0.5f )  /* Adjust the input box to be up from the bottom */
-    {
-      input_box->setPosition ( ibox.min[0], ibox.min[1] + size - ymid ) ;
-      abox.min[1] += ymid - size ;
-      ymid = size ;
-    }
-    else  /* Input box is at the bottom of the group area */
-    {
-      input_box->setPosition ( ibox.min[0], 0 ) ;
-      abox.min[1] += ibox.min[1] ;
-    }
-
-    up_arrow->setPosition ( xpos, ymid ) ;
-    down_arrow->setPosition ( xpos, ymid - size ) ;
-    recalc_bbox() ;
+    puValue::setValue ( pv ) ;
+    delete displayed_text ;  displayed_text = NULL ;
   }
 
-  float getArrowHeight ( void ) const
+  virtual void setValue ( int   i )
   {
-    int awid, ahgt, iwid, ihgt ;
-    input_box->getSize ( &iwid, &ihgt ) ;
-    up_arrow->getSize ( &awid, &ahgt ) ;
-    return float(ahgt) / float(ihgt) ;
+    puValue::setValue ( i ) ;
+    delete displayed_text ;  displayed_text = NULL ;
   }
 
-  puSpinBox ( int minx, int miny, int maxx, int maxy, int arrow_pos = 1 ) ;
+  virtual void setValue ( float f )
+  {
+    puValue::setValue ( f ) ;
+    delete displayed_text ;  displayed_text = NULL ;
+  }
 
-  void setValue ( float f ) { puValue::setValue ( f ) ;  input_box->setValue ( f ) ; }
-  void setValue ( int i ) { puValue::setValue ( i ) ;  input_box->setValue ( i ) ; }
-  void setValue ( const char *s ) { puValue::setValue ( s ) ;  input_box->setValue ( s ) ; }
-  void setValue ( puValue *pv ) { puValue::setValue ( pv ) ;  input_box->setValue ( pv ) ; }
+  virtual void setValue ( const char *s )
+  {
+    puValue::setValue ( s ) ;
+    delete displayed_text ;  displayed_text = NULL ;
+  }
+
+  virtual void setValue ( bool b )
+  {
+    puValue::setValue ( b ) ;
+    delete displayed_text ;  displayed_text = NULL ;
+  }
 } ;
-//*********************************************************************************
-//* THIS CLASS IS DEPRECATED 1/26/04 -- please link to "puAux" and use puaSpinBox *
-//*********************************************************************************
+
 
 class puButtonBox : public puObject
 {
@@ -1735,342 +1511,6 @@ public:
     type |= PUCLASS_DIALOGBOX ;
   }
 } ;
-
-
-
-class puFilePicker : public puDialogBox
-{
-  UL_TYPE_DATA
-
-protected:
-  char** files ;
-  char*  dflag ;
-  int num_files   ;
-  int arrow_count ;
-
-  char startDir [ PUSTRING_MAX ] ;
-
-  void find_files () ;
-  static void handle_select ( puObject* ) ;
-  static void input_entered ( puObject* ) ;
-
-  puFrame   *frame         ;
-  puListBox *list_box      ;
-  puSlider  *slider        ;
-  puOneShot *cancel_button ;
-  puOneShot *ok_button     ;
-  puArrowButton *up_arrow       ;
-  puArrowButton *down_arrow     ;
-  puArrowButton *fastup_arrow   ;
-  puArrowButton *fastdown_arrow ;
-
-  void puFilePickerInit ( int x, int y, int w, int h,
-                          int arrows, const char *dir, const char *title ) ;
-
-public:
-
-/*******THIS CLASS IS OBSOLETE ********
-  Please use puFileSelector - puFilePicker
-  is obsolete and will be removed in a 
-  future release.
- *************************************/
-
-  puFilePicker ( int x, int y, int w, int h, int arrows,
-                 const char *dir, const char *title = "Pick a file" ) :
-     puDialogBox ( x, y )
-  {
-    puFilePickerInit ( x, y, w, h, arrows, dir, title ) ;
-  }
-
-  puFilePicker ( int x, int y, int w, int h,
-                 const char *dir, const char *title = "Pick a file" ) :
-     puDialogBox ( x, y )
-  {
-    puFilePickerInit ( x, y, w, h, 1, dir, title ) ;
-  }
-
-  puFilePicker ( int x, int y, int arrows,
-                 const char *dir, const char *title = "Pick a file" ) :
-     puDialogBox ( x, y )
-  {
-    puFilePickerInit ( x, y, 220, 170, arrows, dir, title ) ;
-  }
-
-  puFilePicker ( int x, int y,
-                 const char *dir, const char *title = "Pick a file" ) :
-     puDialogBox ( x, y )
-  {
-    puFilePickerInit ( x, y, 220, 170, 1, dir, title ) ;
-  }
-
-  ~puFilePicker () ;
-
-  void setSize ( int w, int h ) ;
-} ;
-
-
-//**************************************************************************************
-//* THIS CLASS IS DEPRECATED 1/26/04 -- please link to "puAux" and use puaFileSelector *
-//**************************************************************************************
-class puFileSelector : public puDialogBox
-{
-  UL_TYPE_DATA
-
-protected:
-  char** files ;
-  char*  dflag ;
-  int num_files   ;
-  int arrow_count ;
-
-  char *startDir ;
-
-  void find_files ( void ) ;
-  static void handle_select ( puObject* ) ;
-  static void input_entered ( puObject* ) ;
-
-  puFrame   *frame         ;
-  puListBox *list_box      ;
-  puSlider  *slider        ;
-  puOneShot *cancel_button ;
-  puOneShot *ok_button     ;
-  puInput   *input         ;
-  puArrowButton *up_arrow       ;
-  puArrowButton *down_arrow     ;
-  puArrowButton *fastup_arrow   ;
-  puArrowButton *fastdown_arrow ;
-
-  void puFileSelectorInit ( int x, int y, int w, int h,
-                          int arrows, const char *dir, const char *title ) ;
-
-public:
-
-  puFileSelector ( int x, int y, int w, int h, int arrows,
-                   const char *dir, const char *title = "Pick a file" ) :
-     puDialogBox ( x, y )
-  {
-    puFileSelectorInit ( x, y, w, h, arrows, dir, title ) ;
-  }
-
-  puFileSelector ( int x, int y, int w, int h,
-                   const char *dir, const char *title = "Pick a file" ) :
-     puDialogBox ( x, y )
-  {
-    puFileSelectorInit ( x, y, w, h, 1, dir, title ) ;
-  }
-
-  puFileSelector ( int x, int y, int arrows,
-                   const char *dir, const char *title = "Pick a file" ) :
-     puDialogBox ( x, y )
-  {
-    puFileSelectorInit ( x, y, 220, 170, arrows, dir, title ) ;
-  }
-
-  puFileSelector ( int x, int y,
-                   const char *dir, const char *title = "Pick a file" ) :
-     puDialogBox ( x, y )
-  {
-    puFileSelectorInit ( x, y, 220, 170, 1, dir, title ) ;
-  }
-
-  ~puFileSelector () ;
-
-  /* Not for application use!! */
-  puInput *__getInput ( void ) const { return input ; }
-  char *__getStartDir ( void ) const { return (char *) startDir ; }
-
-  void setInitialValue ( const char *fname ) ;
-  void setSize ( int w, int h ) ;
-} ;
-//**************************************************************************************
-//* THIS CLASS IS DEPRECATED 1/26/04 -- please link to "puAux" and use puaFileSelector *
-//**************************************************************************************
-
-
-
-//************************************************************************************
-//* THIS CLASS IS DEPRECATED 1/26/04 -- please link to "puAux" and use puaLargeInput *
-//************************************************************************************
-class puLargeInput : public puInputBase, public puGroup
-{
-  UL_TYPE_DATA
-
-protected:
-  int num_lines ;              // Number of lines of text in the box
-  int lines_in_window ;        // Number of lines showing in the window
-  int top_line_in_window ;     // Number of the first line in the window
-  float max_width ;            // Width of longest line of text in box, in pixels
-  int slider_width ;
-
-  puFrame *frame ;
-
-  puSlider *bottom_slider ;    // Horizontal slider at bottom of window
-  puScrollBar *right_slider ;  // Vertical slider at right of window
-
-  char *wrapped_text ;         // Pointer to word-wrapped text in the box
-
-  int arrow_count ;          // Number of up/down arrows above and below the right slider
-
-  void normalizeCursors ( void ) ;
-  void removeSelectRegion ( void ) ;
-
-  void wrapText ( void ) ;
-
-public:
-  puLargeInput ( int x, int y, int w, int h, int arrows, int sl_width, int wrap_text = FALSE ) ;
-  ~puLargeInput ()
-  {
-    delete [] wrapped_text ;
-
-    if ( puActiveWidget() == this )
-      puDeactivateWidget () ;
-  }
-
-  void setSize ( int w, int h ) ;
-
-  int getNumLines ( void ) const {  return num_lines ;  }
-  int getLinesInWindow ( void ) const { return lines_in_window ; }
-  void setTopLineInWindow ( int val ) {  top_line_in_window = (val<0) ? 0 : ( (val>num_lines-2) ? num_lines-2 : val ) ;  }
-
-  void draw     ( int dx, int dy ) ;
-  int  checkHit ( int button, int updown, int x, int y ) ;
-  void doHit    ( int button, int updown, int x, int y ) ;
-  int  checkKey ( int key, int updown ) ;
-
-  void setSelectRegion ( int s, int e ) ;
-  void selectEntireLine ( void ) ;
-
-  void invokeDownCallback ( void )
-  {
-    rejectInput () ;
-    normalizeCursors () ;
-    if ( down_cb != NULL ) (*down_cb)(this) ;
-  }
-
-  void  setValue ( const char *s ) ;
-  void  setText ( const char *l ) { setValue ( l ) ; }  /* DEPRECATED */
-  char *getText ( void ) { return getStringValue () ; }  /* DEPRECATED */
-  char *getWrappedText ( void )
-  {
-    return ( wrapped_text == NULL ? getStringValue () : wrapped_text ) ;
-  }
-  void  addNewLine ( const char *l ) ;
-  void  addText ( const char *l ) ;
-  void  appendText ( const char *l ) ;
-  void  removeText ( int start, int end ) ;
-} ;
-//************************************************************************************
-//* THIS CLASS IS DEPRECATED 1/26/04 -- please link to "puAux" and use puaLargeInput *
-//************************************************************************************
-
-
-//**********************************************************************************
-//* THIS CLASS IS DEPRECATED 1/26/04 -- please link to "puAux" and use puaComboBox *
-//**********************************************************************************
-class puComboBox : public puGroup
-{
-  UL_TYPE_DATA
-
-protected:
-  char ** list  ;
-  int num_items ;
-
-  int curr_item ;
-
-  puInput *input ;
-  puArrowButton *arrow_btn ;
-  puPopupMenu *popup_menu  ;
-
-  static void input_down_cb ( puObject *inp   ) ;
-  static void handle_arrow ( puObject *arrow  ) ;
-  static void handle_popup ( puObject *popupm ) ;
-
-  void update_widgets ( void ) ;
-
-public:
-  /* Not for application use ! */
-  puPopupMenu * __getPopupMenu ( void ) const { return popup_menu ; }
-
-  void newList ( char ** _list ) ;
-  int  getNumItems ( void ) const { return num_items ; }
-
-  int  getCurrentItem ( void ) ;
-  void setCurrentItem ( int item )
-  {
-    if ( ( item >= 0 ) && ( item < num_items ) )
-    {
-      curr_item = item ;
-      update_widgets () ;
-
-      invokeCallback () ;
-    }
-  }
-  void setCurrentItem ( const char *item_ptr ) ;
-
-  void setPosition ( int x, int y )
-  {
-    puGroup::setPosition ( x, y ) ;
-
-    /* Ensure that popup menu will show up at the right place */
-    newList ( list ) ;
-  }
-
-  void draw ( int dx, int dy ) ;
-  int  checkHit ( int button, int updown, int x, int y ) ;
-  int  checkKey ( int key, int updown ) ;
-
-  puComboBox ( int minx, int miny, int maxx, int maxy,
-               char **list, int editable = TRUE ) ;
-} ;
-//**********************************************************************************
-//* THIS CLASS IS DEPRECATED 1/26/04 -- please link to "puAux" and use puaComboBox *
-//**********************************************************************************
-
-
-//***********************************************************************************
-//* THIS CLASS IS DEPRECATED 1/26/04 -- please link to "puAux" and use puaSelectBox *
-//***********************************************************************************
-class puSelectBox : public puGroup
-{
-  UL_TYPE_DATA
-
-protected:
-  char ** list  ;
-  int num_items ;
-
-  int curr_item ;
-
-  puInput *input ;
-  puArrowButton *down_arrow ;
-  puArrowButton *up_arrow   ;
-
-  static void handle_arrow ( puObject *arrow ) ;
-
-  void update_widgets ( void ) ;
-
-public:
-  void newList ( char ** _list ) ;
-  int  getNumItems ( void ) const { return num_items ; }
-
-  int  getCurrentItem ( void ) const { return curr_item ; }
-  void setCurrentItem ( int item )
-  {
-    if ( ( item >= 0 ) && ( item < num_items ) )
-    {
-      curr_item = item ;
-      update_widgets () ;
-
-      invokeCallback () ;
-    }
-  }
-
-  void setSize ( int w, int h ) ;
-  void draw ( int dx, int dy ) ;
-  int  checkKey ( int key, int updown ) ;
-
-  puSelectBox ( int minx, int miny, int maxx, int maxy,
-                char **list ) ;
-} ;
-
 
 
 
@@ -2153,6 +1593,8 @@ void puSetWindowFuncs ( puGetWindowCallback,
 #elif defined(PU_USE_NATIVE)
 # include "puNative.h"
 # define puInit  puInitNative
+#else
+# define puInit
 #endif
 
 

@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: pslToken.cxx,v 1.21 2002/09/15 17:45:53 sjbaker Exp $
+     $Id: pslToken.cxx 1686 2002-09-15 17:45:53Z sjbaker $
 */
 
 

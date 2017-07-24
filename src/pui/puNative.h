@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: puNative.h,v 1.1 2004/02/16 13:49:03 stromberg Exp $
+     $Id: puNative.h 1857 2004-02-16 13:49:03Z stromberg $
 */
 
 #ifndef _PU_NATIVE_H_

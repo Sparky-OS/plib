@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: jsBSD.cxx,v 1.6 2005/01/12 01:22:26 driehuis Exp $
+     $Id: jsBSD.cxx 2063 2006-01-05 21:21:55Z fayjf $
 */
 
 /*
@@ -44,6 +44,8 @@
 #define HAVE_USB_JS	1
 #endif
 
+#include <string.h>
+#include <errno.h>
 #include <sys/ioctl.h>
 #if defined(__FreeBSD__)
 # include <sys/joystick.h>
@@ -312,7 +314,7 @@ void jsJoystick::open ()
     int buttons [ _JS_MAX_AXES ] ;
   
     rawRead ( buttons, axes ) ;
-    error = axes[0] < -1000000000.0f ;
+    error = axes[0] < -1000000000.0f && axes[1] < -1000000000.0f ;
     if ( error )
       return ;
   
@@ -321,7 +323,11 @@ void jsJoystick::open ()
     joyfile = fopen ( joyfname, "r" ) ;
     error = ( joyfile == NULL ) ;
     if ( error )
+    {
+      ulSetError ( UL_WARNING, "unable to open calibration file %s (%s), joystick %i disabled (you can generate the calibration file with the plib-jscal utility)",
+		   joyfname, strerror ( errno ), id + 1 );
       return ;
+    }
 
     noargs = fscanf ( joyfile, "%d%f%f%f%f%f%f", &in_no_axes,
                       &min [ 0 ], &center [ 0 ], &max [ 0 ],
@@ -445,8 +451,13 @@ void jsJoystick::rawRead ( int *buttons, float *axes )
 
     if ( axes != NULL )
     {
-      axes[0] = (float) os->ajs.x ;
-      axes[1] = (float) os->ajs.y ;
+      if ( os->ajs.x >= -1000000000 )
+        os->cache_axes[0] = os->ajs.x;
+      if ( os->ajs.y >= -1000000000 )
+        os->cache_axes[1] = os->ajs.y;
+
+      axes[0] = os->cache_axes[0];
+      axes[1] = os->cache_axes[1];
     }
 
     return;
