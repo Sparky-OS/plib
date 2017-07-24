@@ -12,8 +12,6 @@ Package: libplib1
 Section: libs
 Architecture: any
 Depends: freeglut3, libgl1-mesa-glx | libgl1, ${misc:Depends}, ${shlibs:Depends}
-Conflicts: plib1.8.4c2
-Replaces: plib1.8.4c2
 Description: Portability Libraries: Run-time package
  Provides a Joystick interface, a simple GUI built on top of OpenGL,
  some standard geometry functions, a sound library and a simple scene
