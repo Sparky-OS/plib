@@ -1,6 +1,6 @@
 /*
      PLIB - A Suite of Portable Game Libraries
-     Copyright (C) 2001  Steve Baker
+     Copyright (C) 1998,2002  Steve Baker
  
      This library is free software; you can redistribute it and/or
      modify it under the terms of the GNU Library General Public
@@ -13,12 +13,12 @@
      Library General Public License for more details.
  
      You should have received a copy of the GNU Library General Public
-     License along with this library; if not, write to the Free
+     License along with this library; if not, write to the Free Software
      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgSave3ds.cxx,v 1.5 2001/04/12 03:38:15 deca Exp $
+     $Id: ssgSave3ds.cxx,v 1.9 2003/03/08 15:31:59 liedman Exp $
 */
 
 /*******************************************************
@@ -198,7 +198,7 @@ static char* get_material_name( ssgSimpleState *state ) {
 }
 
 static _ssgSave3dsChunk* create_vertex_chunk( ssgLeaf* leaf, 
-					     sgMat4 transform ) {
+					      sgMat4 transform ) {
   _ssgSave3dsChunk* vertexlist = new _ssgSave3dsChunk( CHUNK_VERTLIST );
  
   unsigned short *num_verts;
@@ -208,10 +208,10 @@ static _ssgSave3dsChunk* create_vertex_chunk( ssgLeaf* leaf,
   num_verts = new unsigned short;
   *num_verts = leaf->getNumVertices();
   nverts = new _ssgSave3dsData(num_verts, 2, 1);
-  
+
   vdata = new float[ *num_verts * 3];
   for (int i = 0; i < *num_verts; i++) {
-    sgXformVec3(&vdata[i*3], leaf->getVertex(i), transform);
+    sgXformPnt3(&vdata[i*3], leaf->getVertex(i), transform);
   }
   _ssgSave3dsData *vertices = new _ssgSave3dsData(vdata, 4, 
 						*num_verts * 3);
@@ -260,8 +260,7 @@ static _ssgSave3dsChunk* create_maplist_chunk( ssgLeaf* leaf ) {
 
 static _ssgSave3dsChunk* create_facemat_chunk( ssgLeaf* leaf ) {
   char* matname = get_material_name( (ssgSimpleState*)leaf->getState() );
-  char* namecopy = new char[ strlen(matname)+1 ];
-  strcpy(namecopy, matname);
+  char* namecopy = ulStrDup ( matname ) ;
 
   _ssgSave3dsData* namedata = new _ssgSave3dsData(namecopy, 1, 
 						strlen(matname) + 1);
@@ -305,7 +304,7 @@ static _ssgSave3dsChunk* create_facelist_chunk( ssgLeaf* leaf ) {
 }
 
 static _ssgSave3dsChunk* create_transform_chunk() {
-  // creates and identity transform
+  // creates an identity transform
   _ssgSave3dsChunk* transform = new _ssgSave3dsChunk( CHUNK_TRMATRIX );
   
   float* matrix = new float[12];
@@ -361,8 +360,7 @@ static void create_objects_chunk( ssgEntity* ent, _ssgSave3dsChunk* parent ) {
   _ssgSave3dsChunk* objs = new _ssgSave3dsChunk(CHUNK_OBJBLOCK);
   static const char const_objname[] = "Object written by ssgSave3ds";
 
-  char *objname = new char[ strlen(const_objname) + 1 ];
-  strcpy(objname, const_objname);
+  char *objname = ulStrDup ( const_objname ) ;
   objs->addData( new _ssgSave3dsData(objname, 1, strlen(objname)+1) );
   parent->addKid(objs);
 
@@ -411,8 +409,7 @@ static _ssgSave3dsChunk *create_map_chunk( ssgSimpleState *state ) {
   _ssgSave3dsChunk *map_chunk = new _ssgSave3dsChunk(CHUNK_TEXTURE);
 
   _ssgSave3dsChunk *mapname_chunk = new _ssgSave3dsChunk(CHUNK_MAPFILENAME);
-  char *mapname = new char[ strlen(state->getTextureFilename()) + 1 ];
-  strcpy(mapname, state->getTextureFilename());
+  char *mapname = ulStrDup(state->getTextureFilename());
   mapname_chunk -> addData( new _ssgSave3dsData(mapname, 1, 
 					       strlen(mapname) + 1) );
   map_chunk -> addKid(mapname_chunk);
@@ -430,15 +427,14 @@ static _ssgSave3dsChunk *create_material_chunk( ssgSimpleState *state ) {
   
   _ssgSave3dsChunk *matname_chunk = new _ssgSave3dsChunk(CHUNK_MATNAME);
   char *matname;
-  if (state->getName() != NULL) {
-    matname = new char[ strlen(state->getName()) + 1 ];
-    strcpy(matname, state->getName());
-  } else {
+  if (state->getName() != NULL)
+    matname = ulStrDup(state->getName());
+  else {
     matname = new char[16];
     sprintf(matname, "Material #%d", mat_count);
   }
   _ssgSave3dsData *matname_data = new _ssgSave3dsData(matname, 1, 
-						    strlen(matname) + 1);
+						      strlen(matname) + 1);
   matname_chunk->addData(matname_data);
   mat->addKid(matname_chunk);
 
@@ -449,6 +445,13 @@ static _ssgSave3dsChunk *create_material_chunk( ssgSimpleState *state ) {
   mat->addKid( create_colour_chunk( CHUNK_SPECULAR, 
 				    state->getMaterial(GL_SPECULAR) ) );
   mat->addKid( create_shininess_chunk( state->getShininess() ) );
+
+  if (state->isEnabled(GL_COLOR_MATERIAL)) {
+    ulSetError(UL_WARNING, 
+	       "State \"%s\" has GL_COLOR_MATERIAL enabled, which " \
+	       "is not supported by 3DS format. Data will be lost.",
+	       matname);
+  }
 
   if (state->getTextureFilename() != NULL) {
     mat->addKid( create_map_chunk(state) );
@@ -472,6 +475,8 @@ static void traverse_materials( ssgEntity* node, _ssgSave3dsChunk* parent ) {
       if (state == mat[i])
 	return;
     }
+
+    assert(mat_count < MAX_MATERIALS);
 
     mat[mat_count++] = state;
     parent->addKid( create_material_chunk(state) );

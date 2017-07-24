@@ -1,6 +1,6 @@
 /*
      PLIB - A Suite of Portable Game Libraries
-     Copyright (C) 2001  Steve Baker
+     Copyright (C) 1998,2002  Steve Baker
  
      This library is free software; you can redistribute it and/or
      modify it under the terms of the GNU Library General Public
@@ -13,12 +13,12 @@
      Library General Public License for more details.
  
      You should have received a copy of the GNU Library General Public
-     License along with this library; if not, write to the Free
+     License along with this library; if not, write to the Free Software
      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgVtxArray.cxx,v 1.19 2001/06/16 16:27:37 stromberg Exp $
+     $Id: ssgVtxArray.cxx,v 1.27 2004/02/02 01:35:15 sjbaker Exp $
 */
 
 
@@ -75,6 +75,16 @@ ssgVtxArray::~ssgVtxArray ()
 {
   ssgDeRefDelete ( indices      ) ;
 } 
+
+
+void ssgVtxArray::setIndices ( ssgIndexArray *il )
+{
+  ssgDeRefDelete ( indices ) ;
+  indices = il ;
+
+  if ( indices != NULL )
+    indices -> ref () ;
+}
 
 
 void ssgVtxArray::drawHighlight ( sgVec4 colour )
@@ -172,6 +182,84 @@ void ssgVtxArray::pick ( int baseName )
   glPopClientAttrib ( ) ;
 }
 
+void ssgVtxArray::removeUnusedVertices()
+// this removes any vertices (including normal, TexCoords and colour) 
+// that are not referenced by the index array
+{ 
+  
+  bool doNormals = FALSE, doTexCoords = FALSE, doColours = FALSE;
+  
+  assert(vertices);
+  if(!indices)
+  { ulSetError( UL_WARNING, "indices == NULL\n");
+    return;
+  }
+  if(normals)
+    if(normals->getNum() != 0)
+      doNormals = TRUE;
+  if(texcoords)
+    if(texcoords->getNum() != 0)
+      doTexCoords = TRUE;
+  if(colours)
+    if(colours->getNum() != 0)
+      doColours = TRUE;
+  
+  long * oldIndex2NewIndex = new long[vertices->getNum()];
+  int i;
+  short oldIndex, newIndex;
+  for(i=0;i<vertices->getNum();i++)
+    oldIndex2NewIndex[i]=-1; // marker for "not used"
+  
+  ssgVertexArray   *newVL= new ssgVertexArray();
+  ssgNormalArray   *newNL = NULL;
+  ssgTexCoordArray *newTL = NULL;
+  ssgColourArray   *newCL = NULL;
+
+  if(doNormals)
+    newNL = new ssgNormalArray();
+  if (doTexCoords)
+    newTL = new ssgTexCoordArray();
+  if (doColours)
+    newCL = new ssgColourArray();
+
+  for(i=0; i<indices->getNum(); i++)
+  { oldIndex = *indices->get(i);
+    if (oldIndex2NewIndex[ oldIndex ] != -1)
+      indices->set(static_cast<short>(oldIndex2NewIndex[ oldIndex ]), i);
+    else
+    { newIndex = newVL->getNum();
+      indices->set(newIndex , i);
+      oldIndex2NewIndex[ oldIndex ] = newIndex;
+      newVL->add(vertices->get(oldIndex));
+      if(doNormals)
+        newNL->add(normals->get(oldIndex));
+      if (doTexCoords)
+        newTL->add(texcoords->get(oldIndex));
+      if (doColours)
+        newCL->add(colours->get(oldIndex));
+    }
+  }
+  vertices->deRef(); //ssgDeRefDelete(vertices);
+  vertices = newVL;
+  newVL->ref();
+
+  if(doNormals)
+  { normals->deRef(); //ssgDeRefDelete(normals);
+    normals = newNL;
+    newNL->ref();
+
+  }
+  if (doTexCoords)
+  { texcoords->deRef(); //ssgDeRefDelete(texcoords);
+    texcoords = newTL;
+    newTL->ref();
+  }
+  if (doColours)
+  { colours->deRef(); //ssgDeRefDelete(colours);
+    colours = newCL;
+    newCL->ref();
+  }
+}
 
 void ssgVtxArray::draw_geometry ()
 {
@@ -179,8 +267,8 @@ void ssgVtxArray::draw_geometry ()
   int num_normals   = getNumNormals   () ;
   int num_texcoords = getNumTexCoords () ;
 
-  sgVec3 *nm = (sgVec3 *) normals   -> get(0) ;
-  sgVec4 *cl = (sgVec4 *) colours   -> get(0) ;
+  sgVec3 *nm = (sgVec3 *) normals -> get(0) ;
+  sgVec4 *cl = (sgVec4 *) colours -> get(0) ;
 
   if ( num_colours == 0 ) glColor4f   ( 1.0f, 1.0f, 1.0f, 1.0f ) ;
   if ( num_colours == 1 ) glColor4fv  ( cl [ 0 ] ) ;
@@ -208,6 +296,10 @@ void ssgVtxArray::draw_geometry ()
 
   int i = getNumIndices ();
   short *ii = indices->get(0);
+
+  _ssgCurrStatistics . bumpVertexCount ( i ) ;
+  _ssgCurrStatistics . bumpLeafCount   ( 1 ) ;
+
   glDrawElements ( gltype, i, GL_UNSIGNED_SHORT, ii ) ;
 
   glPopClientAttrib ( ) ;
@@ -231,20 +323,11 @@ int ssgVtxArray::getNumTriangles ()
   switch ( getPrimitiveType () )
   {
     case GL_POLYGON :
-    case GL_TRIANGLE_FAN :
-      return getNumIndices() - 2 ;
-
-    case GL_TRIANGLES :
-      return getNumIndices() / 3 ;
-
-    case GL_TRIANGLE_STRIP :
-      return getNumIndices() - 2 ;
-
-    case GL_QUADS :
-      return ( getNumIndices() / 4 ) * 2 ;
-
-    case GL_QUAD_STRIP :
-      return ( ( getNumIndices() - 2 ) / 2 ) * 2 ;
+    case GL_TRIANGLE_FAN   : return getNumIndices() - 2 ; 
+    case GL_TRIANGLES      : return getNumIndices() / 3 ; 
+    case GL_TRIANGLE_STRIP : return getNumIndices() - 2 ; 
+    case GL_QUADS          : return ( getNumIndices() / 4 ) * 2 ; 
+    case GL_QUAD_STRIP     : return ( ( getNumIndices() - 2 ) / 2 ) * 2 ;
 
     default : break ;
   }
@@ -262,15 +345,10 @@ int  ssgVtxArray::getNumLines ()
     case GL_TRIANGLE_STRIP :
     case GL_QUADS :
     case GL_QUAD_STRIP :
-    case GL_POINTS :
-      return 0;
-		case GL_LINES :   
-			// wk: FIXME: check the 3 following formulas. I don't have an OpenGL bokk at hand currently :-(
-			return getNumIndices ()/2;
-    case GL_LINE_LOOP :
-    	return getNumIndices ();
-    case GL_LINE_STRIP :
-    	return getNumIndices ()-1;
+    case GL_POINTS     : return 0 ;
+    case GL_LINES      : return getNumIndices () / 2 ;
+    case GL_LINE_LOOP  : return getNumIndices () ;
+    case GL_LINE_STRIP : return getNumIndices () - 1 ;
     default : break ;
   }
   assert(false); /* Should never get here  */
@@ -279,7 +357,7 @@ int  ssgVtxArray::getNumLines ()
 
 void ssgVtxArray::getLine ( int n, short *v1, short *v2 )
 { 
-	assert( n>=0 );
+  assert( n>=0 );
   switch ( getPrimitiveType () )
   {
     case GL_POLYGON :
@@ -290,27 +368,26 @@ void ssgVtxArray::getLine ( int n, short *v1, short *v2 )
     case GL_QUAD_STRIP :
     case GL_POINTS :
       assert(false);
-		case GL_LINES :   
-			// wk: FIXME: check the 3 following formulas. I don't have an OpenGL bokk at hand currently :-(
-			assert ( 2*n+1 < getNumIndices() );
-			*v1 = *getIndex( 2*n );
-			*v2 = *getIndex( 2*n+1 );
-			return ;
+    case GL_LINES :   
+      assert ( 2*n+1 < getNumIndices() );
+      *v1 = *getIndex( 2*n );
+      *v2 = *getIndex( 2*n+1 );
+      return ;
     case GL_LINE_LOOP :
-			assert ( n < getNumIndices() );
-			*v1 = *getIndex( n );
-			if ( n == getNumIndices()-1 )
-			  *v2 = *getIndex( 0 );
-			else
-				*v2 = *getIndex( n+1 );
-			return ;
+      assert ( n < getNumIndices() );
+      *v1 = *getIndex( n );
+      if ( n == getNumIndices()-1 )
+        *v2 = *getIndex( 0 );
+      else
+        *v2 = *getIndex( n+1 );
+      return ;
     case GL_LINE_STRIP :
-    	assert ( n < getNumIndices()-1 );
-			*v1 = *getIndex( n );
-			*v2 = *getIndex( n+1 );
-			return;
+      assert ( n < getNumIndices()-1 );
+      *v1 = *getIndex( n );
+      *v2 = *getIndex( n+1 );
+      return;
     default :
-			break ;
+      break ;
   }
   assert(false); /* Should never get here  */
   return ;   
@@ -319,14 +396,13 @@ void ssgVtxArray::getLine ( int n, short *v1, short *v2 )
 
 void ssgVtxArray::print ( FILE *fd, char *indent, int how_much )
 {
-	char in [ 100 ] ;
+  char in [ 100 ] ;
 
-	if ( how_much == 0 ) 
-		return; // dont print anything
+  if ( how_much == 0 ) 
+    return; // dont print anything
   
   sprintf ( in, "%s  ", indent );
-	
-	// wk: Why were these 2 lines commented out?:
+  
   ssgVtxTable::print ( fd, indent, how_much ) ;
   indices   -> print ( fd, in, how_much ) ;
 }
@@ -353,3 +429,4 @@ int ssgVtxArray::save ( FILE *fd )
    
   return TRUE ;
 }
+

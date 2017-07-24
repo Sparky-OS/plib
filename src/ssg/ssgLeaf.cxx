@@ -1,6 +1,6 @@
 /*
      PLIB - A Suite of Portable Game Libraries
-     Copyright (C) 2001  Steve Baker
+     Copyright (C) 1998,2002  Steve Baker
  
      This library is free software; you can redistribute it and/or
      modify it under the terms of the GNU Library General Public
@@ -13,12 +13,12 @@
      Library General Public License for more details.
  
      You should have received a copy of the GNU Library General Public
-     License along with this library; if not, write to the Free
+     License along with this library; if not, write to the Free Software
      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgLeaf.cxx,v 1.16 2001/06/16 16:27:37 stromberg Exp $
+     $Id: ssgLeaf.cxx,v 1.24 2003/11/20 13:58:35 stromberg Exp $
 */
 
 
@@ -55,6 +55,9 @@ void ssgLeaf::copy_from ( ssgLeaf *src, int clone_flags )
    //~~ T.G. increment ref counter 
    if (state != NULL)  
        state->ref(); 
+
+   setCallback( SSG_CALLBACK_PREDRAW,  src->getCallback( SSG_CALLBACK_PREDRAW  ) );
+   setCallback( SSG_CALLBACK_POSTDRAW, src->getCallback( SSG_CALLBACK_POSTDRAW ) );
 }
 
 
@@ -129,6 +132,18 @@ void ssgLeaf::hot ( sgVec3 s, sgMat4 m, int test_needed )
   hot_triangles ( s, m, hot_result != SSG_INSIDE ) ;
 }
 
+void ssgLeaf::los ( sgVec3 s, sgMat4 m, int test_needed )
+{
+  int los_result = los_test ( s, m, test_needed ) ;
+
+  if ( los_result == SSG_OUTSIDE )
+    return ;
+
+  /* Add polygons to hit list! */
+
+  los_triangles ( s, m, los_result != SSG_INSIDE ) ;
+}
+
 
 
 void ssgLeaf::isect ( sgSphere *s, sgMat4 m, int test_needed )
@@ -141,6 +156,15 @@ void ssgLeaf::isect ( sgSphere *s, sgMat4 m, int test_needed )
   /* Add polygons to hit list! */
 
   isect_triangles ( s, m, isect_result != SSG_INSIDE ) ;
+}
+
+
+void ssgLeaf::getStats ( int *num_branches, int *num_leaves, int *num_tris, int *num_verts )
+{
+  *num_branches = 0 ;
+  *num_leaves   = 1 ;   /* this! */
+  *num_tris     = getNumTriangles () ;
+  *num_verts    = getNumVertices  () ;
 }
 
 
@@ -188,6 +212,20 @@ int ssgLeaf::load ( FILE *fd )
 
   if ( ! _ssgLoadObject ( fd, (ssgBase **) &st, ssgTypeState () ) )
      return FALSE ;
+
+  if ( st != NULL && st -> isAKindOf ( ssgTypeSimpleState () ) )
+  {
+    ssgSimpleState *ss = (ssgSimpleState *) st ;
+    char *tfname = ss -> getTextureFilename () ;
+
+    if ( tfname != NULL )
+    {
+      ssgState *new_st = ssgGetCurrentOptions () -> createState ( tfname ) ;
+
+      if ( new_st != NULL )
+        st = new_st ;
+    }
+  }
 
   setState ( st ) ;
 

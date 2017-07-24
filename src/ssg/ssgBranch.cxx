@@ -1,6 +1,6 @@
 /*
      PLIB - A Suite of Portable Game Libraries
-     Copyright (C) 2001  Steve Baker
+     Copyright (C) 1998,2002  Steve Baker
  
      This library is free software; you can redistribute it and/or
      modify it under the terms of the GNU Library General Public
@@ -13,12 +13,12 @@
      Library General Public License for more details.
  
      You should have received a copy of the GNU Library General Public
-     License along with this library; if not, write to the Free
+     License along with this library; if not, write to the Free Software
      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgBranch.cxx,v 1.18 2001/06/16 16:27:37 stromberg Exp $
+     $Id: ssgBranch.cxx,v 1.26 2004/02/16 20:51:12 stromberg Exp $
 */
 
 
@@ -92,25 +92,25 @@ void ssgBranch::removeKid  ( int n )
 {
   ssgEntity *k = kids.getEntity ( n ) ;
 
-  if ( k != NULL )
-    removeKid ( k ) ;
+  if ( k != NULL ) {
+    k -> removeParent ( this ) ;
+    kids.removeEntity ( n ) ;
+    dirtyBSphere () ;
+  }
 }
 
 
 void ssgBranch::removeKid ( ssgEntity *entity )
 {
-  entity -> removeParent ( this ) ;
-  kids.removeEntity ( entity ) ;
-  dirtyBSphere () ;
+  removeKid( searchForKid( entity ) );
 }
 
 
 void ssgBranch::removeAllKids (void)
 {
-  ssgEntity *k ;
-
-  while ( ( k = getKid ( 0 ) ) != NULL )
+  for ( int k = getNumKids() - 1; k >= 0; --k ) {
     removeKid ( k ) ;
+  }
 }
 
 
@@ -152,6 +152,28 @@ void ssgBranch::print ( FILE *fd, char *indent, int how_much )
 
   for ( ssgEntity *e = getKid ( 0 ) ; e != NULL ; e = getNextKid() )
     e -> print ( fd, in, how_much ) ;
+}
+
+
+void ssgBranch::getStats ( int *num_branches, int *num_leaves, int *num_tris, int *num_verts )
+{
+  int nb, nl, nt, nv ;
+
+  *num_branches = 1 ;   /* this! */
+  *num_leaves   = 0 ;
+  *num_tris     = 0 ;
+  *num_verts    = 0 ;
+
+  for ( int i = 0 ; i < getNumKids () ; i++ )
+  {
+    ssgEntity *e = getKid ( i ) ;
+
+    e -> getStats ( & nb, & nl, & nt, & nv ) ;
+    *num_branches += nb ;
+    *num_leaves   += nl ;
+    *num_tris     += nt ;
+    *num_verts    += nv ;
+  }
 }
 
 
@@ -275,9 +297,30 @@ void ssgBranch::hot ( sgVec3 s, sgMat4 m, int test_needed )
 
   _ssgPopPath () ;
 
-  postTravTests ( SSGTRAV_HOT ) ; 
+  postTravTests ( SSGTRAV_HOT ) ;
 }
 
+
+
+void ssgBranch::los ( sgVec3 s, sgMat4 m, int test_needed )
+{
+  if ( ! preTravTests ( &test_needed, SSGTRAV_LOS ) )
+    return ;
+
+  int los_result = los_test ( s, m, test_needed ) ;
+
+  if ( los_result == SSG_OUTSIDE )
+    return ;
+
+  _ssgPushPath ( this ) ;
+
+  for ( ssgEntity *e = getKid ( 0 ) ; e != NULL ; e = getNextKid() )
+    e -> los ( s, m, los_result != SSG_INSIDE ) ;
+
+  _ssgPopPath () ;
+
+  postTravTests ( SSGTRAV_LOS) ;
+}
 
 
 void ssgBranch::isect ( sgSphere *s, sgMat4 m, int test_needed )
@@ -340,4 +383,249 @@ int ssgBranch::save ( FILE *fd )
   return TRUE ;
 }
 
+// ----------------------- code by W.K for merging hierarchy nodes ------------------------------
+
+
+// #define VERBOSE
+int maxTriangles = 100; // Thats a nice value for handling MDL files for BoB. 
+                        // You might want to assign another value, possibly -1 before calling mergeHNodes
+int maxVertices = 195; // see maxTriangles
+
+
+
+static int noOfMergedNodes; // number of merged nodes
+
+void AddLeafToTriangles(ssgVtxArray *pSrc , ssgVtxArray *pDest)
+// pDest must be of type GL_TRIANGLES
+// So, this function adds the contents of a leaf to a GL_TRIANGLES node.
+{	
+	// Add vertices and keep track of old to new indexes
+	if(pSrc->getNumTriangles()==0)		return; // wk 14.7.2002
+	int * aiOld2NewIndex = new int[pSrc->getNumVertices()];
+	int iSrc; // iDest;
+	for(iSrc = 0; iSrc < pSrc->getNumVertices(); iSrc++)
+	{ float * pfSrc = pSrc->getVertex(iSrc);
+	  int bFound = FALSE;
+	  /* test
+		for(iDest = 0; iDest < pDest->getNumVertices(); iDest++)
+		{ float * pfDest = pDest->getVertex(iDest);
+#define MYABS(x) ((x>0)?(x):(-(x)))
+			if (MYABS(pfSrc[0]-pfDest[0])+MYABS(pfSrc[1]-pfDest[1])+
+				  MYABS(pfSrc[2]-pfDest[2]) < 0.0001)
+			{ bFound = TRUE;
+			  aiOld2NewIndex[iSrc] = iDest;
+			}
+		}*/
+		if(!bFound)
+		{	aiOld2NewIndex[iSrc] = pDest->getNumVertices();
+			pDest->vertices->add(pfSrc);
+			float * f = pSrc->getNormal(iSrc);
+			if (f)
+				pDest->normals->add(f);
+			else
+			{	
+				pDest->normals->add(_ssgNormalUp);
+			}
+			f = pSrc->getTexCoord(iSrc);
+			if (f)
+				pDest->texcoords->add(f);
+			else
+			{
+				pDest->texcoords->add(_ssgTexCoord00);
+			}
+	//	assert(pSrc->colours->getNum()==0);
+		}
+	
+	}
+	// Add faces
+	pDest->addIndex(aiOld2NewIndex[*pSrc->getIndex(0)]);
+	pDest->addIndex(aiOld2NewIndex[*pSrc->getIndex(1)]);
+	pDest->addIndex(aiOld2NewIndex[*pSrc->getIndex(2)]);
+  if(pSrc->getGLtype()==GL_TRIANGLE_FAN)
+	{
+		for(iSrc=1;iSrc<pSrc->getNumTriangles();iSrc++)
+		{ // add 0, i+1, i+2
+			pDest->addIndex(aiOld2NewIndex[*pSrc->getIndex(0)]);
+			pDest->addIndex(aiOld2NewIndex[*pSrc->getIndex(iSrc+1)]);
+			pDest->addIndex(aiOld2NewIndex[*pSrc->getIndex(iSrc+2)]);
+		
+		}
+	}
+	else
+	{ assert(pSrc->getGLtype()==GL_TRIANGLES);
+		for(iSrc=1;iSrc<pSrc->getNumTriangles();iSrc++)
+		{ // add 0, i+1, i+2
+			pDest->addIndex(aiOld2NewIndex[*pSrc->getIndex(iSrc*3)]);
+			pDest->addIndex(aiOld2NewIndex[*pSrc->getIndex(iSrc*3+1)]);
+			pDest->addIndex(aiOld2NewIndex[*pSrc->getIndex(iSrc*3+2)]);
+		
+		}
+	}
+
+	// State
+	pDest->setState(pSrc ->getState());
+	delete aiOld2NewIndex ;
+}
+
+
+
+void recursiveMergeHNodes  ( ssgEntity *root, int delta )
+// This is the recursive part of "mergeHNodes".
+// Walks the scene graph and looks for nodes to merge.
+// Uses AddLeafToTriangles for the actual merging
+{
+  if ( root == NULL )
+    return ;
+
+  if ( root -> isAKindOf ( ssgTypeBranch() ) )
+  { // see whether we can merge some of the kids
+    ssgBranch *b = (ssgBranch *) root ;
+		
+    int i1, // loop var.
+			oldnk=b -> getNumKids (), oldi1=-1 ; // for debug purpose only
+		i1 = 0 ; 
+		while(i1 < b -> getNumKids () )
+		{ 
+			// check that each loop increases i1 or decreases b -> getNumKids ()
+      if(!((i1>oldi1) || (oldnk>b ->getNumKids ())))
+				break;
+			assert((i1>oldi1) || (oldnk>b ->getNumKids ()));
+			oldi1=i1;
+			oldnk=b ->getNumKids ();
+
+			ssgEntity * pThis = b -> getKid ( i1 ) ;
+			if ( pThis -> isAKindOf ( ssgTypeBranch() ) )
+			{	recursiveMergeHNodes ( pThis, delta ); // recursively go deeper into the scene graph
+				i1++;
+			}
+			else if(( pThis -> isAKindOf ( ssgTypeLeaf() ) ) && (i1+delta < b -> getNumKids ()))
+			{ ssgEntity * pOther = b -> getKid ( i1+delta );
+				if( pOther -> isAKindOf ( ssgTypeLeaf() ) )
+				{ ssgLeaf *l1 = (ssgLeaf *)pThis, *l2 = (ssgLeaf *)pOther;
+					// now: l1 = kid at i1, l2 = kid at i1+delta		
+					if ( (l1->getState() == l2->getState()) && 
+						   ((maxTriangles < 0) || (l1->getNumTriangles()+l2->getNumTriangles()<maxTriangles )) &&
+							 ((maxVertices < 0) || (l1->getNumVertices()+l2->getNumVertices()<maxVertices )) &&
+							 (0 == strcmp(l1->getPrintableName(), l2->getPrintableName())) 
+							) 
+					{
+						if	(((l1->getGLtype() == GL_TRIANGLE_FAN) || (l1->getGLtype() == GL_TRIANGLES)) &&
+							((l2->getGLtype() == GL_TRIANGLE_FAN) || (l2->getGLtype() == GL_TRIANGLES)))
+						{ // For using MDL files, these are all the types that we need ...
+							
+							if (l1->isA(ssgTypeVtxTable()))
+							{	l1 = ((ssgVtxTable *)l1)->getAs_ssgVtxArray(); // Kludge: mem leak
+							  b->replaceKid    ( i1, l1 ) ;
+							}
+							if (l2->isA(ssgTypeVtxTable()))
+							{	l2 = ((ssgVtxTable *)l2)->getAs_ssgVtxArray(); // Kludge: mem leak
+							  b->replaceKid    ( i1+delta, l2 ) ;
+							}
+							assert(l1 -> isAKindOf ( ssgTypeVtxArray() ));
+							assert(l2 -> isAKindOf ( ssgTypeVtxArray() ));
+							if((l1->getNumTriangles()+l2->getNumTriangles())<1300) // ??? wk kludge
+							{	
+#ifdef VERBOSE
+								printf("I do sthg :-) %d\n", noOfMergedNodes++);
+#else
+								noOfMergedNodes++;
+#endif
+								if(l1->getGLtype() == GL_TRIANGLE_FAN) // convert to GL_TRIANGLES
+								{ ssgVtxArray * pNewArray = new ssgVtxArray(GL_TRIANGLES, 
+											 new ssgVertexArray(), 
+											 new ssgNormalArray(), new ssgTexCoordArray(), 
+											 new ssgColourArray(), new ssgIndexArray());
+									AddLeafToTriangles((ssgVtxArray *)l1, pNewArray);
+									pNewArray->setName(l1->getPrintableName());
+									assert(l1==b->getKid(i1));
+									b->removeKid(i1);
+									b->addKid(pNewArray);
+									pNewArray->dirtyBSphere  ();
+									l1 = pNewArray;
+								}
+								// l1 is of type GL_TRIANGLES now.
+								{ //ssgEntity *t= b->getKid(i1+delta);
+									//assert(l2==t);
+								}
+								AddLeafToTriangles((ssgVtxArray *)l2, (ssgVtxArray *)l1);
+								l1->dirtyBSphere  ();
+								l2->dirtyBSphere  (); // unnessesary ?
+								b->removeKid(l2); // kid(i1+delta) changed because of remove!?!       i1+delta);
+							}
+						}
+						else
+						{	i1++;
+						  printf("wrong types: %ld, %ld, num Trias: %ld, %ld\n", 
+								 (long)l1->getGLtype(), (long)l1->getGLtype(),
+								 (long)l1->getNumTriangles(), (long)l2->getNumTriangles());
+						}
+					}
+					else
+						i1++;
+				}
+				else 
+					i1++;
+			}
+			else
+				i1++;
+		}
+		
+
+
+/*
+		int i1=0;
+		for ( i = 0 ; i < b -> getNumKids () ; i++ )
+    { ssgEntity * pThis = b -> getKid ( i1 ) ;
+			if ( pThis -> isAKindOf ( ssgTypeBranch() ) )
+			{	recursiveMergeHNodes  ( pThis );
+				i1++;
+			}
+			else
+			{ assert( pThis -> isAKindOf ( ssgTypeLeaf() ) );
+			  ssgLeaf *l1 = (ssgLeaf *)pThis;
+				assert(l1 -> isAKindOf ( ssgTypeVtxArray() ));
+				static int noOfMergedNodes=0;
+				printf("I could do sthg :-) %d\n", noOfMergedNodes++);
+				assert(l1->getGLtype() == GL_TRIANGLE_FAN); // convert to GL_TRIANGLES
+				ssgVtxArray * pNewArray = new ssgVtxArray(GL_TRIANGLES, 
+							 new ssgVertexArray(), new ssgNormalArray(), 
+							 new ssgTexCoordArray(), new ssgColourArray(), 
+							 new ssgIndexArray());
+				AddLeafToTriangles((ssgVtxArray *)l1, pNewArray);
+				b->removeKid(i1);
+				pNewArray->dirtyBSphere  ();
+				b->addKid(pNewArray);
+				
+				pNewArray->setName("meins!");
+			}
+			
+		}
+		*/
+  }
+}
+
+
+void ssgBranch::mergeHNodes()
+// merges hierarchy nodes if (not iff :-/):
+// a) Both have the same state 
+// b) the same name
+// c) the result would not have more than maxTriangles triangles (if maxTriangles is negative, this is not checked).
+// d) the result would not have more than maxVertices vertices (if maxVertices is negative, this is not checked).
+// e) both are of type GL_TRIANGLE_FAN or GL_TRIANGLES
+{
+
+
+int deltas[] = { 1 ,2 ,1 ,3 ,2 ,1 ,2 ,4 ,2 ,1 ,5 ,1 ,2 ,6 ,2 ,1 ,2 ,7 ,2 ,1 ,2 ,1 ,8 ,1 ,2 ,1 ,2 ,9 ,2 ,1 ,2 ,1, 
+              10 ,1 ,2 ,1 ,2 ,11 ,1 ,12 ,1 ,2 ,13 ,1 ,2 ,14 ,2 ,1 ,1 ,15 ,1 ,16 ,1 ,17 ,2 ,1 ,18 ,1 ,22 ,2 ,25 ,
+							2 ,1 ,30 ,2 ,1 ,2 ,1 ,13 ,2 ,1 ,2 ,1 };
+	noOfMergedNodes = 0;
+	for(unsigned i=0; i < sizeof(deltas)/sizeof(int); i++)
+	{
+		recursiveMergeHNodes ( this, deltas[i] );
+#ifdef VERBOSE
+		printf("############################################### ^%d\n". deltas[i]);
+#endif
+	}
+	printf("%d nodes were merged!\n", noOfMergedNodes);
+}
 

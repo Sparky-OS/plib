@@ -1,10 +1,16 @@
+if BUILD_SG
+
 lib_LIBRARIES = libplibsg.a
 
 include_HEADERS = sg.h
 
-libplibsg_a_SOURCES = sg.cxx sgd.cxx sgIsect.cxx
+libplibsg_a_SOURCES = sg.cxx sgd.cxx \
+                      sgIsect.cxx sgdIsect.cxx \
+                      sgPerlinNoise.cxx
 
-INCLUDES += -I$(top_srcdir)/src/util
+INCLUDES = -I$(top_srcdir)/src/util
 
-EXTRA_DIST = sg.dsp libsg.bpr
+endif
+
+EXTRA_DIST = sg.dsp
 

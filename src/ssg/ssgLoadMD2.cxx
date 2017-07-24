@@ -1,6 +1,6 @@
 /*
      PLIB - A Suite of Portable Game Libraries
-     Copyright (C) 2001  Steve Baker
+     Copyright (C) 1998,2002  Steve Baker
  
      This library is free software; you can redistribute it and/or
      modify it under the terms of the GNU Library General Public
@@ -13,12 +13,12 @@
      Library General Public License for more details.
  
      You should have received a copy of the GNU Library General Public
-     License along with this library; if not, write to the Free
+     License along with this library; if not, write to the Free Software
      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgLoadMD2.cxx,v 1.7 2001/04/12 03:38:15 deca Exp $
+     $Id: ssgLoadMD2.cxx,v 1.15 2002/09/02 06:05:48 sjbaker Exp $
 */
 
 /***************************************************************************
@@ -30,11 +30,10 @@
  ***************************************************************************/
 /*******************************************************
  **  This was written to be a part of Stephen J Bakers
- **  PLIB (http://www.woodsoup.org/projs/plib)
+ **  PLIB (http://plib.sourceforge.net)
  *******************************************************/
 
 #include "ssgLocal.h"
-#include "ssgLoaderWriterStuff.h"
 
 //defaults
 #define FRAME_DELAY 3
@@ -105,7 +104,7 @@ int seq_sizes[][2] = {
 	
 */
 
-int seq_frames[] = {
+static int seq_frames[] = {
 	40,
 	6,
 	8,
@@ -187,7 +186,7 @@ typedef struct
 
 static int is_little_endian;
 
-static const ssgLoaderOptions* current_options = NULL ;
+static ssgLoaderOptions* current_options = NULL ;
 static FILE *loader_fd;
 
 static t_tcoord *uvs;
@@ -198,17 +197,17 @@ static char skins[32][1024];
 static t_model header;
 
 
-void read_header()
+static void read_header()
 {
 	fread(&header, sizeof(t_model), 1, loader_fd);	
 }
 	
-void read_frames(int offset)
+static void read_frames(int offset)
 {
 	fseek(loader_fd, offset, SEEK_SET);	
 		
 	frames = new t_frame[header.numFrames];
-	vertices = (t_vertex **)malloc(header.numFrames * sizeof(t_vertex *));
+	vertices = new t_vertex* [header.numFrames];
 
 	for(int i=0; i<header.numFrames; i++){
 		vertices[i] = new t_vertex[header.numVertices];
@@ -218,7 +217,7 @@ void read_frames(int offset)
 	}
 }
 
-void read_uvcoords(int offset)
+static void read_uvcoords(int offset)
 {
 	fseek(loader_fd, offset, SEEK_SET);
 	
@@ -226,7 +225,7 @@ void read_uvcoords(int offset)
 	fread(uvs, sizeof(t_tcoord), header.numTexCoords, loader_fd);
 }
 
-void read_triangles(int offset)
+static void read_triangles(int offset)
 {
 	fseek(loader_fd, offset, SEEK_SET);
 
@@ -234,7 +233,7 @@ void read_triangles(int offset)
 	fread(triangles, sizeof(t_triangle), header.numTriangles, loader_fd);
 }
 
-void read_skins(int offset)
+static void read_skins(int offset)
 {
 	fseek(loader_fd, offset, SEEK_SET);
 	char buffer[64];
@@ -252,7 +251,7 @@ void read_skins(int offset)
 			strcpy(skins[i], start);
 	}
 }
-void read_glcommands(int offset)
+static void read_glcommands(int offset)
 {
 	fseek(loader_fd, offset, SEEK_SET);
 }
@@ -262,7 +261,7 @@ void read_glcommands(int offset)
  * they can share UVs properly
  * Right now, it does this really naively, (it dups them all)
  */
-ssgEntity * convert_to_ssg()
+static ssgEntity * convert_to_ssg()
 {
 	sgVec3 vert;
 	sgVec2 uv;
@@ -270,8 +269,6 @@ ssgEntity * convert_to_ssg()
 	
 	/**Load all the skins into a state selector
 	  */
-	char filepath[1024];
-	
 	int num_skins = header.numSkins;
 	if(num_skins == 0)
 		num_skins = 1;
@@ -283,11 +280,10 @@ ssgEntity * convert_to_ssg()
 	for(i=0; i<header.numSkins; i++){
 		stated = true;
 
-		ssgFindOptConvertTexture( filepath, skins[i] ) ;
-		
 		ssgSimpleState *state = new ssgSimpleState();
 		state ->  enable ( GL_TEXTURE_2D );
-		state ->  setTexture( filepath );
+		//state ->  setTexture( filepath ) ;
+		state ->  setTexture( current_options -> createTexture ( skins[i] ) );
 		states -> setStep ( i, state );	
 	}
 	
@@ -295,7 +291,7 @@ ssgEntity * convert_to_ssg()
 	if(stated)
 		states -> selectStep( 0 );
 	else {
-		printf("No skins specified in MD2 file!\n");
+		ulSetError(UL_WARNING, "ssgLoadMD2: No skins specified in MD2 file!");
 		ssgSimpleState *state = new ssgSimpleState();
 		state -> disable ( GL_TEXTURE_2D );
 		states -> setStep(0, state);
@@ -377,7 +373,7 @@ ssgEntity * ssgLoadMD2( const char *filename, const ssgLoaderOptions* options)
   loader_fd = fopen ( filepath, "rb" );
 
   if ( loader_fd == NULL ) {
-    fprintf ( stderr, "ssgLoad3ds: Failed to open '%s' for reading\n", filepath ) ;
+    ulSetError ( UL_WARNING, "ssgLoadMD2: Failed to open '%s' for reading", filepath ) ;
     return NULL ;
   } 
 

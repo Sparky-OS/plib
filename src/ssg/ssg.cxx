@@ -1,48 +1,52 @@
 /*
      PLIB - A Suite of Portable Game Libraries
-     Copyright (C) 2001  Steve Baker
- 
+     Copyright (C) 1998,2002  Steve Baker
+
      This library is free software; you can redistribute it and/or
      modify it under the terms of the GNU Library General Public
      License as published by the Free Software Foundation; either
      version 2 of the License, or (at your option) any later version.
- 
+
      This library is distributed in the hope that it will be useful,
      but WITHOUT ANY WARRANTY; without even the implied warranty of
      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
      Library General Public License for more details.
- 
+
      You should have received a copy of the GNU Library General Public
-     License along with this library; if not, write to the Free
+     License along with this library; if not, write to the Free Software
      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
- 
+
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssg.cxx,v 1.38 2001/06/16 16:27:37 stromberg Exp $
+     $Id: ssg.cxx,v 1.65 2003/12/12 17:23:51 wolfram_kuss Exp $
 */
 
 
 #define _UL_GENERATE_CODE_
 #include "ssgLocal.h"
 
-#ifndef WIN32
-#  ifndef macintosh
-#    include <GL/glx.h>
-#  else
-#    include <agl.h>
-#  endif
+#if defined(UL_MACINTOSH)
+#  include <agl.h>
+#elif defined(UL_MAC_OSX)
+#  include <OpenGL/CGLCurrent.h>
+#elif defined(UL_WIN32)
+   /* Nothing */
+#else
+#  include <GL/glx.h>
 #endif
 
-static bool glIsValidContext ()
+static bool glIsValidContext ( void )
 {
 #if defined(CONSOLE)
   return true ;
-#elif defined(WIN32)
+#elif defined(UL_WIN32)
   return ( wglGetCurrentContext () != NULL ) ;
-#elif defined(macintosh)
-  return ( aglGetCurrentContext() != NULL ) ;
+#elif defined(UL_MACINTOSH)
+  return ( aglGetCurrentContext () != NULL ) ;
+#elif defined(UL_MAC_OSX)
+  return ( CGLGetCurrentContext () != NULL ) ;
 #else
-  return ( glXGetCurrentContext() != NULL ) ;
+  return ( glXGetCurrentContext () != NULL ) ;
 #endif
 }
 
@@ -60,13 +64,13 @@ sgVec3 _ssgNormalUp    = { 0.0f, 0.0f, 1.0f } ;
 sgVec2 _ssgTexCoord00  = { 0.0f, 0.0f } ;
 short  _ssgIndex0      = 0;
 
-ssgLight _ssgLights [ 8 ] ;
-int      _ssgFrameCounter = 0 ;
+static ssgLight _ssgLights [ 8 ] ;
+static int      _ssgFrameCounter = 0 ;
 
 int  ssgGetFrameCounter () { return _ssgFrameCounter ; }
 void ssgSetFrameCounter ( int fc ) { _ssgFrameCounter = fc ; }
 
-char *ssgGetVersion ()
+const char *ssgGetVersion ()
 {
 #ifdef VERSION
   return VERSION ;
@@ -125,18 +129,23 @@ void ssgInit ()
   ssgAddModelFormat ( ".3ds",   ssgLoad3ds  , ssgSave3ds ) ;
   ssgAddModelFormat ( ".ac" ,   ssgLoadAC3D , ssgSaveAC  ) ;
   ssgAddModelFormat ( ".ase",   ssgLoadASE  , ssgSaveASE ) ;
+  ssgAddModelFormat ( ".dof",   ssgLoadDOF  , NULL       ) ;
   ssgAddModelFormat ( ".dxf",   ssgLoadDXF  , ssgSaveDXF ) ;
   ssgAddModelFormat ( ".obj",   ssgLoadOBJ  , ssgSaveOBJ ) ;
   ssgAddModelFormat ( ".tri",   ssgLoadTRI  , ssgSaveTRI ) ;
   ssgAddModelFormat ( ".md2",   ssgLoadMD2  , NULL       ) ;
   ssgAddModelFormat ( ".x"  ,   ssgLoadX    , ssgSaveX   ) ;
-  ssgAddModelFormat ( ".flt",   ssgLoadFLT  , NULL       ) ;
+  ssgAddModelFormat ( ".flt",   ssgLoadFLT  , ssgSaveFLT ) ;
   ssgAddModelFormat ( ".strip", ssgLoadStrip, NULL       ) ;
   ssgAddModelFormat ( ".m"  ,   ssgLoadM    , ssgSaveM   ) ;
   ssgAddModelFormat ( ".off"  , ssgLoadOFF  , ssgSaveOFF ) ;
   ssgAddModelFormat ( ".atg"  , ssgLoadATG  , ssgSaveATG ) ;
   ssgAddModelFormat ( ".qhi"  , NULL        , ssgSaveQHI ) ;
-
+  ssgAddModelFormat ( ".wrl",   ssgLoadVRML1, ssgSaveVRML1 ) ;
+  ssgAddModelFormat ( ".iv", ssgLoadIV      , NULL ) ;
+  ssgAddModelFormat ( ".asc",   NULL        , ssgSaveASC ) ;
+//ssgAddModelFormat ( ".pov",   NULL        , ssgSavePOV ) ;
+	
 
 #ifdef SSG_LOAD_MDL_SUPPORTED
   ssgAddModelFormat ( ".mdl",   ssgLoadMDL  , NULL       ) ;
@@ -154,6 +163,10 @@ void ssgInit ()
   ssgAddTextureFormat ( ".png" ,   ssgLoadPNG ) ;
 #endif
 
+#ifdef SSG_LOAD_PCX_SUPPORTED
+  ssgAddTextureFormat ( ".pcx" ,   ssgLoadPCX ) ;
+#endif
+
 #ifdef SSG_LOAD_SGI_SUPPORTED
   ssgAddTextureFormat ( ".rgb" ,   ssgLoadSGI ) ;
   ssgAddTextureFormat ( ".rgba" ,  ssgLoadSGI ) ;
@@ -162,7 +175,7 @@ void ssgInit ()
   ssgAddTextureFormat ( ".bw" ,    ssgLoadSGI ) ;
 #endif
 
-#ifdef SSG_LOAD_MDL_SUPPORTED
+#if defined(SSG_LOAD_MDL_SUPPORTED) || defined(SSG_LOAD_MDL_BGL_TEXTURE_SUPPORTED)
   ssgAddTextureFormat ( ".0af" ,   ssgLoadMDLTexture ) ;
   ssgAddTextureFormat ( ".1af" ,   ssgLoadMDLTexture ) ;
   ssgAddTextureFormat ( ".2af" ,   ssgLoadMDLTexture ) ;
@@ -184,13 +197,23 @@ void ssgInit ()
   ssgAddTextureFormat ( ".iaf" ,   ssgLoadMDLTexture ) ;
   ssgAddTextureFormat ( ".jaf" ,   ssgLoadMDLTexture ) ;
   ssgAddTextureFormat ( ".kaf" ,   ssgLoadMDLTexture ) ;
+  ssgAddTextureFormat ( ".pat" ,   ssgLoadMDLTexture ) ;
+  ssgAddTextureFormat ( ".r8"  ,   ssgLoadMDLTexture ) ;
+  ssgAddTextureFormat ( ".naz" ,   ssgLoadMDLTexture ) ;
+  ssgAddTextureFormat ( ".ktx" ,   ssgLoadMDLTexture ) ;
+  ssgAddTextureFormat ( ".oav" ,   ssgLoadMDLTexture ) ;
+  ssgAddTextureFormat ( ".sky" ,   ssgLoadMDLTexture ) ;
+  ssgAddTextureFormat ( ".ngt" ,   ssgLoadMDLTexture ) ;
 #endif
 
+#ifdef SSG_LOAD_XPL_SUPPORTED
+  ssgAddModelFormat ( ".xpl",   ssgLoadXPlaneOBJ  , NULL ) ;
+#endif
 }
 
 
 
-void ssgCullAndPick ( ssgRoot *r, sgVec2 botleft, sgVec2 topright )
+void ssgCullAndPick ( ssgBranch *r, sgVec2 botleft, sgVec2 topright )
 {
   if ( _ssgCurrentContext == NULL )
   {
@@ -199,7 +222,7 @@ void ssgCullAndPick ( ssgRoot *r, sgVec2 botleft, sgVec2 topright )
 
   ssgForceBasicState () ;
 
-  int vp [ 4 ] ;
+  GLint vp [ 4 ] ;
   sgVec4 viewport ;
   sgMat4 mat ;
 
@@ -244,12 +267,14 @@ void ssgCullAndPick ( ssgRoot *r, sgVec2 botleft, sgVec2 topright )
 }
 
 
-void ssgCullAndDraw ( ssgRoot *r )
+void ssgCullAndDraw ( ssgBranch *r )
 {
   if ( _ssgCurrentContext == NULL )
   {
     ulSetError ( UL_FATAL, "ssg: No Current Context: Did you forgot to call ssgInit()?" ) ;
   }
+
+  _ssgStartOfFrameInit () ;
 
   ssgForceBasicState () ;
 
@@ -280,39 +305,40 @@ void ssgCullAndDraw ( ssgRoot *r )
   glMatrixMode ( GL_MODELVIEW ) ;
   glLoadIdentity () ;
 
+  _ssgEndOfFrameCleanup () ;
   _ssgFrameCounter++ ;
 }
 
 
-char *ssgAxisTransform::getTypeName (void) { return "ssgAxisTransform" ; }
-char *ssgBase         ::getTypeName (void) { return "ssgBase"          ; }
-char *ssgTexture      ::getTypeName (void) { return "ssgTexture"       ; }
-char *ssgState        ::getTypeName (void) { return "ssgState"         ; }
-char *ssgSimpleState  ::getTypeName (void) { return "ssgSimpleState"   ; }
-char *ssgStateSelector::getTypeName (void) { return "ssgStateSelector" ; }
-char *ssgEntity       ::getTypeName (void) { return "ssgEntity"        ; }
-char *ssgLeaf         ::getTypeName (void) { return "ssgLeaf"          ; }
-char *ssgVTable       ::getTypeName (void) { return "ssgVTable"        ; }
-char *ssgVtxTable     ::getTypeName (void) { return "ssgVtxTable"      ; }
-char *ssgVtxArray     ::getTypeName (void) { return "ssgVtxArray"      ; }
-char *ssgBranch       ::getTypeName (void) { return "ssgBranch"        ; }
-char *ssgSelector     ::getTypeName (void) { return "ssgSelector"      ; }
-char *ssgRangeSelector::getTypeName (void) { return "ssgRangeSelector" ; }
-char *ssgTimedSelector::getTypeName (void) { return "ssgTimedSelector" ; }
-char *ssgBaseTransform::getTypeName (void) { return "ssgBaseTransform" ; }
-char *ssgTransform    ::getTypeName (void) { return "ssgTransform"     ; }
-char *ssgTexTrans     ::getTypeName (void) { return "ssgTexTrans"      ; }
-char *ssgCutout       ::getTypeName (void) { return "ssgCutout"        ; }
-char *ssgRoot         ::getTypeName (void) { return "ssgRoot"          ; }
+const char *ssgAxisTransform::getTypeName (void) { return "ssgAxisTransform" ; }
+const char *ssgBase         ::getTypeName (void) { return "ssgBase"          ; }
+const char *ssgTexture      ::getTypeName (void) { return "ssgTexture"       ; }
+const char *ssgState        ::getTypeName (void) { return "ssgState"         ; }
+const char *ssgSimpleState  ::getTypeName (void) { return "ssgSimpleState"   ; }
+const char *ssgStateSelector::getTypeName (void) { return "ssgStateSelector" ; }
+const char *ssgEntity       ::getTypeName (void) { return "ssgEntity"        ; }
+const char *ssgLeaf         ::getTypeName (void) { return "ssgLeaf"          ; }
+const char *ssgVTable       ::getTypeName (void) { return "ssgVTable"        ; }
+const char *ssgVtxTable     ::getTypeName (void) { return "ssgVtxTable"      ; }
+const char *ssgVtxArray     ::getTypeName (void) { return "ssgVtxArray"      ; }
+const char *ssgBranch       ::getTypeName (void) { return "ssgBranch"        ; }
+const char *ssgSelector     ::getTypeName (void) { return "ssgSelector"      ; }
+const char *ssgRangeSelector::getTypeName (void) { return "ssgRangeSelector" ; }
+const char *ssgTimedSelector::getTypeName (void) { return "ssgTimedSelector" ; }
+const char *ssgBaseTransform::getTypeName (void) { return "ssgBaseTransform" ; }
+const char *ssgTransform    ::getTypeName (void) { return "ssgTransform"     ; }
+const char *ssgTexTrans     ::getTypeName (void) { return "ssgTexTrans"      ; }
+const char *ssgCutout       ::getTypeName (void) { return "ssgCutout"        ; }
+const char *ssgRoot         ::getTypeName (void) { return "ssgRoot"          ; }
 
-char *ssgSimpleList   ::getTypeName (void) { return "ssgSimpleList"    ; }
-char *ssgColourArray  ::getTypeName (void) { return "ssgColourArray"   ; }
-char *ssgIndexArray   ::getTypeName (void) { return "ssgIndexArray"    ; }
-char *ssgTransformArray::getTypeName (void) { return "ssgTransformArray" ; }
-char *ssgTexCoordArray::getTypeName (void) { return "ssgTexCoordArray" ; }
-char *ssgVertexArray  ::getTypeName (void) { return "ssgVertexArray"   ; }
-char *ssgNormalArray  ::getTypeName (void) { return "ssgNormalArray"   ; }
-char *ssgInterleavedArray::getTypeName (void) { return "ssgInterleavedArray"; }
+const char *ssgSimpleList   ::getTypeName (void) { return "ssgSimpleList"    ; }
+const char *ssgColourArray  ::getTypeName (void) { return "ssgColourArray"   ; }
+const char *ssgIndexArray   ::getTypeName (void) { return "ssgIndexArray"    ; }
+const char *ssgTransformArray::getTypeName (void) { return "ssgTransformArray" ; }
+const char *ssgTexCoordArray::getTypeName (void) { return "ssgTexCoordArray" ; }
+const char *ssgVertexArray  ::getTypeName (void) { return "ssgVertexArray"   ; }
+const char *ssgNormalArray  ::getTypeName (void) { return "ssgNormalArray"   ; }
+const char *ssgInterleavedArray::getTypeName (void) { return "ssgInterleavedArray"; }
 
 
 
@@ -323,13 +349,16 @@ static ssgBase *createBase ()              { return new ssgBase             ; }
 static ssgBase *createVTable ()            { return new ssgVTable           ; }
 static ssgBase *createVtxTable ()          { return new ssgVtxTable         ; }
 static ssgBase *createVtxArray ()          { return new ssgVtxArray         ; }
+static ssgBase *createTween ()             { return new ssgTween            ; }
 static ssgBase *createBranch ()            { return new ssgBranch           ; }
 //static ssgBase *createBaseTransform ()     { return new ssgBaseTransform    ; }
 static ssgBase *createTransform ()         { return new ssgTransform        ; }
 static ssgBase *createTexTrans ()          { return new ssgTexTrans         ; }
+static ssgBase *createAxisTransform()      { return new ssgAxisTransform; }
 static ssgBase *createSelector ()          { return new ssgSelector         ; }
 static ssgBase *createRangeSelector ()     { return new ssgRangeSelector    ; }
 static ssgBase *createTimedSelector ()     { return new ssgTimedSelector    ; }
+static ssgBase *createTweenController ()   { return new ssgTweenController  ; }
 static ssgBase *createRoot ()              { return new ssgRoot             ; }
 static ssgBase *createCutout ()            { return new ssgCutout           ; }
 static ssgBase *createInvisible ()         { return new ssgInvisible        ; }
@@ -359,23 +388,26 @@ static struct {
 
   { ssgTypeBase ()              , createBase              },
 
-  //{ ssgTypeEntity ()            , createEntity            },
-  //{ ssgTypeLeaf ()              , createLeaf              },
+//{ ssgTypeEntity ()            , createEntity            },
+//{ ssgTypeLeaf ()              , createLeaf              },
   { ssgTypeVTable ()            , createVTable            },
   { ssgTypeVtxTable ()          , createVtxTable          },
   { ssgTypeVtxArray ()          , createVtxArray          },
+  { ssgTypeTween ()             , createTween             },
   { ssgTypeBranch ()            , createBranch            },
-  //{ ssgTypeBaseTransform ()     , createBaseTransform     },
+//{ ssgTypeBaseTransform ()     , createBaseTransform     },
   { ssgTypeTransform ()         , createTransform         },
   { ssgTypeTexTrans ()          , createTexTrans          },
-  { ssgTypeSelector ()          , createSelector          },
+	{ ssgTypeAxisTransform ()     , createAxisTransform     },
+	{ ssgTypeSelector ()          , createSelector          },
   { ssgTypeRangeSelector ()     , createRangeSelector     },
   { ssgTypeTimedSelector ()     , createTimedSelector     },
+  { ssgTypeTweenController ()   , createTweenController   },
   { ssgTypeRoot ()              , createRoot              },
   { ssgTypeCutout ()            , createCutout            },
   { ssgTypeInvisible ()         , createInvisible         },
   
-  //{ ssgTypeState ()             , createState             },
+//{ ssgTypeState ()             , createState             },
   { ssgTypeSimpleState ()       , createSimpleState       },
   { ssgTypeStateSelector ()     , createStateSelector     },
   
@@ -418,6 +450,7 @@ ssgBase *ssgCreateOfType ( int type )
 {
   // XXX linear search
   int i ;
+
   for ( i = 0 ; table[i].type != 0 && table[i].type != type ; i++ )
     ;
 

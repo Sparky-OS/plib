@@ -1,6 +1,6 @@
 /*
      PLIB - A Suite of Portable Game Libraries
-     Copyright (C) 2001  Steve Baker
+     Copyright (C) 1998,2002  Steve Baker
  
      This library is free software; you can redistribute it and/or
      modify it under the terms of the GNU Library General Public
@@ -13,19 +13,25 @@
      Library General Public License for more details.
  
      You should have received a copy of the GNU Library General Public
-     License along with this library; if not, write to the Free
+     License along with this library; if not, write to the Free Software
      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: netSocket.cxx,v 1.14 2001/06/23 02:30:18 sjbaker Exp $
+     $Id: netSocket.cxx,v 1.30 2004/04/06 12:42:40 sjbaker Exp $
 */
 
 #include "netSocket.h"
 
-#if defined(__CYGWIN__) || !defined (WIN32)
+#if defined(UL_CYGWIN) || !defined (UL_WIN32)
 
+#if defined(UL_MAC_OSX)
+#  include <netinet/in.h>
+#endif
+
+#include <sys/types.h>
 #include <sys/socket.h>
+#include <netinet/in.h>
 #include <arpa/inet.h>
 #include <time.h>
 #include <sys/time.h>    /* Need both for Mandrake 8.0!! */
@@ -40,7 +46,7 @@
 
 #endif
 
-#if !defined(STDC_HEADERS) && !defined(socklen_t)
+#if defined(UL_MSVC) && !defined(socklen_t)
 #define socklen_t int
 #endif
 
@@ -50,15 +56,15 @@
 #define INADDR_NONE ((unsigned long)-1)
 #endif
                                                                                                
-netAddress::netAddress ( cchar* host, int port )
+netAddress::netAddress ( const char* host, int port )
 {
   set ( host, port ) ;
 }
 
 
-void netAddress::set ( cchar* host, int port )
+void netAddress::set ( const char* host, int port )
 {
-	memset(this, 0, sizeof(netAddress));
+  memset(this, 0, sizeof(netAddress));
 
   sin_family = AF_INET ;
   sin_port = htons (port);
@@ -68,38 +74,25 @@ void netAddress::set ( cchar* host, int port )
   ** to do the work; the names "" and "<broadcast>" are special.
   */
 
-	if (host[0] == '\0') {
-		sin_addr = INADDR_ANY;
-	}
-	if (host[0] == '<' && strcmp(host, "<broadcast>") == 0) {
-		sin_addr = INADDR_BROADCAST;
-	}
+  if (host[0] == '\0')
+    sin_addr = INADDR_ANY;
+  else
+  if (host[0] == '<' && strcmp(host, "<broadcast>") == 0)
+    sin_addr = INADDR_BROADCAST;
   else
   {
-#if 0
-  	int d1, d2, d3, d4;
-  	char ch;
-  	if (sscanf(host, "%d.%d.%d.%d%c", &d1, &d2, &d3, &d4, &ch) == 4 &&
-  	    0 <= d1 && d1 <= 255 && 0 <= d2 && d2 <= 255 &&
-  	    0 <= d3 && d3 <= 255 && 0 <= d4 && d4 <= 255) {
-  		sin_addr = htonl(
-  			((long) d1 << 24) | ((long) d2 << 16) |
-  			((long) d3 << 8) | ((long) d4 << 0));
-  	}
-    else  //let's try gethostbyname()
-#else
-    sin_addr = inet_addr(host);
+    sin_addr = inet_addr ( host ) ;
+
     if ( sin_addr == INADDR_NONE )
-#endif
     {
-    	struct hostent *hp = gethostbyname(host);
-    	if (hp != NULL)
+      struct hostent *hp = gethostbyname ( host ) ;
+
+      if ( hp != NULL )
+      	memcpy ( (char *) &sin_addr, hp->h_addr, hp->h_length ) ;
+      else
       {
-      	memcpy((char *) &sin_addr, hp->h_addr, hp->h_length);
-      }
-      else  //failure
-      {
-        sin_addr = INADDR_ANY;
+        perror ( "netAddress::set" ) ;
+        sin_addr = INADDR_ANY ;
       }
     }
   }
@@ -110,10 +103,10 @@ void netAddress::set ( cchar* host, int port )
    This is always a string of the form 'dd.dd.dd.dd' (with variable
    size numbers). */
 
-cchar* netAddress::getHost () const
+const char* netAddress::getHost () const
 {
 #if 0
-  cchar* buf = inet_ntoa ( sin_addr ) ;
+  const char* buf = inet_ntoa ( sin_addr ) ;
 #else
   static char buf [32];
 	long x = ntohl(sin_addr);
@@ -130,7 +123,8 @@ int netAddress::getPort() const
   return ntohs(sin_port);
 }
 
-cchar* netAddress::getLocalHost ()
+
+const char* netAddress::getLocalHost ()
 {
   //gethostbyname(gethostname())
 
@@ -138,25 +132,37 @@ cchar* netAddress::getLocalHost ()
   memset(buf, 0, sizeof(buf));
   gethostname(buf, sizeof(buf)-1);
   const hostent *hp = gethostbyname(buf);
-	if (hp && *hp->h_addr_list)
+
+  if (hp && *hp->h_addr_list)
   {
-    in_addr addr = *((in_addr*)*hp->h_addr_list);
-    cchar* host = inet_ntoa(addr);
+    in_addr     addr = *((in_addr*)*hp->h_addr_list);
+    const char* host = inet_ntoa(addr);
+
     if ( host )
       return host ;
-	}
+  }
+
   return "127.0.0.1" ;
 }
+
+
+bool netAddress::getBroadcast () const
+{
+  return sin_addr == INADDR_BROADCAST;
+}
+
 
 netSocket::netSocket ()
 {
   handle = -1 ;
 }
 
+
 netSocket::~netSocket ()
 {
   close () ;
 }
+
 
 void netSocket::setHandle (int _handle)
 {
@@ -164,26 +170,28 @@ void netSocket::setHandle (int _handle)
   handle = _handle ;
 }
 
-bool
-netSocket::open ( bool stream )
+
+bool netSocket::open ( bool stream )
 {
   close () ;
   handle = ::socket ( AF_INET, (stream? SOCK_STREAM: SOCK_DGRAM), 0 ) ;
   return (handle != -1);
 }
 
-void
-netSocket::setBlocking ( bool blocking )
+
+void netSocket::setBlocking ( bool blocking )
 {
   assert ( handle != -1 ) ;
 
-#if defined(__CYGWIN__) || !defined (WIN32)
+#if defined(UL_CYGWIN) || !defined (UL_WIN32)
 
-	int delay_flag = ::fcntl (handle, F_GETFL, 0);
-	if (blocking)
-		delay_flag &= (~O_NDELAY);
-	else
-		delay_flag |= O_NDELAY;
+  int delay_flag = ::fcntl (handle, F_GETFL, 0);
+
+  if (blocking)
+    delay_flag &= (~O_NDELAY);
+  else
+    delay_flag |= O_NDELAY;
+
   ::fcntl (handle, F_SETFL, delay_flag);
 
 #else
@@ -194,72 +202,107 @@ netSocket::setBlocking ( bool blocking )
 #endif
 }
 
-int
-netSocket::bind ( cchar* host, int port )
+
+void netSocket::setBroadcast ( bool broadcast )
+{
+  assert ( handle != -1 ) ;
+  int result;
+  if ( broadcast ) {
+      int one = 1;
+#ifdef UL_WIN32
+      result = ::setsockopt( handle, SOL_SOCKET, SO_BROADCAST, (char*)&one, sizeof(one) );
+#else
+      result = ::setsockopt( handle, SOL_SOCKET, SO_BROADCAST, &one, sizeof(one) );
+#endif
+  } else {
+      result = ::setsockopt( handle, SOL_SOCKET, SO_BROADCAST, NULL, 0 );
+  }
+  if ( result < 0 ) {
+      perror("set broadcast:");
+  }
+  assert ( result != -1 );
+}
+
+
+int netSocket::bind ( const char* host, int port )
 {
   assert ( handle != -1 ) ;
   netAddress addr ( host, port ) ;
   return ::bind(handle,(const sockaddr*)&addr,sizeof(netAddress));
 }
 
-int
-netSocket::listen ( int backlog )
+
+int netSocket::listen ( int backlog )
 {
   assert ( handle != -1 ) ;
   return ::listen(handle,backlog);
 }
 
-int
-netSocket::accept ( netAddress* addr )
+
+int netSocket::accept ( netAddress* addr )
 {
   assert ( handle != -1 ) ;
-  socklen_t addr_len = sizeof(netAddress) ;
-  return ::accept(handle,(sockaddr*)addr,&addr_len);
+
+  if ( addr == NULL )
+  {
+    return ::accept(handle,NULL,NULL);
+  }
+  else
+  {
+    socklen_t addr_len = (socklen_t) sizeof(netAddress) ;
+    return ::accept(handle,(sockaddr*)addr,&addr_len);
+  }
 }
 
-int
-netSocket::connect ( cchar* host, int port )
+
+int netSocket::connect ( const char* host, int port )
 {
   assert ( handle != -1 ) ;
   netAddress addr ( host, port ) ;
+  if ( addr.getBroadcast() ) {
+      setBroadcast( true );
+  }
   return ::connect(handle,(const sockaddr*)&addr,sizeof(netAddress));
 }
 
-int
-netSocket::send (const void * buffer, int size, int flags)
+
+int netSocket::send (const void * buffer, int size, int flags)
 {
   assert ( handle != -1 ) ;
-  return ::send (handle, (cchar*)buffer, size, flags);
+  return ::send (handle, (const char*)buffer, size, flags);
 }
 
-int
-netSocket::sendto ( const void * buffer, int size, int flags, const netAddress* to )
+
+int netSocket::sendto ( const void * buffer, int size,
+                        int flags, const netAddress* to )
 {
   assert ( handle != -1 ) ;
-  return ::sendto(handle,(cchar*)buffer,size,flags,(const sockaddr*)to,sizeof(netAddress));
+  return ::sendto(handle,(const char*)buffer,size,flags,
+                         (const sockaddr*)to,sizeof(netAddress));
 }
 
-int
-netSocket::recv (void * buffer, int size, int flags)
+
+int netSocket::recv (void * buffer, int size, int flags)
 {
   assert ( handle != -1 ) ;
   return ::recv (handle, (char*)buffer, size, flags);
 }
 
-int
-netSocket::recvfrom ( void * buffer, int size, int flags, netAddress* from )
+
+int netSocket::recvfrom ( void * buffer, int size,
+                          int flags, netAddress* from )
 {
   assert ( handle != -1 ) ;
-  socklen_t fromlen = sizeof(netAddress) ;
+  socklen_t fromlen = (socklen_t) sizeof(netAddress) ;
   return ::recvfrom(handle,(char*)buffer,size,flags,(sockaddr*)from,&fromlen);
 }
 
-void
-netSocket::close (void)
+
+void netSocket::close (void)
 {
   if ( handle != -1 )
   {
-#if defined(__CYGWIN__) || !defined (WIN32)
+#if defined(UL_CYGWIN) || !defined (UL_WIN32)
     ::close( handle );
 #else
     ::closesocket( handle );
@@ -268,10 +311,10 @@ netSocket::close (void)
   }
 }
 
-bool
-netSocket::isNonBlockingError ()
+
+bool netSocket::isNonBlockingError ()
 {
-#if defined(__CYGWIN__) || !defined (WIN32)
+#if defined(UL_CYGWIN) || !defined (UL_WIN32)
   switch (errno) {
   case EWOULDBLOCK: // always == NET_EAGAIN?
   case EALREADY:
@@ -284,7 +327,7 @@ netSocket::isNonBlockingError ()
   if ( wsa_errno != 0 )
   {
     WSASetLastError(0);
-    fprintf(stderr,"WSAGetLastError() => %d\n",wsa_errno);
+    ulSetError(UL_WARNING,"WSAGetLastError() => %d",wsa_errno);
     switch (wsa_errno) {
     case WSAEWOULDBLOCK: // always == NET_EAGAIN?
     case WSAEALREADY:
@@ -296,8 +339,8 @@ netSocket::isNonBlockingError ()
 #endif
 }
 
-int
-netSocket::select ( netSocket** reads, netSocket** writes, int timeout )
+
+int netSocket::select ( netSocket** reads, netSocket** writes, int timeout )
 {
   fd_set r,w;
   
@@ -367,10 +410,12 @@ netSocket::select ( netSocket** reads, netSocket** writes, int timeout )
   return num ;
 }
 
+
 /* Init/Exit functions */
+
 static void netExit ( void )
 {
-#if defined(__CYGWIN__) || !defined (WIN32)
+#if defined(UL_CYGWIN) || !defined (UL_WIN32)
 #else
 	/* Clean up windows networking */
 	if ( WSACleanup() == SOCKET_ERROR ) {
@@ -382,18 +427,27 @@ static void netExit ( void )
 #endif
 }
 
+
 int netInit ( int* argc, char** argv )
+{
+  /* Legacy */
+
+  return netInit () ;
+}
+
+
+int netInit ()
 {
   assert ( sizeof(sockaddr_in) == sizeof(netAddress) ) ;
 
-#if defined(__CYGWIN__) || !defined (WIN32)
+#if defined(UL_CYGWIN) || !defined (UL_WIN32)
 #else
 	/* Start up the windows networking */
 	WORD version_wanted = MAKEWORD(1,1);
 	WSADATA wsaData;
 
 	if ( WSAStartup(version_wanted, &wsaData) != 0 ) {
-		fprintf(stderr,"Couldn't initialize Winsock 1.1\n");
+		ulSetError(UL_WARNING,"Couldn't initialize Winsock 1.1");
 		return(-1);
 	}
 #endif
@@ -402,7 +456,8 @@ int netInit ( int* argc, char** argv )
 	return(0);
 }
 
-cchar* netFormat ( cchar* format, ... )
+
+const char* netFormat ( const char* format, ... )
 {
   static char buffer[ 256 ];
   va_list argptr;
@@ -411,3 +466,5 @@ cchar* netFormat ( cchar* format, ... )
   va_end(argptr);
   return( buffer );
 }
+
+

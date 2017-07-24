@@ -1,6 +1,6 @@
 /*
      PLIB - A Suite of Portable Game Libraries
-     Copyright (C) 2001  Steve Baker
+     Copyright (C) 1998,2002  Steve Baker
  
      This library is free software; you can redistribute it and/or
      modify it under the terms of the GNU Library General Public
@@ -13,32 +13,34 @@
      Library General Public License for more details.
  
      You should have received a copy of the GNU Library General Public
-     License along with this library; if not, write to the Free
+     License along with this library; if not, write to the Free Software
      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: slScheduler.cxx,v 1.4 2001/04/12 03:37:36 deca Exp $
+     $Id: slScheduler.cxx,v 1.10 2003/05/18 13:45:04 puggles Exp $
 */
 
 
 #include "sl.h"
 
-char *__slPendingError = NULL ;
+const char *__slPendingError = NULL ;
 
 slScheduler *slScheduler::current = NULL ;
 
 void slScheduler::init ()
 {
+  int mi;
   mixer = NULL ;
-  
+
   mixer_buffer  = NULL ;
-  spare_buffer0 = NULL ;
-  spare_buffer1 = NULL ;
-  spare_buffer2 = NULL ;
-  
+  /* Note there is a required null element on the end of array */
+  for ( mi=0; mi <= SL_MAX_MIXERINPUTS; mi++ )
+    mixer_inputs[mi] = NULL ;
+
   current = this ;
-  
+  mixer_gain = 0x100 ; /* When we have to make sound quieter */
+
   if ( notWorking () )
   {
     ulSetError ( UL_WARNING, "slScheduler: soundcard init failed." ) ;
@@ -77,71 +79,51 @@ void slScheduler::initBuffers ()
 {
   if ( notWorking () )
     return ;
-  
-  delete mixer_buffer ;
-  delete spare_buffer0 ;
-  delete spare_buffer1 ;
-  delete spare_buffer2 ;
-  
+
+  delete [] mixer_buffer ;
+  setMaxConcurrent ( 0 );
+
   mixer_buffer_size = getDriverBufferSize () ;
-  
+  int div = 1;
+  if ( getStereo() )     div *= 2 ;
+  if ( getBps() == 16 )  div *= 2 ;
+  seconds_per_buffer = (float)mixer_buffer_size / ( div * getRate() ) ;
+
   mixer_buffer = new Uchar [ mixer_buffer_size ] ;
   memset ( mixer_buffer, 0x80, mixer_buffer_size ) ;
-  
-  spare_buffer0 = new Uchar [ mixer_buffer_size ] ;
-  spare_buffer1 = new Uchar [ mixer_buffer_size ] ;
-  spare_buffer2 = new Uchar [ mixer_buffer_size ] ;
+  setMaxConcurrent ( 3 );
+}
+
+void slScheduler::setMaxConcurrent ( int mc )
+{
+  int mi;
+  for ( mi = 0; mi < SL_MAX_MIXERINPUTS; mi ++ )
+    if ( mi < mc )
+    { if ( mixer_inputs[mi] == NULL )
+           mixer_inputs[mi] = new Uchar [ mixer_buffer_size ] ;
+    } else
+    { if ( mixer_inputs[mi] != NULL )
+           delete [] mixer_inputs[mi] ;
+           mixer_inputs[mi] = NULL;
+    }
+}
+
+int slScheduler::getMaxConcurrent ( void ) const
+{
+  int mi, mc = 0;
+  for ( mi = 0; mi < SL_MAX_MIXERINPUTS; mi ++ )
+    if ( NULL != mixer_inputs[mi] )
+      mc ++;
+  return mc;
 }
 
 slScheduler::~slScheduler ()
 {
+  delete [] mixer_buffer ;
+  setMaxConcurrent(0);
   if ( current == this )
     current = NULL ;
-  
-  delete mixer_buffer ;
-  
-  delete spare_buffer0 ;
-  delete spare_buffer1 ;
-  delete spare_buffer2 ;
 }
-
-
-
-void slScheduler::mixBuffer ( slPlayer *spa, slPlayer *spb )
-{
-  register int    l = mixer_buffer_size ;
-  register Uchar *d = mixer_buffer ;
-  
-  register Uchar *a = spare_buffer0 ;
-  register Uchar *b = spare_buffer1 ;
-  
-  spa -> read ( l, a ) ;
-  spb -> read ( l, b ) ;
-  
-  while ( l-- ) *d++ = mix ( *a++, *b++ ) ;
-}
-
-
-
-void slScheduler::mixBuffer ( slPlayer *spa, slPlayer *spb,
-                             slPlayer *spc )
-{
-  if ( notWorking () ) return ;
-  
-  register int    l = mixer_buffer_size ;
-  register Uchar *d = mixer_buffer ;
-  
-  register Uchar *a = spare_buffer0 ;
-  register Uchar *b = spare_buffer1 ;
-  register Uchar *c = spare_buffer2 ;
-  
-  spa -> read ( l, a ) ;
-  spb -> read ( l, b ) ;
-  spc -> read ( l, c ) ;
-  
-  while ( l-- ) *d++ = mix ( *a++, *b++, *c++ ) ;
-}
-
 
 void slScheduler::realUpdate ( int dump_first )
 {
@@ -153,79 +135,185 @@ void slScheduler::realUpdate ( int dump_first )
   }
   
   int i ;
-  
-  for ( i = 0 ; i < SL_MAX_SAMPLES ; i++ )
+
+  while ( ( secondsUsed() <= safety_margin ) && ( secondsRemaining() >= seconds_per_buffer ) )
   {
-    if ( player [ i ] == NULL )
-      continue ;
-    
-    /* Clean up dead sample players */
-    
-    if ( player [ i ] -> isDone () )
-    {
-      if ( player [ i ] == music )
-        music = NULL ;
-      
-      delete player [ i ] ;
-      player [ i ] = NULL ;
-      continue ;
-    }
-  }
-  
-  while ( secondsUsed() <= safety_margin )
-  {
-    slPlayer *psp [ 3 ] ;
-    int       pri [ 3 ] ;
-    
-    pri [ 0 ] = pri [ 1 ] = pri [ 2 ] =  -1  ;
-    
+    slPlayer *psp [ SL_MAX_MIXERINPUTS ] ;
+    int       pri [ SL_MAX_MIXERINPUTS ] ;
+    int inputsused = 0 ;
+    int lowest = 0 ; /* makes it safe to reference before assignment below */
+
+    /* Decide who we're going to use */
+
     for ( i = 0 ; i < SL_MAX_SAMPLES ; i++ )
     {
+      /* Ignore non-existent channels */
+
       if ( player [ i ] == NULL )
         continue ;
-      
+
+      /* Clean up dead sample players */
+
+      if ( player [ i ] -> isDone () )
+      {
+        if ( player [ i ] == music )
+          music = NULL ;
+
+        delete player [ i ] ;
+        player [ i ] = NULL ;
+        continue ;
+      }
+
+      /* Skip paused players, but leave them alone */
+
       if ( player [ i ] -> isPaused () )
         continue ;
-      
-      int lowest = ( pri [0] <= pri [2] ) ?
-        (( pri [0] <= pri [1] ) ? 0 : 1 ) :
-      (( pri [1] <= pri [2] ) ? 1 : 2 ) ;
-      
-      if ( player[i]->getPriority() > pri[lowest] )
-      {
+
+      /* This one is viable, make sure we have room */
+
+      int mypri = player[i]->getPriority() ;
+
+      if ( ( inputsused > 0 ) &&
+           ( mixer_inputs[inputsused] == NULL ) &&
+           ( mypri > pri[lowest] )
+         )
+      { /* Not enough room; get rid of someone */
+        if ( player[lowest] != NULL )
+          player[lowest] -> preempt ( mixer_buffer_size ) ;
+
         psp[lowest] = player[i] ;
-        pri[lowest] = player[i]->getPriority() ;
+        pri[lowest] = mypri ;
+        int j;
+        for ( j = 0; j < inputsused; j++ )
+          if ( pri[lowest] < pri[j] )
+            lowest = j;
+      }
+      else if ( mixer_inputs[inputsused] != NULL )
+      { /* Ok, we've got room, presumably, for another item */
+        psp[inputsused] = player[i];
+        pri[inputsused] = mypri;
+        if ( ( ( inputsused ++ ) == 0 ) ||
+             ( pri[lowest] > mypri ) )
+          lowest = inputsused;
+      }
+      else
+      { /* Oops, something very wrong.  Shouldn't get here in normal use.
+           One obvious reason is if user specified zero channels to mix! */
+        player[i] -> preempt ( mixer_buffer_size ) ;
       }
     }
-    
-    for ( i = 0 ; i < SL_MAX_SAMPLES ; i++ )
+
+    /* We've now chosen our sources.  Previously we'd go back through 
+       and figure out who to report as pre-empted.  But we already did 
+       that as part of getting our list of sources, so that disappeared. */
+
+    /* Now, we actually get the sound samples into the mixer_buffer.
+       All the versions here are fastpaths except the two last ones.
+       Just read the comments on the last one to understand it. */
+
+ 
+    /* We put a minus sign on the number of inputs if we're attenuating */
+    switch ( mixer_gain != 0x100 ? -inputsused : inputsused )
     {
-      if ( player [ i ] == NULL )
-        continue ;
-      
-      if ( ! player [ i ] -> isPaused () &&
-        player [ i ] != psp[0] &&
-        player [ i ] != psp[1] &&
-        player [ i ] != psp[2] )
-      {
-        player [ i ] -> preempt ( mixer_buffer_size ) ;
-      }
-    }
-    
-    if ( pri[0] < 0 )
-    {
+
+    case 0:
+      /* No sound whatsoever, the attenuation is irrelevant */
       memset ( mixer_buffer, 0x80, mixer_buffer_size ) ;
       amount_left = 0 ;
-    }
-    else
-    if ( pri[1] < 0 )
+      if ( mixer_gain < 0x100 ) mixer_gain ++;
+      break ;
+
+    case 1:
+      /* One sample, so overflow is impossible.  No legacy attenuation */
       psp[0] -> read ( mixer_buffer_size, mixer_buffer ) ;
-    else
-    if ( pri[2] < 0 )
-      mixBuffer ( psp[0], psp[1] ) ;
-    else
-      mixBuffer ( psp[0], psp[1], psp[2] ) ;
-        
+      break ;
+
+    case 2:
+      { register int    l = mixer_buffer_size ;
+        register Uchar *d = mixer_buffer, *a, *b ;
+        register int t, x = l / 100 ;
+        psp[0] -> read ( l, a = mixer_inputs [ 0 ] ) ;
+        psp[1] -> read ( l, b = mixer_inputs [ 1 ] ) ;
+        while ( l-- )
+          { t = (*a++) - 0x80 + (*b++) ;
+            *d++ = ( t >= 0x100 ? x--, 0xff :
+                   ( t <= 0x000 ? x--, 0x00 : t ) );
+          }
+        if ( x < 0 ) mixer_gain -- ;
+      } break;
+
+    case 3:
+      { register int    l = mixer_buffer_size ;
+        register Uchar *d = mixer_buffer, *a, *b, *c ;
+        register int t, x = l / 100 ;
+        psp[0] -> read ( l, a = mixer_inputs [ 0 ] ) ;
+        psp[1] -> read ( l, b = mixer_inputs [ 1 ] ) ;
+        psp[2] -> read ( l, c = mixer_inputs [ 2 ] ) ;
+        while ( l-- ) *d++ = ( t = (*a++) - 0x100 
+                                 + (*b++) 
+                                 + (*c++) ),
+                       t >= 0x100 ? x--, 0xff :
+                       t <= 0x000 ? x--, 0x00 : t;
+        if ( x < 0 ) mixer_gain -- ;
+      } break;
+
+    default:
+      { /* How much data to get, and where to put it */
+        int l = mixer_buffer_size ;
+        register Uchar *d = mixer_buffer ;
+        /* We compute one value in here, in the loop below */
+        register int t ;
+        /* We need to determine the maximum range of values */
+        int tmax = 0x80, tmin = 0x80;
+        /* A pointer to the element about to be added to "t" */
+        register Uchar **p ;
+        /* Sound cards use offset binary, so do zero adjustment */
+        int z = ( (int) 0x8000 / mixer_gain ) - ( inputsused * 0x80 ) ;
+        /* An array of pointers to keep in step with "d" above */
+        register Uchar * s [ SL_MAX_MIXERINPUTS + 1 ] ;
+        /* First thing is to read individual channels into buffers */
+        for ( i = 0; i < inputsused; i++ )
+          psp[i] -> read ( l, s [ i ] = mixer_inputs [ i ] );
+        /* Put a null on the end of "s" so we don't have to count */
+        s [ inputsused ] = NULL;
+        /* This while loop is executed for each audio sample */
+        while ( l-- )
+        { /* Accumulation to zero, and point to first buffer item */
+          t = z;
+          p = s;
+          /* Iterate through all buffers to do accumulation */
+          while ( /* Add this buffer element, advance within buffer */
+                  t += *((*p)++),
+                  /* Also advance to the next channel buffer */
+                  *(++p)
+                  /* Make the while loop quit when we find NULL */
+                ) { };
+          /* Apply gain correction if needed */
+          if ( mixer_gain != 0x100 )
+             t = ( t * mixer_gain ) / 0x100 ;
+          /* Store accumulation, but force onscale */
+          *(d++) = t >= 0x100 ? 0xff :
+                   t <= 0x000 ? 0x00 : t ;
+          /* Figure out the maximum signal range */
+          if ( tmax < t ) tmax = t ; 
+          else
+          if ( tmin > t ) tmin = t ;
+        }
+        /* Consider changing the attenuation */
+        if ( ( ( tmin < 0x00 ) || ( tmax > 0xFF ) )
+          && ( mixer_gain > 1 ) )
+           mixer_gain -- ;
+        else
+        if ( ( tmin * ( mixer_gain + 1 ) > 0x80 + 0x10 * mixer_gain )
+          && ( tmax * ( mixer_gain + 1 ) < 0x80 + 0xE0 * mixer_gain )
+          && ( mixer_gain < 0x100 ) )
+           mixer_gain ++ ;
+        // printf ( "Gain=%03x, Range=%04x,%04x\n", mixer_gain, tmin, tmax );
+      } break;
+    }
+
+    /* We've created the next buffer of sound data ... now what ? */
+
     if ( dump_first )
     {
       stop () ;
@@ -405,7 +493,7 @@ void slScheduler::stopMusic ( int magic )
   }
 }
 
-int slScheduler::loopMusic ( char *fname, int pri,
+int slScheduler::loopMusic ( const char *fname, int pri,
                             slPreemptMode mode,
                             int magic, slCallBack cb )
 {
@@ -429,7 +517,7 @@ int slScheduler::loopMusic ( char *fname, int pri,
   return -1 ;
 }
 
-int slScheduler::playMusic ( char *fname, int pri,
+int slScheduler::playMusic ( const char *fname, int pri,
                             slPreemptMode mode,
                             int magic, slCallBack cb )
 {

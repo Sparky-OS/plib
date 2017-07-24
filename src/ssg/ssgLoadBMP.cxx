@@ -1,6 +1,6 @@
 /*
      PLIB - A Suite of Portable Game Libraries
-     Copyright (C) 2001  Steve Baker
+     Copyright (C) 1998,2002  Steve Baker
  
      This library is free software; you can redistribute it and/or
      modify it under the terms of the GNU Library General Public
@@ -13,12 +13,12 @@
      Library General Public License for more details.
  
      You should have received a copy of the GNU Library General Public
-     License along with this library; if not, write to the Free
+     License along with this library; if not, write to the Free Software
      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgLoadBMP.cxx,v 1.7 2001/04/12 03:38:15 deca Exp $
+     $Id: ssgLoadBMP.cxx,v 1.16 2002/09/02 06:05:48 sjbaker Exp $
 */
 
 
@@ -47,7 +47,7 @@ static void swab_int ( unsigned int *x )
          (( *x << 24 ) & 0xFF000000 ) ;
 }
 
-static void swab_int_array ( int *x, int leng )
+/*static void swab_int_array ( int *x, int leng )
 {
   if ( ! isSwapped )
     return ;
@@ -60,7 +60,7 @@ static void swab_int_array ( int *x, int leng )
          (( *x << 24 ) & 0xFF000000 ) ;
     x++ ;
   }
-}
+}*/
 
 
 static unsigned char readByte ()
@@ -123,6 +123,8 @@ struct RGBA
 bool ssgLoadBMP ( const char *fname, ssgTextureInfo* info )
 {
   int w, h, bpp ;
+  int index=0;
+  bool old_format = false;
   RGBA pal [ 256 ] ;
 
   BMPHeader bmphdr ;
@@ -133,9 +135,25 @@ bool ssgLoadBMP ( const char *fname, ssgTextureInfo* info )
 
   if ( ( curr_image_fd = fopen ( curr_image_fname, "rb" ) ) == NULL )
   {
-    perror ( "ssgLoadTexture" ) ;
-    ulSetError ( UL_WARNING, "ssgLoadTexture: Failed to open '%s' for reading.", curr_image_fname ) ;
-    return false ;
+    char *p = strrchr(curr_image_fname,'_');
+    if (p != 0) {
+      *p = '\0';
+      p++;
+      index = atoi (p);
+      old_format = true;
+      if ( ( curr_image_fd = fopen(curr_image_fname, "rb")) == NULL) {
+        perror ( "ssgLoadTexture" ) ;
+        ulSetError( UL_WARNING, "ssgLoadTexture: Failed to load '%s' for reading.", curr_image_fname );
+        return false ;
+      }
+      p--;
+      *p = '_';
+    }
+    else {
+      perror ( "ssgLoadTexture" ) ;
+      ulSetError( UL_WARNING, "ssgLoadTexture: Failed to open '%s' for reading.", curr_image_fname );
+      return false ;
+    }
   }
 
   /*
@@ -210,7 +228,10 @@ bool ssgLoadBMP ( const char *fname, ssgTextureInfo* info )
       /* According to BMP specs, this fourth value is not really alpha value
 	 but just a filler byte, so it is ignored for now. */
       pal[i].a = readByte () ;
-      //if ( pal[i].a != 255 ) isOpaque = FALSE ;
+      if (old_format == true) {
+        pal[i].a = (i<index)?0:255;
+
+      }
 
       if ( pal[i].r != pal[i].g ||
            pal[i].g != pal[i].b ) isMonochrome = FALSE ;
@@ -243,6 +264,17 @@ bool ssgLoadBMP ( const char *fname, ssgTextureInfo* info )
 
   if ( bpp == 8 )
   {
+    int i ;
+
+    // check for diffrent alpha values in the bitmap
+    // assume blending if that's the case
+    for ( i = 1 ; i < w * h ; i++ ) {
+      if  (pal[data[i]].a != pal[data[i-1]].a) {
+        isOpaque = FALSE ;
+        break;
+      }  
+    }
+
     if ( isMonochrome )
       z = isOpaque ? 1 : 2 ;
     else
@@ -250,7 +282,7 @@ bool ssgLoadBMP ( const char *fname, ssgTextureInfo* info )
 
     image = new GLubyte [ w * h * z ] ;
 
-    for ( int i = 0 ; i < w * h ; i++ )
+    for ( i = 0 ; i < w * h ; i++ )
       switch ( z )
       {
         case 1 : image [ i       ] = pal[data[i]].r ; break ;
@@ -266,7 +298,7 @@ bool ssgLoadBMP ( const char *fname, ssgTextureInfo* info )
         default : break ;
       }
 
-    delete data ;
+    delete [] data ;
   }
   else
   if ( bpp == 24 )
@@ -309,7 +341,7 @@ bool ssgLoadBMP ( const char *fname, ssgTextureInfo* info )
     info -> width = w ;
     info -> height = h ;
     info -> depth = z ;
-    info -> alpha = ( z == 4 ) ;
+    info -> alpha = ( isOpaque == FALSE ) ;
   }
 
   return ssgMakeMipMaps ( image, w, h, z ) ;

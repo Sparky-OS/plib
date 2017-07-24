@@ -1,24 +1,24 @@
 /*
      PLIB - A Suite of Portable Game Libraries
-     Copyright (C) 2001  Steve Baker
- 
+     Copyright (C) 1998,2002  Steve Baker
+
      This library is free software; you can redistribute it and/or
      modify it under the terms of the GNU Library General Public
      License as published by the Free Software Foundation; either
      version 2 of the License, or (at your option) any later version.
- 
+
      This library is distributed in the hope that it will be useful,
      but WITHOUT ANY WARRANTY; without even the implied warranty of
      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
      Library General Public License for more details.
- 
+
      You should have received a copy of the GNU Library General Public
-     License along with this library; if not, write to the Free
+     License along with this library; if not, write to the Free Software
      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
- 
+
      For further information visit http://plib.sourceforge.net
 
-     $Id: puListBox.cxx,v 1.12 2001/06/24 03:01:26 sjbaker Exp $
+     $Id: puListBox.cxx,v 1.23 2002/09/02 06:05:46 sjbaker Exp $
 */
 
 /****
@@ -39,6 +39,9 @@
 ****/
 
 #include "puLocal.h"
+
+UL_RTTI_DEF1(puListBox,puButton)
+
 
 puListBox::puListBox  ( int minx, int miny, int maxx, int maxy, char** _list ) :
                puButton ( minx, miny, maxx, maxy )
@@ -63,6 +66,8 @@ void puListBox::newList ( char ** _list )
 
   /* Set index of selected item */
   setValue ( -1 ) ;
+
+  puPostRefresh () ;
 }
 
 
@@ -73,6 +78,8 @@ void puListBox::setTopItem( int item_index )
     top = 0 ;
   else if ( top > num-1 )
     top = num-1;
+
+  puPostRefresh () ;
 }
 
 
@@ -80,9 +87,9 @@ void puListBox::draw ( int dx, int dy )
 {
   if ( !visible || ( window != puGetWindow () ) || list == NULL ) return ;
 
-  abox . draw ( dx, dy, style, colour, isReturnDefault() ) ;
+  abox.draw ( dx, dy, style, colour, isReturnDefault(), border_thickness ) ;
 
-  /* If greyed out then halve the opacity when drawing the label and legend */
+  /* If greyed out then halve the opacity when drawing the text */
 
   if ( active )
     glColor4fv ( colour [ PUCOL_LEGEND ] ) ;
@@ -98,9 +105,8 @@ void puListBox::draw ( int dx, int dy )
     r_cb ( this, dx, dy, render_data ) ;
   else
   {
-    int ysize = abox.max[1] - abox.min[1] + 1 ;
-    int yinc = puGetStringHeight(legendFont) + PUSTR_BGAP ;
-    int num_vis = (ysize - PUSTR_BGAP) / yinc ;
+    int yinc = legendFont.getStringHeight () + PUSTR_BGAP ;
+    int num_vis = getNumVisible () ;
 
     int selected ;
     getValue ( &selected ) ;
@@ -108,9 +114,9 @@ void puListBox::draw ( int dx, int dy )
     for ( int i = top ; i < num && i < top + num_vis ; i++ )
     {
       if ( i == selected )
-        glColor4f ( 1.0, 1.0, 1.0, 1.0 ) ;
+        glColor4f ( 1.0f, 1.0f, 1.0f, 1.0f ) ;
       else
-        glColor4f ( 0.0, 0.0, 0.0, 1.0 ) ;
+        glColor4f ( 0.0f, 0.0f, 0.0f, 1.0f ) ;
 
       int x = PUSTR_LGAP ;
       int y = yinc * ((i-top)+1) ;
@@ -131,7 +137,7 @@ void puListBox::draw ( int dx, int dy )
 
       while ( 1 )
       {
-        width = puGetStringWidth ( legendFont, (char *)str ) + PUSTR_LGAP ;
+        width = legendFont.getStringWidth ( (char *)str ) + PUSTR_LGAP ;
 
         if ( width < xsize )
           break ;
@@ -144,7 +150,7 @@ void puListBox::draw ( int dx, int dy )
         strcpy ( & str [ strlen(str) - 4 ], "..." ) ;
       }
 
-      puDrawString ( legendFont, (char*)str, xx, yy ) ;
+      legendFont.drawString ( (char*)str, xx, yy ) ;
     }
   }
 
@@ -166,14 +172,14 @@ void puListBox::doHit ( int button, int updown, int x, int y )
     {
       lowlight () ;
     
-      int yinc = puGetStringHeight(legendFont) + PUSTR_BGAP ;
-      int index = top + ( abox.max[1] - PUSTR_BGAP - y ) / yinc;
-      if ( index < 0 )
-        index = 0;
-      else if ( index >= num )
-        index = num-1;
+      int yinc = legendFont.getStringHeight () + PUSTR_BGAP ;
+      int idx = top + ( abox.max[1] - PUSTR_BGAP - y ) / yinc;
+      if ( idx < 0 )
+        idx = 0;
+      else if ( idx >= num )
+        idx = num-1;
     
-      setValue ( index ) ;
+      setValue ( idx ) ;
     
       puSetActiveWidget ( this, x, y ) ;
       invokeCallback () ;

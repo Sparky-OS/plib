@@ -1,6 +1,6 @@
 /*
      PLIB - A Suite of Portable Game Libraries
-     Copyright (C) 2001  Steve Baker
+     Copyright (C) 1998,2002  Steve Baker
  
      This library is free software; you can redistribute it and/or
      modify it under the terms of the GNU Library General Public
@@ -13,23 +13,23 @@
      Library General Public License for more details.
  
      You should have received a copy of the GNU Library General Public
-     License along with this library; if not, write to the Free
+     License along with this library; if not, write to the Free Software
      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgLoadSGI.cxx,v 1.7 2001/05/23 16:54:39 mcdave Exp $
+     $Id: ssgLoadSGI.cxx,v 1.17 2004/03/14 11:26:56 wolfram_kuss Exp $
 */
 
 
 #include "ssgLocal.h"
 
-#ifdef SSG_LOAD_SGI_SUPPORTED
-
-static FILE          *curr_image_fd ;
-static char           curr_image_fname [ 512 ] ;
+/*eliminated by J. Nathan Matias
+static FILE          *image_fd ;
+static char           image_fname [ 512 ] ;
 static int            isSwapped ;
-static unsigned char *rle_temp ;
+static unsigned char *rle_temp ;*/
+
 
 /* Some magic constants in the file header. */
 
@@ -54,16 +54,37 @@ public:    /* Yuk!  Need to hide some of this public stuff! */
   unsigned short ysize ;
   unsigned short zsize ;
   int           tablen ;
+  /* added by J. Nathan Matias */
+  FILE          *image_fd;
+  char          image_fname [ 512 ];
+  int           isSwapped;
+  unsigned char *rle_temp;
+  bool          loadSGI_bool;
+
 
   ssgSGIHeader () ;
+  ssgSGIHeader(const char *fname, ssgTextureInfo* info ); 
   ~ssgSGIHeader () ;
+
+  bool openFile(const char *fname);
   void makeConsistant () ;
   void getRow   ( unsigned char *buf, int y, int z ) ;
   void getPlane ( unsigned char *buf, int z ) ;
   void getImage ( unsigned char *buf ) ;
   void readHeader () ;
+  
+protected:
+  void swab_short ( unsigned short *x );
+  void swab_int ( unsigned int *x );
+  void swab_int_array ( int *x, int leng );
+  unsigned char readByte ();
+  unsigned short readShort ();
+  unsigned int readInt ();
+   
 } ;
 
+
+#ifdef SSG_LOAD_SGI_SUPPORTED
 
 void ssgSGIHeader::makeConsistant ()
 {
@@ -103,14 +124,14 @@ void ssgSGIHeader::makeConsistant ()
 }
 
 
-static void swab_short ( unsigned short *x )
+void ssgSGIHeader::swab_short ( unsigned short *x )
 {
   if ( isSwapped )
     *x = (( *x >>  8 ) & 0x00FF ) | 
          (( *x <<  8 ) & 0xFF00 ) ;
 }
 
-static void swab_int ( unsigned int *x )
+void ssgSGIHeader::swab_int ( unsigned int *x )
 {
   if ( isSwapped )
     *x = (( *x >> 24 ) & 0x000000FF ) | 
@@ -119,7 +140,7 @@ static void swab_int ( unsigned int *x )
          (( *x << 24 ) & 0xFF000000 ) ;
 }
 
-static void swab_int_array ( int *x, int leng )
+void ssgSGIHeader::swab_int_array ( int *x, int leng )
 {
   if ( ! isSwapped )
     return ;
@@ -135,25 +156,25 @@ static void swab_int_array ( int *x, int leng )
 }
 
 
-static unsigned char readByte ()
+unsigned char ssgSGIHeader::readByte ()
 {
   unsigned char x ;
-  fread ( & x, sizeof(unsigned char), 1, curr_image_fd ) ;
+  fread ( & x, sizeof(unsigned char), 1, image_fd ) ;
   return x ;
 }
 
-static unsigned short readShort ()
+unsigned short ssgSGIHeader::readShort ()
 {
   unsigned short x ;
-  fread ( & x, sizeof(unsigned short), 1, curr_image_fd ) ;
+  fread ( & x, sizeof(unsigned short), 1, image_fd ) ;
   swab_short ( & x ) ;
   return x ;
 }
 
-static unsigned int readInt ()
+unsigned int ssgSGIHeader::readInt ()
 {
   unsigned int x ;
-  fread ( & x, sizeof(unsigned int), 1, curr_image_fd ) ;
+  fread ( & x, sizeof(unsigned int), 1, image_fd ) ;
   swab_int ( & x ) ;
   return x ;
 }
@@ -164,18 +185,19 @@ void ssgSGIHeader::getRow ( unsigned char *buf, int y, int z )
   if ( y >= ysize ) y = ysize - 1 ;
   if ( z >= zsize ) z = zsize - 1 ;
 
-  fseek ( curr_image_fd, start [ z * ysize + y ], SEEK_SET ) ;
+  fseek ( image_fd, start [ z * ysize + y ], SEEK_SET ) ;
 
   if ( type == SGI_IMG_RLE )
   {
     unsigned char *tmpp = rle_temp ;
     unsigned char *bufp = buf ;
+    int length = leng [ z * ysize + y ];
 
-    fread ( rle_temp, 1, leng [ z * ysize + y ], curr_image_fd ) ;
+    fread ( rle_temp, 1, length, image_fd ) ;
 
     unsigned char pixel, count ;
 
-    while ( TRUE )
+    while ( tmpp < rle_temp + length )
     {
       pixel = *tmpp++ ;
 
@@ -199,13 +221,13 @@ void ssgSGIHeader::getRow ( unsigned char *buf, int y, int z )
     }
   }
   else
-    fread ( buf, 1, xsize, curr_image_fd ) ;
+    fread ( buf, 1, xsize, image_fd ) ;
 }
 
 
 void ssgSGIHeader::getPlane ( unsigned char *buf, int z )
 {
-  if ( curr_image_fd == NULL )
+  if ( image_fd == NULL )
     return ;
 
   if ( z >= zsize ) z = zsize - 1 ;
@@ -218,7 +240,7 @@ void ssgSGIHeader::getPlane ( unsigned char *buf, int z )
 
 void ssgSGIHeader::getImage ( unsigned char *buf )
 {
-  if ( curr_image_fd == NULL )
+  if ( image_fd == NULL )
     return ;
 
   for ( int y = 0 ; y < ysize ; y++ )
@@ -233,126 +255,22 @@ ssgSGIHeader::ssgSGIHeader ()
   start = NULL ;
   leng  = NULL ;
   rle_temp = NULL ;
+  image_fd = NULL ;
 }
 
-
-ssgSGIHeader::~ssgSGIHeader()
+ssgSGIHeader::ssgSGIHeader ( const char *fname, ssgTextureInfo* info )
 {
-  if (start != NULL)
-    delete [] start;
+  ssgSGIHeader *sgihdr = this ;
 
-  if (leng != NULL)
-    delete [] leng;
-}
+  start = NULL ;
+  leng = NULL ;
 
+  bool success=openFile(fname);
 
-void ssgSGIHeader::readHeader ()
-{
-  isSwapped = FALSE ;
-
-  magic = readShort () ;
-
-  if ( magic != SGI_IMG_MAGIC && magic != SGI_IMG_SWABBED_MAGIC )
+  if ( !success )
   {
-    ulSetError ( UL_FATAL, "%s: Unrecognised magic number 0x%04x",
-                                         curr_image_fname, magic ) ;
-  }
-
-  if ( magic == SGI_IMG_SWABBED_MAGIC )
-  {
-    isSwapped = TRUE ;
-    swab_short ( & magic ) ;
-  }
-
-  type  = readByte  () ;
-  bpp   = readByte  () ;
-  dim   = readShort () ;
-
-  /*
-    This is a backstop test - if for some reason the magic number isn't swabbed, this
-    test will still catch a swabbed file. Of course images with more than 256 dimensions
-    are not catered for :-)
-  */
-
-  if ( dim > 255 )
-  {
-    ulSetError ( UL_WARNING, "%s: Bad swabbing?!?", curr_image_fname ) ;
-    isSwapped = ! isSwapped ;
-    swab_short ( & dim ) ;
-    magic = SGI_IMG_MAGIC ;
-  }
-
-  xsize = readShort () ;
-  ysize = readShort () ;
-  zsize = readShort () ;
-  min   = readInt   () ;  
-  max   = readInt   () ;  
-                 readInt   () ;  /* Dummy field */
-
-  int i ;
-
-  for ( i = 0 ; i < 80 ; i++ )
-    readByte () ;         /* Name field */
-
-  colormap = readInt () ;
-
-  for ( i = 0 ; i < 404 ; i++ )
-    readByte () ;         /* Dummy field */
-
-  makeConsistant () ;
-
-  tablen = ysize * zsize ;
-  start = new unsigned int [ tablen ] ;
-  leng  = new int [ tablen ] ;
-}
-
-
-bool ssgLoadSGI ( const char *fname, ssgTextureInfo* info )
-{
-  ssgSGIHeader *sgihdr = new ssgSGIHeader () ;
-
-  strcpy ( curr_image_fname, fname ) ;
-  curr_image_fd = fopen ( curr_image_fname, "rb" ) ;
-
-  if ( curr_image_fd == NULL )
-  {
-    perror ( "ssgLoadTexture" ) ;
-    ulSetError ( UL_WARNING, "ssgLoadTexture: Failed to open '%s' for reading.", curr_image_fname ) ;
-    return false ;
-  }
-
-  sgihdr -> readHeader () ;
-
-  if ( sgihdr -> type == SGI_IMG_RLE )
-  {
-    fread ( sgihdr->start, sizeof (unsigned int), sgihdr->tablen, curr_image_fd ) ;
-    fread ( sgihdr->leng , sizeof (int), sgihdr->tablen, curr_image_fd ) ;
-    swab_int_array ( (int *) sgihdr->start, sgihdr->tablen ) ;
-    swab_int_array ( (int *) sgihdr->leng , sgihdr->tablen ) ;
-
-    int maxlen = 0 ;
-
-    for ( int i = 0 ; i < sgihdr->tablen ; i++ )
-      if ( sgihdr->leng [ i ] > maxlen )
-        maxlen = sgihdr->leng [ i ] ;
-
-    rle_temp = new unsigned char [ maxlen ] ;
-  }
-  else
-  {
-    rle_temp = NULL ;
-
-    for ( int i = 0 ; i < sgihdr->zsize ; i++ )
-      for ( int j = 0 ; j < sgihdr->ysize ; j++ )
-      {
-        sgihdr->start [ i * sgihdr->ysize + j ] = sgihdr->xsize * ( i * sgihdr->ysize + j ) + 512 ;
-        sgihdr->leng  [ i * sgihdr->ysize + j ] = sgihdr->xsize ;
-      }
-  }
-
-  if ( sgihdr->zsize <= 0 || sgihdr->zsize > 4 )
-  {
-    ulSetError ( UL_FATAL, "ssgLoadTexture: '%s' is corrupted.", curr_image_fname ) ;
+    loadSGI_bool = false ;
+    return ;
   }
 
   GLubyte *image = new GLubyte [ sgihdr->xsize *
@@ -421,30 +339,197 @@ bool ssgLoadSGI ( const char *fname, ssgTextureInfo* info )
     }
   }
 
-  fclose ( curr_image_fd ) ;
+  fclose ( image_fd ) ;
+  image_fd = NULL ;
 
-  delete rbuf   ;
-  delete gbuf   ;
-  delete bbuf   ;
-  delete abuf   ;
+  delete [] rbuf   ;
+  delete [] gbuf   ;
+  delete [] bbuf   ;
+  delete [] abuf   ;
 
   if ( info != NULL )
   {
     info -> width = sgihdr->xsize ;
     info -> height = sgihdr->ysize ;
     info -> depth = sgihdr->zsize ;
-    info -> alpha = ( sgihdr->zsize == 4 ) ;
+    info -> alpha =  ( sgihdr->zsize == 2 || sgihdr->zsize == 4 )  ;
   }
 
   bool result =
     ssgMakeMipMaps ( image, sgihdr->xsize, sgihdr->ysize, sgihdr->zsize ) ;
 
-  delete sgihdr ;
 
-  return result ;
+  loadSGI_bool= result ;
 }
 
+
+
+ssgSGIHeader::~ssgSGIHeader()
+{
+  if (start != NULL)
+    delete [] start;
+
+  if (leng != NULL)
+    delete [] leng;
+  
+  if (image_fd != NULL)
+    fclose(image_fd);
+}
+
+
+void ssgSGIHeader::readHeader ()
+{
+  isSwapped = FALSE ;
+
+  magic = readShort () ;
+
+  if ( magic != SGI_IMG_MAGIC && magic != SGI_IMG_SWABBED_MAGIC )
+  {
+    ulSetError ( UL_FATAL, "%s: Unrecognised magic number 0x%04x",
+                                         image_fname, magic ) ;
+  }
+
+  if ( magic == SGI_IMG_SWABBED_MAGIC )
+  {
+    isSwapped = TRUE ;
+    swab_short ( & magic ) ;
+  }
+
+  type  = readByte  () ;
+  bpp   = readByte  () ;
+  dim   = readShort () ;
+
+  /*
+    This is a backstop test - if for some reason the magic number isn't swabbed, this
+    test will still catch a swabbed file. Of course images with more than 256 dimensions
+    are not catered for :-)
+  */
+
+  if ( dim > 255 )
+  {
+    ulSetError ( UL_WARNING, "%s: Bad swabbing?!?", image_fname ) ;
+    isSwapped = ! isSwapped ;
+    swab_short ( & dim ) ;
+    magic = SGI_IMG_MAGIC ;
+  }
+
+  xsize = readShort () ;
+  ysize = readShort () ;
+  zsize = readShort () ;
+  min   = readInt   () ;  
+  max   = readInt   () ;  
+                 readInt   () ;  /* Dummy field */
+
+  int i ;
+
+  for ( i = 0 ; i < 80 ; i++ )
+    readByte () ;         /* Name field */
+
+  colormap = readInt () ;
+
+  for ( i = 0 ; i < 404 ; i++ )
+    readByte () ;         /* Dummy field */
+
+  makeConsistant () ;
+
+  tablen = ysize * zsize ;
+  start = new unsigned int [ tablen ] ;
+  leng  = new int [ tablen ] ;
+}
+
+bool ssgSGIHeader::openFile(const char *fname)
+{
+  ssgSGIHeader *sgihdr=this;
+  
+  strcpy ( image_fname, fname ) ;
+  image_fd = fopen ( image_fname, "rb" ) ;
+
+  if ( image_fd == NULL )
+  {
+    /* perror ( "ssgLoadTexture" ) ;*/
+    ulSetError ( UL_WARNING, "ssgSGIHeader::: Failed to open '%s' for reading.", image_fname ) ;
+    return false ;
+  }
+
+  sgihdr -> readHeader () ;
+
+  if ( sgihdr -> type == SGI_IMG_RLE )
+  {
+    fread ( sgihdr->start, sizeof (unsigned int), sgihdr->tablen, image_fd ) ;
+    fread ( sgihdr->leng , sizeof (int), sgihdr->tablen, image_fd ) ;
+    swab_int_array ( (int *) sgihdr->start, sgihdr->tablen ) ;
+    swab_int_array ( (int *) sgihdr->leng , sgihdr->tablen ) ;
+
+    int maxlen = 0 ;
+
+    for ( int i = 0 ; i < sgihdr->tablen ; i++ )
+      if ( sgihdr->leng [ i ] > maxlen )
+        maxlen = sgihdr->leng [ i ] ;
+
+    rle_temp = new unsigned char [ maxlen ] ;
+  }
+  else
+  {
+    rle_temp = NULL ;
+
+    for ( int i = 0 ; i < sgihdr->zsize ; i++ )
+      for ( int j = 0 ; j < sgihdr->ysize ; j++ )
+      {
+        sgihdr->start [ i * sgihdr->ysize + j ] = sgihdr->xsize * ( i * sgihdr->ysize + j ) + 512 ;
+        sgihdr->leng  [ i * sgihdr->ysize + j ] = sgihdr->xsize ;
+      }
+  }
+
+  if ( sgihdr->zsize <= 0 || sgihdr->zsize > 4 )
+  {
+    ulSetError ( UL_FATAL, "ssgLoadTexture: '%s' is corrupted.", image_fname ) ;
+  }
+
+  return true ;
+} 
+
+
+//wrapper function that does the same job as the previous one
+//except we now have a better architecture
+
+bool ssgLoadSGI ( const char *fname, ssgTextureInfo* info )
+{
+  ssgSGIHeader *sgihdr=new ssgSGIHeader( fname, info);
+  bool returnval=sgihdr->loadSGI_bool;
+  delete sgihdr;
+  return returnval;
+}
+
+
 #else
+
+  /*if there's no SGI support, allow things to compile, but print an error*/
+ssgSGIHeader::ssgSGIHeader()
+{
+  ulSetError ( UL_WARNING,
+    "ssgLoadTexture: '%s' - SGI support not configured", fname ) ;
+  return;
+}
+
+
+ssgSGIHeader::ssgSGIHeader(const char *fname, ssgTextureInfo* info )
+{
+  ulSetError ( UL_WARNING,
+    "ssgLoadTexture: '%s' - SGI support not configured", fname ) ;
+  return;
+}
+
+void SGIHeader::makeConsistant (){return;} 
+void SGIHeader::getRow   ( unsigned char *buf, int y, int z ) {return;}
+void SGIHeader::getPlane ( unsigned char *buf, int z ) {return;}
+void SGIHeader::getImage ( unsigned char *buf ) {return;}
+void SGIHeader::readHeader () {return;}
+void SGIHeader::swab_short ( unsigned short *x ){return;}
+void SGIHeader::swab_int ( unsigned int *x ){return;}
+void SGIHeader::swab_int_array ( int *x, int leng ){return;}
+unsigned char SGIHeader::readByte (){return;}
+unsigned short SGIHeader::readShort (){return;}
+unsigned int SGIHeader::readInt (){return;}
 
 bool ssgLoadSGI ( const char *fname, ssgTextureInfo* info )
 {

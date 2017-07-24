@@ -1,6 +1,6 @@
 /*
      PLIB - A Suite of Portable Game Libraries
-     Copyright (C) 2001  Steve Baker
+     Copyright (C) 1998,2002  Steve Baker
  
      This library is free software; you can redistribute it and/or
      modify it under the terms of the GNU Library General Public
@@ -13,12 +13,12 @@
      Library General Public License for more details.
  
      You should have received a copy of the GNU Library General Public
-     License along with this library; if not, write to the Free
+     License along with this library; if not, write to the Free Software
      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: netMessage.cxx,v 1.3 2001/04/12 03:35:05 deca Exp $
+     $Id: netMessage.cxx,v 1.7 2004/03/21 17:41:07 sjbaker Exp $
 */
 
 #include "netMessage.h"
@@ -30,7 +30,7 @@ netMessageChannel::handleBufferRead (netBuffer& in_buffer)
   int n = in_buffer.getLength () ;
   while ( n >= 2 )
   {
-    u16 msg_len = *( (u16*)in_buffer.getData() ) ;
+    unsigned short msg_len = *( (unsigned short*)in_buffer.getData() ) ;
     if ( n >= msg_len )
     {
       //we have a complete message; handle it
@@ -38,12 +38,12 @@ netMessageChannel::handleBufferRead (netBuffer& in_buffer)
       in_buffer.remove(0,msg_len);
       handleMessage ( msg );
 
-      //fprintf ( stderr, "netMessageChannel: %d read\n", msg_len ) ;
+      //ulSetError ( UL_DEBUG, "netMessageChannel: %d read", msg_len ) ;
       n -= msg_len ;
     }
     else
     {
-      //fprintf ( stderr, "netMessageChannel: %d waiting\n", n ) ;
+      //ulSetError ( UL_DEBUG, "netMessageChannel: %d waiting", n ) ;
       break ;
     }
   }

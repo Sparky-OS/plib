@@ -23,8 +23,6 @@ CFG=ssg - Win32 Debug
 
 # Begin Project
 # PROP AllowPerConfigDependencies 0
-# PROP Scc_ProjName "ssg"
-# PROP Scc_LocalPath "."
 CPP=cl.exe
 RSC=rc.exe
 
@@ -40,8 +38,10 @@ RSC=rc.exe
 # PROP Output_Dir "Release"
 # PROP Intermediate_Dir "Release"
 # PROP Target_Dir ""
+LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
-# ADD CPP /nologo /W3 /GX /O2 /I "..\sg" /I "..\util" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /D "PROXY_TEXTURES_ARE_NOT_BROKEN" /YX /FD /c
+# ADD CPP /nologo /MT /W3 /GX /Zi /O2 /I "..\sg" /I "..\util" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "PROXY_TEXTURES_ARE_NOT_BROKEN" /FD /c
+# SUBTRACT CPP /YX
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -50,50 +50,10 @@ BSC32=bscmake.exe
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
 # ADD LIB32 /nologo
-# Begin Custom Build - 'ssg' gets installed
-ProjDir=.
-InputPath=.\Release\ssg.lib
-SOURCE="$(InputPath)"
-
-BuildCmds= \
-	copy $(ProjDir)\ssg.h $(ProjDir)\..\..\ssg.h \
-	copy $(ProjDir)\ssg3ds.h $(ProjDir)\..\..\ssg3ds.h \
-	copy $(ProjDir)\ssgconf.h $(ProjDir)\..\..\ssgconf.h \
-	copy $(ProjDir)\ssgKeyFlier.h $(ProjDir)\..\..\ssgKeyFlier.h \
-	copy $(ProjDir)\ssgLoaderWriterStuff.h $(ProjDir)\..\..\ssgLoaderWriterStuff.h \
-	copy $(ProjDir)\ssgLoadMDL.h $(ProjDir)\..\..\ssgLoadMDL.h \
-	copy $(ProjDir)\ssgMSFSPalette.h $(ProjDir)\..\..\ssgMSFSPalette.h \
-	copy $(ProjDir)\ssgParser.h $(ProjDir)\..\..\ssgParser.h \
-	
-
-"$(ProjDir)\..\..\ssg.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-   $(BuildCmds)
-
-"$(ProjDir)\..\..\ssg3ds.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-   $(BuildCmds)
-
-"$(ProjDir)\..\..\ssgconf.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-   $(BuildCmds)
-
-"$(ProjDir)\..\..\ssgKeyFlier.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-   $(BuildCmds)
-
-"$(ProjDir)\..\..\ssgLoaderWriterStuff.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-   $(BuildCmds)
-
-"$(ProjDir)\..\..\ssgLoadMDL.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-   $(BuildCmds)
-
-"$(ProjDir)\..\..\ssgMSFSPalette.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-   $(BuildCmds)
-
-"$(ProjDir)\..\..\ssgParser.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-   $(BuildCmds)
-# End Custom Build
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
 PostBuild_Desc=Copy Library to plib directory
-PostBuild_Cmds=copy release\*.lib ..\..\*.*
+PostBuild_Cmds=copy release\*.lib ..\..\*.*	copy ssg.h ..\..\ssg.h	copy ssgconf.h ..\..\ssgconf.h	copy ssgMSFSPalette.h ..\..\ssgMSFSPalette.h	copy ssgKeyFlier.h ..\..\ssgKeyFlier.h
 # End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "ssg - Win32 Debug"
@@ -108,8 +68,10 @@ PostBuild_Cmds=copy release\*.lib ..\..\*.*
 # PROP Output_Dir "Debug"
 # PROP Intermediate_Dir "Debug"
 # PROP Target_Dir ""
+LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
-# ADD CPP /nologo /W3 /GX /ZI /Od /I "..\sg" /I "..\util" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /D "PROXY_TEXTURES_ARE_NOT_BROKEN" /YX /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /GX /Zi /Od /I "..\sg" /I "..\util" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "PROXY_TEXTURES_ARE_NOT_BROKEN" /FD /GZ /c
+# SUBTRACT CPP /YX
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -117,51 +79,11 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
-# ADD LIB32 /nologo
-# Begin Custom Build - 'ssg' gets installed
-ProjDir=.
-InputPath=.\Debug\ssg.lib
-SOURCE="$(InputPath)"
-
-BuildCmds= \
-	copy $(ProjDir)\ssg.h $(ProjDir)\..\..\ssg.h \
-	copy $(ProjDir)\ssg3ds.h $(ProjDir)\..\..\ssg3ds.h \
-	copy $(ProjDir)\ssgconf.h $(ProjDir)\..\..\ssgconf.h \
-	copy $(ProjDir)\ssgKeyFlier.h $(ProjDir)\..\..\ssgKeyFlier.h \
-	copy $(ProjDir)\ssgLoaderWriterStuff.h $(ProjDir)\..\..\ssgLoaderWriterStuff.h \
-	copy $(ProjDir)\ssgLoadMDL.h $(ProjDir)\..\..\ssgLoadMDL.h \
-	copy $(ProjDir)\ssgMSFSPalette.h $(ProjDir)\..\..\ssgMSFSPalette.h \
-	copy $(ProjDir)\ssgParser.h $(ProjDir)\..\..\ssgParser.h \
-	
-
-"$(ProjDir)\..\..\ssg.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-   $(BuildCmds)
-
-"$(ProjDir)\..\..\ssg3ds.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-   $(BuildCmds)
-
-"$(ProjDir)\..\..\ssgconf.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-   $(BuildCmds)
-
-"$(ProjDir)\..\..\ssgKeyFlier.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-   $(BuildCmds)
-
-"$(ProjDir)\..\..\ssgLoaderWriterStuff.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-   $(BuildCmds)
-
-"$(ProjDir)\..\..\ssgLoadMDL.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-   $(BuildCmds)
-
-"$(ProjDir)\..\..\ssgMSFSPalette.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-   $(BuildCmds)
-
-"$(ProjDir)\..\..\ssgParser.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-   $(BuildCmds)
-# End Custom Build
+# ADD LIB32 /nologo /out:"Debug\ssg_d.lib"
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
 PostBuild_Desc=Copy Library to plib directory
-PostBuild_Cmds=copy debug\*.lib ..\..\*.*
+PostBuild_Cmds=copy debug\*.lib ..\..\*.*	copy ssg.h ..\..\ssg.h	copy ssgconf.h ..\..\ssgconf.h	copy ssgMSFSPalette.h ..\..\ssgMSFSPalette.h	copy ssgKeyFlier.h ..\..\ssgKeyFlier.h
 # End Special Build Tool
 
 !ENDIF 
@@ -177,6 +99,10 @@ SOURCE=.\ssg.cxx
 # Begin Source File
 
 SOURCE=.\ssg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ssg3ds.h
 # End Source File
 # Begin Source File
 
@@ -268,6 +194,10 @@ SOURCE=.\ssgLoadBMP.cxx
 # End Source File
 # Begin Source File
 
+SOURCE=.\ssgLoadDOF.cxx
+# End Source File
+# Begin Source File
+
 SOURCE=.\ssgLoadDXF.cxx
 # End Source File
 # Begin Source File
@@ -284,11 +214,15 @@ SOURCE=.\ssgLoadFLT.cxx
 # End Source File
 # Begin Source File
 
+SOURCE=.\ssgLoadIV.cxx
+# End Source File
+# Begin Source File
+
 SOURCE=.\ssgLoadM.cxx
 # End Source File
 # Begin Source File
 
-SOURCE=.\ssgLoadmd2.cxx
+SOURCE=.\ssgLoadMD2.cxx
 # End Source File
 # Begin Source File
 
@@ -300,11 +234,19 @@ SOURCE=.\ssgLoadMDL.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\ssgLoadMDL_BGLTexture.cxx
+# End Source File
+# Begin Source File
+
 SOURCE=.\ssgLoadOBJ.cxx
 # End Source File
 # Begin Source File
 
 SOURCE=.\ssgLoadOFF.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=.\ssgLoadPCX.cxx
 # End Source File
 # Begin Source File
 
@@ -336,7 +278,19 @@ SOURCE=.\ssgLoadTRI.cxx
 # End Source File
 # Begin Source File
 
+SOURCE=.\ssgLoadVRML.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ssgLoadVRML1.cxx
+# End Source File
+# Begin Source File
+
 SOURCE=.\ssgLoadX.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=.\ssgLoadXPlaneObj.cxx
 # End Source File
 # Begin Source File
 
@@ -376,6 +330,10 @@ SOURCE=.\ssgSaveAC.cxx
 # End Source File
 # Begin Source File
 
+SOURCE=.\ssgSaveASC.cxx
+# End Source File
+# Begin Source File
+
 SOURCE=.\ssgSaveASE.cxx
 # End Source File
 # Begin Source File
@@ -385,6 +343,10 @@ SOURCE=.\ssgSaveATG.cxx
 # Begin Source File
 
 SOURCE=.\ssgSaveDXF.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=.\ssgSaveFLT.cxx
 # End Source File
 # Begin Source File
 
@@ -405,6 +367,10 @@ SOURCE=.\ssgSaveQHI.cxx
 # Begin Source File
 
 SOURCE=.\ssgSaveTRI.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=.\ssgSaveVRML1.cxx
 # End Source File
 # Begin Source File
 
@@ -436,6 +402,10 @@ SOURCE=.\ssgStateTables.cxx
 # End Source File
 # Begin Source File
 
+SOURCE=.\ssgStatistics.cxx
+# End Source File
+# Begin Source File
+
 SOURCE=.\ssgStats.cxx
 # End Source File
 # Begin Source File
@@ -449,6 +419,22 @@ SOURCE=.\ssgTexture.cxx
 # Begin Source File
 
 SOURCE=.\ssgTransform.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=.\ssgTween.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=.\ssgTweenController.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=.\ssgVertSplitter.cxx
+# End Source File
+# Begin Source File
+
+SOURCE=.\ssgVertSplitter.h
 # End Source File
 # Begin Source File
 

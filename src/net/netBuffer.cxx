@@ -1,6 +1,6 @@
 /*
      PLIB - A Suite of Portable Game Libraries
-     Copyright (C) 2001  Steve Baker
+     Copyright (C) 1998,2002  Steve Baker
  
      This library is free software; you can redistribute it and/or
      modify it under the terms of the GNU Library General Public
@@ -13,12 +13,12 @@
      Library General Public License for more details.
  
      You should have received a copy of the GNU Library General Public
-     License along with this library; if not, write to the Free
+     License along with this library; if not, write to the Free Software
      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: netBuffer.cxx,v 1.3 2001/04/12 03:22:25 deca Exp $
+     $Id: netBuffer.cxx,v 1.6 2002/09/02 06:05:43 sjbaker Exp $
 */
 
 #include "netBuffer.h"
@@ -34,7 +34,7 @@ netBufferChannel::handleRead (void)
     if (num_read > 0)
     {
       in_buffer.append (num_read) ;
-      //fprintf ( stderr, "netBufferChannel: %d read\n", num_read ) ;
+      //ulSetError ( UL_DEBUG, "netBufferChannel: %d read", num_read ) ;
     }
   }
   if (in_buffer.getLength())
@@ -58,7 +58,7 @@ netBufferChannel::handleWrite (void)
       if (num_sent > 0)
       {
         out_buffer.remove (0, num_sent);
-        //fprintf ( stderr, "netBufferChannel: %d sent\n", num_sent ) ;
+        //ulSetError ( UL_DEBUG, "netBufferChannel: %d sent", num_sent ) ;
       }
     }
   }

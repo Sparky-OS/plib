@@ -1,6 +1,6 @@
 /*
      PLIB - A Suite of Portable Game Libraries
-     Copyright (C) 2001  Steve Baker
+     Copyright (C) 1998,2002  Steve Baker
  
      This library is free software; you can redistribute it and/or
      modify it under the terms of the GNU Library General Public
@@ -13,12 +13,12 @@
      Library General Public License for more details.
  
      You should have received a copy of the GNU Library General Public
-     License along with this library; if not, write to the Free
+     License along with this library; if not, write to the Free Software
      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: netMonitor.h,v 1.4 2001/04/12 03:35:05 deca Exp $
+     $Id: netMonitor.h,v 1.10 2004/03/21 17:41:07 sjbaker Exp $
 */
 
 /****
@@ -32,7 +32,7 @@
 *
 * AUTHORS
 *   Sam Rushing <rushing@nightmare.com> - original version for Medusa
-*   Dave McClurg <dpm@efn.org> - modified for use in Pegasus
+*   Dave McClurg <dpm@efn.org> - modified for use in PLIB
 *
 * CREATION DATE
 *   Dec-2000
@@ -50,7 +50,7 @@ class netMonitorServer : private netChannel
   char* name ;
   char* password ;
   char* prompt ;
-  void (*cmdfunc)(cchar*) ;
+  void (*cmdfunc)(const char*) ;
   class netMonitorChannel* active ;
 
   friend class netMonitorChannel ;
@@ -60,11 +60,11 @@ class netMonitorServer : private netChannel
   
 public:
 
-  netMonitorServer( cchar* _name, int port )
+  netMonitorServer( const char* _name, int port )
   {
-    name = strdup(_name);
-    password = strdup("") ;
-		prompt = strdup(">>> ");
+    name = ulStrDup(_name);
+    password = ulStrDup("") ;
+		prompt = ulStrDup(">>> ");
     cmdfunc = 0 ;
     active = 0 ;
 
@@ -72,30 +72,30 @@ public:
 		bind ("", port);
 		listen (1);
 
-    printf("Monitor \"%s\" started on port %d\n",name,port);
+    ulSetError(UL_DEBUG, "Monitor \"%s\" started on port %d",name,port);
   }
 
   ~netMonitorServer()
   {
-    ::free(name);
-    ::free(password) ;
-    ::free(prompt) ;
+    delete[] name ;
+    delete[] password ;
+    delete[] prompt ;
   }
 
-  cchar* getPassword () const { return password; }
-  void setPassword ( cchar* string )
+  const char* getPassword () const { return password; }
+  void setPassword ( const char* string )
   {
-    ::free(password) ;
-    password = strdup ( string?string:"" ) ;
+    delete[] password ;
+    password = ulStrDup ( string?string:"" ) ;
   }
 
-  void setPrompt ( cchar* string )
+  void setPrompt ( const char* string )
   {
-    ::free(prompt) ;
-    prompt = strdup ( string?string:"" ) ;
+    delete[] prompt ;
+    prompt = ulStrDup ( string?string:"" ) ;
   }
 
-  void setCommandFunc ( void (*func)(cchar*) )
+  void setCommandFunc ( void (*func)(const char*) )
   {
     cmdfunc = func ;
   }

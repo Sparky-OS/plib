@@ -1,6 +1,6 @@
 /*
      PLIB - A Suite of Portable Game Libraries
-     Copyright (C) 2001  Steve Baker
+     Copyright (C) 1998,2002  Steve Baker
  
      This library is free software; you can redistribute it and/or
      modify it under the terms of the GNU Library General Public
@@ -13,12 +13,12 @@
      Library General Public License for more details.
  
      You should have received a copy of the GNU Library General Public
-     License along with this library; if not, write to the Free
+     License along with this library; if not, write to the Free Software
      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgContext.cxx,v 1.13 2001/05/24 03:55:30 sjbaker Exp $
+     $Id: ssgContext.cxx,v 1.20 2002/12/02 15:04:06 sjbaker Exp $
 */
 
 
@@ -44,11 +44,11 @@ ssgContext::ssgContext ()
   makeCurrent () ;
   currentState     = NULL  ;
   basicState       = NULL  ;
-  orthographic     = FALSE ;
+  //orthographic   = FALSE ;
   cullFace         = TRUE  ;
   ovTexture        = FALSE ;
   ovCullface       = FALSE ;
-
+  ovState          = NULL  ;
   sgCopyMat4 ( cameraMatrix, _ssgOpenGLAxisSwapMatrix ) ;
 
   frustum = new sgFrustum ;
@@ -66,6 +66,7 @@ ssgContext::ssgContext ()
   /* The order of the two following lines is essential.
      setTexture(NULL) currently sets the TEXTURE bit in
      dont_care... not the desired effect here. /PL */
+
   basicState->setTexture ( (ssgTexture*) NULL ) ;
   basicState->dont_care      = 0 ;
   basicState->colour_material_mode = GL_AMBIENT_AND_DIFFUSE ;
@@ -96,7 +97,11 @@ void ssgContext::forceBasicState ()
     glEnable ( GL_CULL_FACE ) ;
 
   cullFace = TRUE ;
-  basicState -> force () ;
+
+  if ( ovState != NULL )
+    ovState -> force () ;
+  else
+    basicState -> force () ;
 }
 
 
@@ -110,6 +115,11 @@ void ssgContext::getCameraPosition ( sgVec3 pos )
   sgCopyVec3 ( pos, cameraMatrix [ 3 ] ) ;
 }
 
+void ssgContext::overrideState ( ssgState *s )
+{
+  ovState = s ;
+}
+
 void ssgContext::overrideTexture ( int on_off )
 {
   ovTexture = on_off ;
@@ -118,6 +128,17 @@ void ssgContext::overrideTexture ( int on_off )
 void ssgContext::overrideCullface ( int on_off )
 {
   ovCullface = on_off ;
+}
+
+ 
+void ssgContext::setFrustum ( float l, float r, float b, float t, float n, float f )
+{
+  frustum -> setFrustum ( l, r, b, t, n, f ) ;
+}
+
+void ssgContext::setOrtho ( float l, float r, float b, float t, float n, float f )
+{
+  frustum -> setOrtho ( l, r, b, t, n, f ) ;
 }
 
 void ssgContext::getNearFar ( float *n, float *f )
@@ -137,26 +158,19 @@ void ssgContext::setNearFar ( float n, float f )
 
 void ssgContext::getOrtho ( float *w, float *h )
 {
-  if ( w != NULL )
-    *w = frustum -> getRight() - frustum -> getLeft() ;
-
-  if ( h != NULL )
-    *h = frustum -> getTop() - frustum -> getBot() ;
+  frustum -> getOrtho ( w, h ) ;
 }
 
 void ssgContext::setOrtho ( float w, float h )
 {
-  orthographic = TRUE ;
-  frustum -> setFrustum ( -w/2, w/2, -h/2, h/2,
-                          frustum -> getNear (),
-                          frustum -> getFar () ) ;
+  frustum -> setOrtho ( w, h ) ;
 }
 
 void ssgContext::setFOV ( float w, float h )
 {
-  orthographic = FALSE ;
   frustum -> setFOV ( w, h ) ;
 }
+
 
 void ssgContext::setCamera ( sgMat4 mat )
 {
@@ -168,7 +182,7 @@ void ssgContext::setCamera ( sgMat4 mat )
   sgPreMultMat4 ( cameraMatrix, viewmat ) ;
 }
 
-void ssgContext::setCamera ( sgCoord *coord )
+void ssgContext::setCamera ( const sgCoord *coord )
 {
   sgMat4 viewmat, mat ;
 
@@ -211,7 +225,7 @@ void ssgContext::pushProjectionMatrix ()
 
 void ssgContext::pushProjectionMatrix ( sgFrustum *f )
 {
-  if ( orthographic )
+  if ( f -> isOrtho() )
     glOrtho   ( f -> getLeft() , f -> getRight(),
                 f -> getBot () , f -> getTop  (),
                 f -> getNear() , f -> getFar  () ) ;
@@ -223,26 +237,7 @@ void ssgContext::pushProjectionMatrix ( sgFrustum *f )
 
 void ssgContext::getProjectionMatrix ( sgMat4 dst )
 {
-  if ( orthographic )
-  {
-    float l =  frustum -> getLeft  () ;
-    float r =  frustum -> getRight () ;
-    float b =  frustum -> getBot   () ;
-    float t =  frustum -> getTop   () ;
-    float n =  frustum -> getNear  () ;
-    float f =  frustum -> getFar   () ;
-
-    sgMakeIdentMat4 ( dst ) ;
-    dst[0][0] =  2.0f / ( r - l ) ;
-    dst[1][1] =  2.0f / ( t - b ) ;
-    dst[2][2] = -2.0f / ( f - n ) ;
-
-    dst[3][0] = - ( r + l ) / ( r - l ) ;
-    dst[3][1] = - ( t + b ) / ( t - b ) ;
-    dst[3][2] = - ( f + n ) / ( f - n ) ;
-  }
-  else
-    frustum -> getMat4 ( dst ) ;
+  frustum -> getMat4 ( dst ) ;
 }
 
 void ssgContext::getModelviewMatrix ( sgMat4 dst )
@@ -260,7 +255,7 @@ void ssgContext::loadModelviewMatrix ( sgMat4 mat )
   glLoadMatrixf ( (float *) mat ) ;
 }
 
-void ssgContext::cull ( ssgRoot *r )
+void ssgContext::cull ( ssgBranch *r )
 {
   r -> cull ( frustum, cameraMatrix, TRUE ) ;
 }

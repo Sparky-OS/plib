@@ -1,6 +1,6 @@
 /*
      PLIB - A Suite of Portable Game Libraries
-     Copyright (C) 2001  Steve Baker
+     Copyright (C) 1998,2002  Steve Baker
  
      This library is free software; you can redistribute it and/or
      modify it under the terms of the GNU Library General Public
@@ -13,12 +13,12 @@
      Library General Public License for more details.
  
      You should have received a copy of the GNU Library General Public
-     License along with this library; if not, write to the Free
+     License along with this library; if not, write to the Free Software
      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: netBuffer.h,v 1.3 2001/04/12 03:17:55 deca Exp $
+     $Id: netBuffer.h,v 1.9 2004/03/21 18:19:11 sjbaker Exp $
 */
 
 /****
@@ -66,7 +66,7 @@
 *
 * AUTHORS
 *   Sam Rushing <rushing@nightmare.com> - original version for Medusa
-*   Dave McClurg <dpm@efn.org> - modified for use in Pegasus
+*   Dave McClurg <dpm@efn.org> - modified for use in PLIB
 *
 * CREATION DATE
 *   Dec-2000
@@ -87,7 +87,7 @@ enum { NET_MAX_NAME = 31 } ;
 //eg. char name [ NET_MAX_NAME+1 ] ;
 
 
-inline char* netCopyName ( char* dst, cchar* src )
+inline char* netCopyName ( char* dst, const char* src )
 {
   if ( src != NULL )
   {
@@ -199,7 +199,6 @@ class netBufferChannel : public netChannel
 
 public:
 
-  // constructor
   netBufferChannel (int in_buffer_size = 4096, int out_buffer_size = 16384) :
     in_buffer (in_buffer_size),
     out_buffer (out_buffer_size),
@@ -221,7 +220,7 @@ public:
   {
     if ( out_buffer.append(msg,msg_len) )
       return true ;
-    fprintf ( stderr, "netBufferChannel: output buffer overflow!\n" ) ;
+    ulSetError ( UL_WARNING, "netBufferChannel: output buffer overflow!" ) ;
     return false ;
   }
 

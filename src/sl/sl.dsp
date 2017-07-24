@@ -1,30 +1,28 @@
 # Microsoft Developer Studio Project File - Name="sl" - Package Owner=<4>
 # Microsoft Developer Studio Generated Build File, Format Version 6.00
-# ** NICHT BEARBEITEN **
+# ** DO NOT EDIT **
 
 # TARGTYPE "Win32 (x86) Static Library" 0x0104
 
 CFG=sl - Win32 Debug
-!MESSAGE Dies ist kein gültiges Makefile. Zum Erstellen dieses Projekts mit NMAKE
-!MESSAGE verwenden Sie den Befehl "Makefile exportieren" und führen Sie den Befehl
+!MESSAGE This is not a valid makefile. To build this project using NMAKE,
+!MESSAGE use the Export Makefile command and run
 !MESSAGE 
 !MESSAGE NMAKE /f "sl.mak".
 !MESSAGE 
-!MESSAGE Sie können beim Ausführen von NMAKE eine Konfiguration angeben
-!MESSAGE durch Definieren des Makros CFG in der Befehlszeile. Zum Beispiel:
+!MESSAGE You can specify a configuration when running NMAKE
+!MESSAGE by defining the macro CFG on the command line. For example:
 !MESSAGE 
 !MESSAGE NMAKE /f "sl.mak" CFG="sl - Win32 Debug"
 !MESSAGE 
-!MESSAGE Für die Konfiguration stehen zur Auswahl:
+!MESSAGE Possible choices for configuration are:
 !MESSAGE 
-!MESSAGE "sl - Win32 Release" (basierend auf  "Win32 (x86) Static Library")
-!MESSAGE "sl - Win32 Debug" (basierend auf  "Win32 (x86) Static Library")
+!MESSAGE "sl - Win32 Release" (based on "Win32 (x86) Static Library")
+!MESSAGE "sl - Win32 Debug" (based on "Win32 (x86) Static Library")
 !MESSAGE 
 
 # Begin Project
 # PROP AllowPerConfigDependencies 0
-# PROP Scc_ProjName "sl"
-# PROP Scc_LocalPath "."
 CPP=cl.exe
 RSC=rc.exe
 
@@ -41,7 +39,8 @@ RSC=rc.exe
 # PROP Intermediate_Dir "Release"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
-# ADD CPP /nologo /W3 /GX /O2 /I "..\util" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
+# ADD CPP /nologo /MT /W3 /Zi /O2 /I "..\util" /I ".." /D "NDEBUG" /D "_LIB" /D "NEEDNAMESPACESTD" /D "HAVE_CONFIG_H" /D "HAVE_WINDOWS_H" /D "WIN32" /D "_MBCS" /FD /c
+# SUBTRACT CPP /YX
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -50,38 +49,18 @@ BSC32=bscmake.exe
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
 # ADD LIB32 /nologo
-# Begin Custom Build - 'sl' gets installed
-ProjDir=.
-InputPath=.\Release\sl.lib
-SOURCE="$(InputPath)"
-
-BuildCmds= \
-	copy $(ProjDir)\sl.h $(ProjDir)\..\..\sl.h \
-	copy $(ProjDir)\slPortability.h $(ProjDir)\..\..\slPortability.h \
-	copy $(ProjDir)\sm.h $(ProjDir)\..\..\sm.h \
-	
-
-"$(ProjDir)\..\..\sl.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-   $(BuildCmds)
-
-"$(ProjDir)\..\..\slPortability.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-   $(BuildCmds)
-
-"$(ProjDir)\..\..\sm.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-   $(BuildCmds)
-# End Custom Build
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
 PostBuild_Desc=Copy Library to plib directory
-PostBuild_Cmds=copy release\*.lib ..\..\*.*
+PostBuild_Cmds=copy release\*.lib ..\..\*.*	copy sl.h ..\..\sl.h  	copy slPortability.h ..\..\slPortability.h 	copy sm.h ..\..\sm.h
 # End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "sl - Win32 Debug"
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 1
-# PROP BASE Output_Dir "sl___Win32_Debug"
-# PROP BASE Intermediate_Dir "sl___Win32_Debug"
+# PROP BASE Output_Dir "Debug"
+# PROP BASE Intermediate_Dir "Debug"
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 1
@@ -89,7 +68,8 @@ PostBuild_Cmds=copy release\*.lib ..\..\*.*
 # PROP Intermediate_Dir "Debug"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
-# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I "..\util" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /GX /Zi /Od /I "..\util" /I ".." /D "_DEBUG" /D "_LIB" /D "NEEDNAMESPACESTD" /D "HAVE_CONFIG_H" /D "HAVE_WINDOWS_H" /D "WIN32" /D "_MBCS" /FD /GZ /c
+# SUBTRACT CPP /YX
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -97,31 +77,11 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
-# ADD LIB32 /nologo
-# Begin Custom Build - 'sl' gets installed
-ProjDir=.
-InputPath=.\Debug\sl.lib
-SOURCE="$(InputPath)"
-
-BuildCmds= \
-	copy $(ProjDir)\sl.h $(ProjDir)\..\..\sl.h \
-	copy $(ProjDir)\slPortability.h $(ProjDir)\..\..\slPortability.h \
-	copy $(ProjDir)\sm.h $(ProjDir)\..\..\sm.h \
-	
-
-"$(ProjDir)\..\..\sl.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-   $(BuildCmds)
-
-"$(ProjDir)\..\..\slPortability.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-   $(BuildCmds)
-
-"$(ProjDir)\..\..\sm.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-   $(BuildCmds)
-# End Custom Build
+# ADD LIB32 /nologo /out:"Debug\sl_d.lib"
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
 PostBuild_Desc=Copy Library to plib directory
-PostBuild_Cmds=copy debug\*.lib ..\..\*.*
+PostBuild_Cmds=copy debug\*.lib ..\..\*.*	copy sl.h ..\..\sl.h  	copy slPortability.h ..\..\slPortability.h 	copy sm.h ..\..\sm.h
 # End Special Build Tool
 
 !ENDIF 

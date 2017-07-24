@@ -1,6 +1,6 @@
 /*
      PLIB - A Suite of Portable Game Libraries
-     Copyright (C) 2001  Steve Baker
+     Copyright (C) 1998,2002  Steve Baker
  
      This library is free software; you can redistribute it and/or
      modify it under the terms of the GNU Library General Public
@@ -13,12 +13,12 @@
      Library General Public License for more details.
  
      You should have received a copy of the GNU Library General Public
-     License along with this library; if not, write to the Free
+     License along with this library; if not, write to the Free Software
      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
- 
+
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgIsect.cxx,v 1.2 2001/04/12 03:38:15 deca Exp $
+     $Id: ssgIsect.cxx,v 1.6 2002/10/26 19:00:55 sjbaker Exp $
 */
 
 
@@ -31,6 +31,7 @@ static ssgEntity *pathlist [ SSG_MAXPATH ] ;
 static int next_path = 0 ;
 
 int _ssgIsHotTest = FALSE ;
+int _ssgIsLosTest = FALSE ;
 
 void _ssgPushPath ( ssgEntity *e )
 {
@@ -62,15 +63,16 @@ void _ssgAddHit ( ssgLeaf *l, int trinum, sgMat4 mat, sgVec4 pl )
 
   h -> num_entries = (next_path>=SSG_MAXPATH) ? SSG_MAXPATH : next_path ;
   memcpy ( h -> path, pathlist, h->num_entries * sizeof ( ssgEntity * ) ) ;
-  
+
   sgCopyMat4 ( h -> matrix, mat ) ;
   sgCopyVec4 ( h -> plane, pl ) ;
 }
 
 
-int ssgIsect ( ssgRoot *root, sgSphere *s, sgMat4 mat, ssgHit **results )
+int ssgIsect ( ssgBranch *root, sgSphere *s, sgMat4 mat, ssgHit **results )
 {
   _ssgIsHotTest = FALSE ;
+  _ssgIsLosTest = FALSE ;
   next_hit  = 0 ;
   next_path = 0 ;
   root -> isect ( s, mat, TRUE ) ;
@@ -79,9 +81,10 @@ int ssgIsect ( ssgRoot *root, sgSphere *s, sgMat4 mat, ssgHit **results )
 }
 
 
-int ssgHOT ( ssgRoot *root, sgVec3 s, sgMat4 mat, ssgHit **results )
+int ssgHOT ( ssgBranch *root, sgVec3 s, sgMat4 mat, ssgHit **results )
 {
   _ssgIsHotTest = TRUE ;
+  _ssgIsLosTest = FALSE ;
   next_hit  = 0 ;
   next_path = 0 ;
   root -> hot ( s, mat, TRUE ) ;
@@ -90,12 +93,13 @@ int ssgHOT ( ssgRoot *root, sgVec3 s, sgMat4 mat, ssgHit **results )
 }
 
 
-int ssgLOS ( ssgRoot *root, sgVec3 s, sgMat4 mat, ssgHit **results )
+int ssgLOS ( ssgBranch *root, sgVec3 s, sgMat4 mat, ssgHit **results )
 {
   _ssgIsHotTest = FALSE ;
+  _ssgIsLosTest = TRUE ;
   next_hit  = 0 ;
   next_path = 0 ;
-  root -> hot ( s, mat, TRUE ) ;
+  root -> los ( s, mat, TRUE ) ;
   *results = & hitlist [ 0 ] ;
   return next_hit ;
 }

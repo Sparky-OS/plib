@@ -1,6 +1,6 @@
 /*
      PLIB - A Suite of Portable Game Libraries
-     Copyright (C) 2001  Steve Baker
+     Copyright (C) 1998,2002  Steve Baker
  
      This library is free software; you can redistribute it and/or
      modify it under the terms of the GNU Library General Public
@@ -13,12 +13,12 @@
      Library General Public License for more details.
  
      You should have received a copy of the GNU Library General Public
-     License along with this library; if not, write to the Free
+     License along with this library; if not, write to the Free Software
      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgParser.cxx,v 1.19 2001/05/20 10:28:43 wolfram_kuss Exp $
+     $Id: ssgParser.cxx,v 1.26 2002/09/02 06:05:48 sjbaker Exp $
 */
 
 //
@@ -150,7 +150,7 @@ char* _ssgParser::getNextToken( const char* name )
 {
 	while(!( curtok < numtok ))
 	{	//int startLevel = level;
-	  //printf("Forcing!\n");
+	  //ulSetError(UL_DEBUG, "Forcing!");
 		if(getLine( -999 ) == NULL) // -999
 		{	if ( name )
 				error("missing %s",name) ;
@@ -170,7 +170,7 @@ char *_ssgParser::peekAtNextToken( const char* name )
 {
 	while(!( curtok < numtok ))
 	{	//int startLevel = level;
-	  //printf("Forcing!\n");
+	  //ulSetError(UL_DEBUG, "Forcing!");
 		if(getLine( -999 ) == NULL) // -999
 		{	if ( name )
 				error("missing %s",name) ;
@@ -213,6 +213,30 @@ int _ssgParser::getNextInt( int & retVal, const char* name )
 	}
 }
 
+int _ssgParser::getNextString(char *&retVal, const char* name ) // returns TRUE on success
+// wk: This is only for strings where we know they are inside spec.quote_chars, correct?
+{
+   char *token = getNextToken( NULL );
+   
+   if ( spec.quote_char && *token == spec.quote_char )
+     {
+	//knock off the quotes
+	token++ ;
+	int len = strlen( token ) ;
+	if (len > 0 && token[len-1] == spec.quote_char)
+	  token[len-1] = 0;
+     }
+   
+   if( name != NULL && strcmp( token, name  ) ) 
+     {
+	error("Expected %s but got %s instead", name, token) ;
+	return FALSE;	
+     }
+      
+   retVal = token;
+   return TRUE;
+}
+
 int _ssgParser::getNextUInt( unsigned int & retVal, const char* name )
 // returns TRUE on success
 { char *endptr, *token = getNextToken(name);
@@ -246,13 +270,35 @@ void _ssgParser::addOneCharToken ( char *ptr )
 	onechartokenbuf_ptr += 2; // prepare for nect onechartoken
 }
 
-char *mystrchr( const char *string, int c )
+static char *mystrchr( const char *string, int c )
 // like strchr, but string may be NULL
 {
 	if (string == NULL )
 		return NULL;
 	else
 		return strchr( string, c );
+}
+
+
+// gets the next line (no matter where it is), without tokenizing it
+// useful for parsing text-formatted files which are identified by
+// comments at the very beginning
+char* _ssgParser::getRawLine()
+// return NULL on eof
+{
+   tokbuf[0]=0;
+   
+   //get the next line with something on it
+   if ( fgets ( linebuf, sizeof(linebuf), fileptr ) == NULL )
+     { 
+	eol = TRUE;
+	eof = TRUE;
+	return(0) ;
+     }
+   
+   memcpy( tokbuf, linebuf, sizeof(linebuf) ) ;
+
+   return tokbuf;
 }
 
 // wk: This works and is IMHO robust.
@@ -412,10 +458,22 @@ int _ssgParser::parseString(char *&retVal, const char* name ) // returns TRUE on
 	    error("missing %s",name) ;
 		return FALSE;
 	}
-	retVal = token;
+   retVal = token;
   return TRUE;
 }
 
+int _ssgParser::parseDouble( double &retVal, const char* name )
+// returns TRUE on success
+{
+  char *endptr, *token = parseToken(name);
+  retVal = strtod( token, &endptr);
+	if ( (endptr == NULL) || (*endptr == 0))
+    return TRUE;
+	else
+	{ error("The field %s should contain a floating point number but contains %s",name, token) ;
+		return FALSE;
+	}
+}
 
 int _ssgParser::parseFloat( SGfloat &retVal, const char* name )
 // returns TRUE on success

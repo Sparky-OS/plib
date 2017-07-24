@@ -1,32 +1,37 @@
 /*
      PLIB - A Suite of Portable Game Libraries
-     Copyright (C) 2001  Steve Baker
- 
+     Copyright (C) 1998,2002  Steve Baker
+
      This library is free software; you can redistribute it and/or
      modify it under the terms of the GNU Library General Public
      License as published by the Free Software Foundation; either
      version 2 of the License, or (at your option) any later version.
- 
+
      This library is distributed in the hope that it will be useful,
      but WITHOUT ANY WARRANTY; without even the implied warranty of
      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
      Library General Public License for more details.
- 
+
      You should have received a copy of the GNU Library General Public
-     License along with this library; if not, write to the Free
+     License along with this library; if not, write to the Free Software
      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
- 
+
      For further information visit http://plib.sourceforge.net
 
-     $Id: puVerticalMenu.cxx,v 1.2 2001/04/12 03:36:12 deca Exp $
+     $Id: puVerticalMenu.cxx,v 1.10 2002/09/02 06:05:46 sjbaker Exp $
 */
 
 
 #include "puLocal.h"
 
+UL_RTTI_DEF1(puVerticalMenu,puGroup)
+
+
 extern void puMenuBar_drop_down_the_menu ( puObject *b );
 
-void puVerticalMenu::add_submenu ( char *str, char *items[], puCallback cb[] )
+/* If there is only one entry in a vmenu, just act as if clicking the menu clicks the oneshot underneath it. */
+void puVerticalMenu::add_submenu ( const char *str, char *items[],
+                                   puCallback _cb[], void *_user_data[] )
 {
   int w, h ;
   getSize ( &w, &h ) ;
@@ -52,8 +57,12 @@ void puVerticalMenu::add_submenu ( char *str, char *items[], puCallback cb[] )
 
     b -> setUserData ( p ) ;
 
-    for ( int i = 0 ; items[i] != NULL ; i++ )
-      p -> add_item ( items[i], cb[i] ) ;
+    if ( _user_data != NULL )
+      for ( int i = 0 ; items[i] != NULL ; i++ )
+        p -> add_item ( items[i], _cb[i], _user_data[i] ) ;
+    else
+      for ( int i = 0 ; items[i] != NULL ; i++ )
+        p -> add_item ( items[i], _cb[i] ) ;
 
     p->close () ;
   }
@@ -69,7 +78,7 @@ void puVerticalMenu::add_submenu ( char *str, char *items[], puCallback cb[] )
                            colour[PUCOL_FOREGROUND][2],
                            colour[PUCOL_FOREGROUND][3] ) ;
 
-    b -> setCallback ( cb[0] );
+    b -> setCallback ( _cb[0] );
     b -> setActiveDirn ( PU_UP ) ;
 
     b -> setUserData ( NULL ) ;
@@ -93,7 +102,7 @@ void puVerticalMenu::close (void)
   // If the "puOneShot" has a user data of null, it is a single entry and its      
   // puPopup item is missing.
 
-  for ( ob = dlist ; ob != NULL ; ob = ob -> next )
+  for ( ob = dlist ; ob != NULL ; ob = ob -> getNextObject() )
   {
     int w, h ;
 
@@ -105,7 +114,7 @@ void puVerticalMenu::close (void)
     if (ob -> getUserData () )     
     {
 
-      ob = ob -> next ;
+      ob = ob -> getNextObject() ;
 
       // Reposition the submenu so it sits under the button
 
@@ -123,7 +132,7 @@ void puVerticalMenu::close (void)
   // all the vertical positions so that the (0,0) point will be the lower left-
   // hand corner.
 
-  for ( ob = dlist ; ob != NULL ; ob = ob -> next )
+  for ( ob = dlist ; ob != NULL ; ob = ob -> getNextObject() )
   {
     int x, y ;
 
@@ -135,7 +144,7 @@ void puVerticalMenu::close (void)
     if (ob -> getUserData () )      
     {
 
-      ob = ob -> next ;        
+      ob = ob -> getNextObject() ;
 
       // Reposition the submenu so it sits under the button
 
@@ -152,11 +161,11 @@ void puVerticalMenu::close (void)
   if (window != parent -> getWindow () )
   {
     int temp_window = puGetWindow () ;
-    glutSetWindow ( window ) ;
-    glutReshapeWindow ( bbox.max[0] - bbox.min[0], bbox.max[1] - bbox.min[1] ) ;
+    puSetWindow ( window ) ;
+    puSetWindowSize ( bbox.max[0] - bbox.min[0], bbox.max[1] - bbox.min[1] ) ;
     setPosition ( 0, 0 ) ;
 
-    glutSetWindow ( temp_window ) ;
+    puSetWindow ( temp_window ) ;
   }
 
 }

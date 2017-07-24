@@ -1,6 +1,6 @@
 /*
      PLIB - A Suite of Portable Game Libraries
-     Copyright (C) 2001  Steve Baker
+     Copyright (C) 1998,2002  Steve Baker
  
      This library is free software; you can redistribute it and/or
      modify it under the terms of the GNU Library General Public
@@ -13,12 +13,12 @@
      Library General Public License for more details.
  
      You should have received a copy of the GNU Library General Public
-     License along with this library; if not, write to the Free
+     License along with this library; if not, write to the Free Software
      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: netSocket.h,v 1.11 2001/06/23 02:30:18 sjbaker Exp $
+     $Id: netSocket.h,v 1.20 2004/03/28 03:58:24 sjbaker Exp $
 */
 
 /****
@@ -44,50 +44,28 @@
 #include "ul.h"
 #include <errno.h>
 
-
-#if defined (WIN32)
-#define strcasecmp stricmp 
-#define strncasecmp strnicmp 
-#endif
-
-/*
- * Define Basic types
- */
-
-typedef float f32;
-typedef double f64;
-
-typedef signed char s8;
-typedef signed short s16;
-typedef signed int s32;
-
-typedef unsigned char u8;
-typedef unsigned short u16;
-typedef unsigned int u32;
-
-typedef const char cchar;
-typedef const void cvoid;
-
-
 /*
  * Socket address, internet style.
  */
 class netAddress
 {
-  s16     sin_family;
-  u16     sin_port;
-  u32     sin_addr;
-  char    sin_zero[8];
+  /* DANGER!!!  This MUST match 'struct sockaddr_in' exactly! */
+  short          sin_family     ;
+  unsigned short sin_port       ;
+  unsigned int   sin_addr       ;
+  char           sin_zero [ 8 ] ;
 
 public:
   netAddress () {}
-  netAddress ( cchar* host, int port ) ;
+  netAddress ( const char* host, int port ) ;
 
-  void set ( cchar* host, int port ) ;
-  cchar* getHost () const ;
+  void set ( const char* host, int port ) ;
+  const char* getHost () const ;
   int getPort() const ;
 
-  static cchar* getLocalHost () ;
+  static const char* getLocalHost () ;
+
+  bool getBroadcast () const ;
 };
 
 
@@ -108,24 +86,30 @@ public:
   
   bool  open        ( bool stream=true ) ;
   void  close		    ( void ) ;
-  int   bind        ( cchar* host, int port ) ;
+  int   bind        ( const char* host, int port ) ;
   int   listen	    ( int backlog ) ;
   int   accept      ( netAddress* addr ) ;
-  int   connect     ( cchar* host, int port ) ;
-  int   send		    ( const void * buffer, int size, int flags = 0 ) ;
+  int   connect     ( const char* host, int port ) ;
+  int   send	    ( const void * buffer, int size, int flags = 0 ) ;
   int   sendto      ( const void * buffer, int size, int flags, const netAddress* to ) ;
-  int   recv		    ( void * buffer, int size, int flags = 0 ) ;
+  int   recv	    ( void * buffer, int size, int flags = 0 ) ;
   int   recvfrom    ( void * buffer, int size, int flags, netAddress* from ) ;
 
   void setBlocking ( bool blocking ) ;
+  void setBroadcast ( bool broadcast ) ;
 
   static bool isNonBlockingError () ;
   static int select ( netSocket** reads, netSocket** writes, int timeout ) ;
 } ;
 
 
-int netInit ( int* argc, char** argv ) ;
-cchar* netFormat ( cchar* fmt, ... ) ;
+int netInit ( int* argc, char** argv = NULL ) ;  /* Legacy */
+
+int netInit () ;
+
+
+const char* netFormat ( const char* fmt, ... ) ;
 
 
 #endif // NET_SOCKET_H
+

@@ -1,6 +1,6 @@
 /*
      PLIB - A Suite of Portable Game Libraries
-     Copyright (C) 2001  Steve Baker
+     Copyright (C) 1998,2002  Steve Baker
  
      This library is free software; you can redistribute it and/or
      modify it under the terms of the GNU Library General Public
@@ -13,12 +13,12 @@
      Library General Public License for more details.
  
      You should have received a copy of the GNU Library General Public
-     License along with this library; if not, write to the Free
+     License along with this library; if not, write to the Free Software
      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgLoadASE.cxx,v 1.36 2001/06/16 16:27:37 stromberg Exp $
+     $Id: ssgLoadASE.cxx,v 1.46 2002/11/30 00:41:50 sjbaker Exp $
 */
 
 /****
@@ -61,10 +61,6 @@
 #include "ssgLocal.h"
 #include "ssgParser.h"
 
-#ifndef _WIN32
-#define stricmp strcasecmp
-#define strnicmp strncasecmp
-#endif
 
 #define u32 unsigned int
 #define f32 float
@@ -89,6 +85,13 @@ struct aseFace
   u32 tv[3];
   u32 cv[3];
   u32 sub_index;
+
+	// SAC: Additional vals to track normals for each face vertex.
+  // Since each vertex can supposedly have various normals if shared by two
+  // non-smoothed faces, we track them per face.  I haven't checked this as
+  // good as I should have with smoothed & unsmoothed shapes :)
+	bool has_vertex_normals;
+	sgVec3 vn [3];
 };
 
 
@@ -120,9 +123,13 @@ struct aseMesh
 
 struct aseObject
 {
+  enum Type { GEOM, HELPER, CAMERA } ;
+  int type ;
   char* name ;
   char* parent ;
+  bool inherit_pos [3] ;
   sgVec3 pos ;
+  sgVec3 target ;
   u32 mat_index ;
   u32 num_tkeys ;
   aseTransform* tkeys ;
@@ -131,7 +138,7 @@ struct aseObject
   aseMesh* mesh_list[ MAX_FRAMES ];
   int mesh_count ;
   
-  aseObject();
+  aseObject( Type type );
   ~aseObject();
 };
 
@@ -154,7 +161,7 @@ struct aseMaterial
 };
 
 
-enum { MAX_MATERIALS = 1000 };
+#define MAX_MATERIALS 1000
 static aseMaterial** materials ;
 static u32 num_materials ;
 
@@ -193,9 +200,10 @@ aseMesh::~aseMesh()
 }
 
 
-aseObject::aseObject()
+aseObject::aseObject( aseObject::Type _type )
 {
   memset(this,0,sizeof(aseObject));
+  type = _type ;
 }
 
 
@@ -297,10 +305,8 @@ static ssgSimpleState* make_state( aseMaterial* mat, bool prelit )
     st -> setMaterial ( GL_DIFFUSE, mat -> diff ) ;
     st -> setMaterial ( GL_SPECULAR, mat -> spec ) ;
     st -> setShininess ( mat -> shine ) ;
-    
-    st -> enable ( GL_COLOR_MATERIAL ) ;
+    st -> disable ( GL_COLOR_MATERIAL ) ;
     st -> setColourMaterial ( GL_AMBIENT_AND_DIFFUSE ) ;
-    
     st -> enable  ( GL_LIGHTING ) ;
   }
   
@@ -313,7 +319,11 @@ static ssgSimpleState* make_state( aseMaterial* mat, bool prelit )
 static ssgSimpleState* get_state( aseMaterial* mat, bool prelit )
 {
   // is material an ifl (image file list)
+#ifdef UL_WIN32
   if ( strnicmp ( "ifl_", mat -> name, 4 ) == 0 )
+#else
+  if ( strncasecmp ( "ifl_", mat -> name, 4 ) == 0 )
+#endif
   {
     u32 num_subs = count_sub_materials ( mat -> mat_index );
     if ( num_subs < 2 )
@@ -351,16 +361,15 @@ static int parse_map( aseMaterial* mat )
         char* fname;
 				if (! parser.parseString(fname, "bitmap filename") )
 					return FALSE;
-				
+
         //strip existing directory from fname
         char* slash = strrchr ( fname, '/' ) ;
         if ( !slash )
           slash = strrchr ( fname, '\\' ) ; //for dos
         if ( slash )
           fname = slash + 1 ;
-        
-        mat->tfname = new char [ strlen(fname)+1 ] ;
-        strcpy ( mat->tfname, fname ) ;
+
+        mat->tfname = ulStrDup ( fname ) ;
       }
     }
     else if (!strcmp(token,"*UVW_U_TILING"))
@@ -428,14 +437,10 @@ static int parse_material( u32 mat_index, u32 sub_index, cchar* mat_name )
         char buff [ 256 ] ;
         sprintf( buff, "%s, sub#%d", mat_name, sub_index );
         
-        mat->name = new char [ strlen(buff)+1 ] ;
-        strcpy ( mat->name, buff ) ;
+        mat->name = ulStrDup ( buff ) ;
       }
       else
-      {
-        mat->name = new char [ strlen(name)+1 ] ;
-        strcpy ( mat->name, name ) ;
-      }
+        mat->name = ulStrDup ( name ) ;
     }
     else if (!strcmp(token,"*MATERIAL_AMBIENT"))
     {
@@ -471,6 +476,15 @@ static int parse_material( u32 mat_index, u32 sub_index, cchar* mat_name )
     {
       if (! parser.parseFloat(mat->shine, "shine"))
 			  return FALSE;
+
+			// SAC: Shine seems off.  If I load a 3ds of the same shape
+      // the shine is 256x as much and works better, so I'll tweak
+      // the val here  :)    I couldn't clarify the range used by
+      // MAX SDK anywhere in the docs (though this assumes 0 - 0.5).
+      // OpenGL is 0-128.
+			mat->shine = mat->shine * 256.0f;
+			if ( mat->shine > 128 )
+				mat->shine = 128;
     }
     else if (!strcmp(token,"*MATERIAL_TRANSPARENCY"))
     {
@@ -524,6 +538,8 @@ static int parse_material_list()
 static int parse_mesh( aseObject* obj )
 {
   aseMesh* mesh = NULL ;
+	u32 mesh_face_normal_index = 0x7fffffff;
+	u32 mesh_face_normal_count = 0;
   
   char* token;
   int startLevel = parser.level;
@@ -566,6 +582,9 @@ static int parse_mesh( aseObject* obj )
         if (! parser.parseUInt(mesh -> num_faces, "num_faces"))
 					return FALSE;
         mesh -> faces = new aseFace[ mesh -> num_faces ];
+
+        // SAC: Help clear all the has_vertex_normals flags
+				memset ( mesh -> faces, 0, mesh -> num_faces * sizeof (aseFace) );
       }
     }
     else if (!strcmp(token,"*MESH_NUMTVFACES"))
@@ -702,6 +721,44 @@ static int parse_mesh( aseObject* obj )
 					return FALSE;
       }
     }
+		// SAC: START OF VERTEX NORMAL PARSING SECTION   
+		// NOTE: Assumes that three correctly-ordered *MESH_VERTEXNORMAL lines
+    // come after each *MESH_FACENORMAL line.  Which seems to be the case
+    // in current exporter
+    else if (!strcmp(token,"*MESH_FACENORMAL"))		
+		{
+			if (! parser.parseUInt(mesh_face_normal_index, "face normal #"))
+				return FALSE;
+			mesh_face_normal_count = 0;
+		}
+    else if (!strcmp(token,"*MESH_VERTEXNORMAL"))
+    {
+			//int nverts = mesh -> num_verts;
+
+      if ( mesh_face_normal_index >= mesh -> num_faces )
+        parser.error("bad mesh_face_normal_index #");
+      if ( mesh_face_normal_count >= 3 )
+        parser.error("bad mesh_face_normal_count");
+
+			aseFace& face = mesh -> faces[ mesh_face_normal_index ];
+      sgVec3& vn = face . vn [ mesh_face_normal_count ];
+			face.has_vertex_normals = true;
+			u32 vertex_index;
+			if (! parser.parseUInt(vertex_index, "vertex normal #"))
+				return FALSE;
+			if  ( face.v [mesh_face_normal_count] != vertex_index )
+        parser.error("bad MESH_VERTEXNORMAL entries out of order!");
+      if (! parser.parseFloat(vn[0], "vertexNormal.x"))
+				return FALSE;
+      if (! parser.parseFloat(vn[1], "vertexNormal.y"))
+				return FALSE;
+      if (! parser.parseFloat(vn[2], "vertexNormal.z"))
+				return FALSE;
+
+			// sgNormaliseVec3 ( vn ) ;
+			mesh_face_normal_count++;
+    }
+		// SAC: END OF VERTEX NORMAL PARSING SECTION   
     else if (!strcmp(token,"*MESH_VERTEX"))
     {
       u32 index; 
@@ -776,35 +833,61 @@ static void get_texcoord ( aseMaterial* mat, sgVec2 tv )
 
 static ssgLeaf* add_points( aseObject* obj, aseMesh* mesh )
 {
-  aseMaterial* mat = find_material ( obj->mat_index, 0 ) ;
-  
-  u32 num_verts = mesh -> num_verts ;
-  if ( num_verts == 0 )
-    return NULL;
-  
-  //pass the data to ssg
-  ssgVertexArray* vl = new ssgVertexArray ( num_verts ) ;
+  ssgVertexArray* vl = NULL ;
 
-  sgVec3* vert = mesh -> verts ;
-  for ( u32 i=0; i < num_verts; i++, vert++ )
-    vl -> add ( *vert ) ;
+  if ( obj->type == aseObject::CAMERA )
+  {
+    /* compute a normalized target vector */
+    sgVec3 target ;
+		sgCopyVec3 ( target, obj->target ) ;
+		sgSubVec3 ( target, obj->pos ) ;
+
+    SGfloat len = sgLengthVec3 ( target ) ;
+    if ( len == SG_ZERO )
+    {
+      vl = new ssgVertexArray ( 1 ) ;
+      vl -> add ( obj->pos ) ;
+    }
+    else
+    {
+      vl = new ssgVertexArray ( 2 ) ;
+
+      sgNormaliseVec3 ( target ) ;
+      sgAddVec3 ( target, obj->pos ) ;
   
+      vl -> add ( obj->pos ) ;
+      vl -> add ( target ) ;
+    }
+  }
+  else if ( mesh != NULL )
+  {
+    u32 num_verts = mesh -> num_verts ;
+    if ( num_verts == 0 )
+      return NULL;
+
+    vl = new ssgVertexArray ( num_verts ) ;
+
+    //pass the data to ssg
+    sgVec3* vert = mesh -> verts ;
+    for ( u32 i=0; i < num_verts; i++, vert++ )
+      vl -> add ( *vert ) ;
+  }
+  else
+  {
+    return NULL ;
+  }
+
   ssgVtxTable* leaf = new ssgVtxTable ( GL_POINTS,
     vl, NULL, NULL, NULL ) ;
 
   if ( leaf != NULL )
   {
-    if ( mat != NULL )
-      leaf -> setState ( get_state ( mat, true ) ) ;
-
-    //fprintf( stdout, "add_points: %s\n", obj->name ) ;
-
     // leaves with no faces are used for game logic
     // and should not be culled and rendered
     leaf -> clrTraversalMaskBits ( SSGTRAV_CULL ) ;
   }
 
-  return current_options -> createLeaf ( leaf, obj -> name ) ;
+  return ssgGetCurrentOptions () -> createLeaf ( leaf, obj -> name ) ;
 }
 
 
@@ -865,7 +948,13 @@ static ssgLeaf* add_mesh( aseObject* obj, aseMesh* mesh, u32 sub_index )
       for ( u32 j=0; j<3; j++ )
       {
         vl -> add ( mesh -> verts[ face->v[j] ] ) ;
-        nl -> add ( n ) ;
+
+				// SAC: If per-vertex normals were found, use 'em.
+        // Else use the face normal computed above
+				if  ( face -> has_vertex_normals )
+					nl -> add ( face->vn [j] ) ;
+				else
+					nl -> add ( n ) ;
         
         if ( mesh -> tverts )
         {
@@ -953,9 +1042,9 @@ static ssgLeaf* add_mesh( aseObject* obj, aseMesh* mesh, u32 sub_index )
   }
   
   //if ( extra_verts > 0 )
-  //   fprintf( stdout, "%d verts; %d added\n", num_verts-extra_verts, extra_verts );
+  //   ulSetError( UL_DEBUG, "%d verts; %d added", num_verts-extra_verts, extra_verts );
   //else
-  //   fprintf( stdout, "%d verts\n", num_verts );
+  //   ulSetError( UL_DEBUG, "%d verts", num_verts );
   
   //pass the data to ssg
   ssgSimpleState* st = get_state ( mat, ( mesh -> cverts != NULL ) ) ;
@@ -1057,69 +1146,91 @@ static aseTransform* get_tkey( aseObject* obj, u32 time )
 
 static int parse_tkeys( aseObject* obj )
 {
+  bool match = false ;
   char* token;
   int startLevel = parser.level;
   while ((token = parser.getLine( startLevel )) != NULL)
   {
-    if (!strcmp(token,"*CONTROL_POS_SAMPLE"))
+    if (!strcmp(token,"*NODE_NAME"))
     {
-      u32 time;
-			if (! parser.parseUInt(time, "time"))
-				return FALSE;
-      aseTransform* tkey = get_tkey( obj, time );
-      
-      if (! parser.parseFloat(tkey->pos[0], "pos.x"))
-				return FALSE;
-      if (! parser.parseFloat(tkey->pos[1], "pos.y"))
-				return FALSE;
-      if (! parser.parseFloat(tkey->pos[2], "pos.z"))
-				return FALSE;
-      
-      if ( obj->parent == NULL )
-        sgSubVec3 ( tkey->pos, obj->pos ) ;
-      
-      //copy the position forward
-      for ( u32 i=obj->num_tkeys; i<num_frames; i++ )
-        sgCopyVec3 ( obj->tkeys[ i ].pos, tkey->pos ) ;
+      char* name;
+      if (! parser.parseString(name, "obj name"))
+        return FALSE;
+      if ( obj->name && !strcmp(name,obj->name) )
+        match = true ;
     }
-    else if (!strcmp(token,"*CONTROL_ROT_SAMPLE"))
+    else if (match)
     {
-      u32 time;
-			if (!parser.parseUInt(time, "time"))
-				return FALSE;
-      aseTransform* tkey = get_tkey( obj, time );
-      
-      if (! parser.parseFloat(tkey->axis[0], "axis.x"))
-				 return FALSE;
-      if (! parser.parseFloat(tkey->axis[1], "axis.y"))
-				return FALSE;
-      if (! parser.parseFloat(tkey->axis[2], "axis.z"))
-				return FALSE;
-      if (! parser.parseFloat(tkey->angle, "angle"))
-				return FALSE;
-    }
-    else if (!strcmp(token,"*CONTROL_SCALE_SAMPLE"))
-    {
-      u32 time;
-			if (! parser.parseUInt(time, "time"))
-				return FALSE;
-      aseTransform* tkey = get_tkey( obj, time );
-      
-      if (! parser.parseFloat(tkey->scale[0], "scale.x"))
-				return FALSE;
-      if (! parser.parseFloat(tkey->scale[1], "scale.y"))
-				return FALSE;
-      if (! parser.parseFloat(tkey->scale[2], "scale.z"))
-				return FALSE;
+      if (!strcmp(token,"*CONTROL_POS_SAMPLE"))
+      {
+        u32 time;
+        if (! parser.parseUInt(time, "time"))
+          return FALSE;
+        aseTransform* tkey = get_tkey( obj, time );
+        
+        if (! parser.parseFloat(tkey->pos[0], "pos.x"))
+          return FALSE;
+        if (! parser.parseFloat(tkey->pos[1], "pos.y"))
+          return FALSE;
+        if (! parser.parseFloat(tkey->pos[2], "pos.z"))
+          return FALSE;
+        
+        if ( obj->parent == NULL )
+        {
+          sgSubVec3 ( tkey->pos, obj->pos ) ;
+        }
+        else
+        {
+          for ( int i=0; i<3; i++ )
+          {
+            if ( obj->inherit_pos[i] )
+              tkey->pos[i] -= obj->pos[i] ;
+          }
+        }
+        
+        //copy the position forward
+        for ( u32 i=obj->num_tkeys; i<num_frames; i++ )
+          sgCopyVec3 ( obj->tkeys[ i ].pos, tkey->pos ) ;
+      }
+      else if (!strcmp(token,"*CONTROL_ROT_SAMPLE"))
+      {
+        u32 time;
+        if (!parser.parseUInt(time, "time"))
+          return FALSE;
+        aseTransform* tkey = get_tkey( obj, time );
+        
+        if (! parser.parseFloat(tkey->axis[0], "axis.x"))
+          return FALSE;
+        if (! parser.parseFloat(tkey->axis[1], "axis.y"))
+          return FALSE;
+        if (! parser.parseFloat(tkey->axis[2], "axis.z"))
+          return FALSE;
+        if (! parser.parseFloat(tkey->angle, "angle"))
+          return FALSE;
+      }
+      else if (!strcmp(token,"*CONTROL_SCALE_SAMPLE"))
+      {
+        u32 time;
+        if (! parser.parseUInt(time, "time"))
+          return FALSE;
+        aseTransform* tkey = get_tkey( obj, time );
+        
+        if (! parser.parseFloat(tkey->scale[0], "scale.x"))
+          return FALSE;
+        if (! parser.parseFloat(tkey->scale[1], "scale.y"))
+          return FALSE;
+        if (! parser.parseFloat(tkey->scale[2], "scale.z"))
+          return FALSE;
+      }
     }
   }
 	return TRUE;
 }
 
 
-static int parse_object()
+static int parse_object( aseObject::Type type )
 {
-  aseObject* obj = new aseObject ;
+  aseObject* obj = new aseObject ( type ) ;
   
   char* token;
   int startLevel = parser.level;
@@ -1134,8 +1245,7 @@ static int parse_object()
 					return FALSE;
 				
         
-        obj->name = new char [ strlen(name)+1 ] ;
-        strcpy ( obj->name, name ) ;
+        obj->name = ulStrDup ( name ) ;
       }
     }
     else if (!strcmp(token,"*NODE_PARENT"))
@@ -1147,18 +1257,65 @@ static int parse_object()
 					return FALSE;
 				
         
-        obj->parent = new char [ strlen(name)+1 ] ;
-        strcpy ( obj->parent, name ) ;
+        obj->parent = ulStrDup ( name ) ;
       }
     }
-    else if (!strcmp(token,"*TM_POS"))
+    else if (!strcmp(token,"*NODE_TM"))
     {
-      if (! parser.parseFloat(obj->pos[0], "pos.x"))
-				return FALSE;
-      if (! parser.parseFloat(obj->pos[1], "pos.y"))
-				return FALSE;
-      if (! parser.parseFloat(obj->pos[2], "pos.z"))
-				return FALSE;
+      bool target = false ;
+      bool match = false ;
+      int startLevel = parser.level;
+      while ((token = parser.getLine( startLevel )) != NULL)
+      {
+        if (!strcmp(token,"*NODE_NAME"))
+        {
+          char* name;
+  				if (! parser.parseString(name, "obj name"))
+  					return FALSE;
+          if ( obj->name && !strcmp(name,obj->name) )
+            match = true ;
+          if ( strstr(name,".Target") != NULL )
+            target = true ;
+        }
+        else if (match)
+        {
+          if (!strcmp(token,"*TM_POS"))
+          {
+            if (! parser.parseFloat(obj->pos[0], "pos.x"))
+              return FALSE;
+            if (! parser.parseFloat(obj->pos[1], "pos.y"))
+              return FALSE;
+            if (! parser.parseFloat(obj->pos[2], "pos.z"))
+              return FALSE;
+            sgCopyVec3 ( obj->target, obj->pos ) ;
+          }
+          else if (!strcmp(token,"*INHERIT_POS"))
+          {
+            int temp ;
+            if (! parser.parseInt(temp, "inherit_pos.x"))
+              return FALSE;
+            obj->inherit_pos[0] = ( temp != 0 ) ;
+            if (! parser.parseInt(temp, "inherit_pos.y"))
+              return FALSE;
+            obj->inherit_pos[1] = ( temp != 0 ) ;
+            if (! parser.parseInt(temp, "inherit_pos.z"))
+              return FALSE;
+            obj->inherit_pos[2] = ( temp != 0 ) ;
+          }
+        }
+        else if (target)
+        {
+          if (!strcmp(token,"*TM_POS"))
+          {
+            if (! parser.parseFloat(obj->target[0], "pos.x"))
+              return FALSE;
+            if (! parser.parseFloat(obj->target[1], "pos.y"))
+              return FALSE;
+            if (! parser.parseFloat(obj->target[2], "pos.z"))
+              return FALSE;
+          }
+        }
+      }
     }
     else if (!strcmp(token,"*MESH"))
     {
@@ -1190,9 +1347,9 @@ static int parse_object()
   }
   
   //if ( obj->parent != NULL )
-  //  fprintf( stdout, "add_mesh: %s, parent=%s\n", obj->name, obj->parent ) ;
+  //  ulSetError( UL_DEBUG, "add_mesh: %s, parent=%s", obj->name, obj->parent ) ;
   //else
-  //  fprintf( stdout, "add_mesh: %s\n", obj->name ) ;
+  //  ulSetError( UL_DEBUG, "add_mesh: %s", obj->name ) ;
   
   ssgEntity* mesh_entity = NULL ;
   
@@ -1240,7 +1397,7 @@ static int parse_object()
     }
 
     selector -> selectStep ( 0 ) ;
-    mesh_entity = selector ;
+    mesh_entity = current_options -> createSelector ( selector ) ;
   }
   else if ( obj->mesh_list [ 0 ] != NULL )
   {
@@ -1275,6 +1432,14 @@ static int parse_object()
       }
     }
     
+    mesh_entity = branch ;
+  }
+  else
+  {
+    ssgBranch* branch = new ssgBranch ;
+    ssgLeaf* leaf = add_points( obj, NULL ) ;
+    if ( leaf )
+      branch -> addKid ( leaf ) ;
     mesh_entity = branch ;
   }
   
@@ -1440,7 +1605,17 @@ static bool parse()
     }
     else if (!strcmp(token,"*GEOMOBJECT"))
     {
-      if (! parse_object())
+      if (! parse_object( aseObject::GEOM ))
+				return FALSE;
+    }
+    else if (!strcmp(token,"*HELPEROBJECT"))
+    {
+      if (! parse_object( aseObject::HELPER ))
+				return FALSE;
+    }
+    else if (!strcmp(token,"*CAMERAOBJECT"))
+    {
+      if (! parse_object( aseObject::CAMERA ))
 				return FALSE;
     }
   }
@@ -1453,8 +1628,8 @@ static void parse_free()
   u32 i ;
   for ( i = 0 ; i < num_materials ; i++ )
   {
-    delete materials[ i ] -> name ;
-    delete materials[ i ] -> tfname ;
+    delete [] materials[ i ] -> name ;
+    delete [] materials[ i ] -> tfname ;
     delete materials[ i ] ;
   }
   delete[] materials ;

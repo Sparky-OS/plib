@@ -1,56 +1,42 @@
 /*
      PLIB - A Suite of Portable Game Libraries
-     Copyright (C) 2001  Steve Baker
- 
+     Copyright (C) 1998,2002  Steve Baker
+
      This library is free software; you can redistribute it and/or
      modify it under the terms of the GNU Library General Public
      License as published by the Free Software Foundation; either
      version 2 of the License, or (at your option) any later version.
- 
+
      This library is distributed in the hope that it will be useful,
      but WITHOUT ANY WARRANTY; without even the implied warranty of
      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
      Library General Public License for more details.
- 
+
      You should have received a copy of the GNU Library General Public
-     License along with this library; if not, write to the Free
+     License along with this library; if not, write to the Free Software
      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
- 
+
      For further information visit http://plib.sourceforge.net
 
-     $Id: puFrame.cxx,v 1.4 2001/04/12 03:36:12 deca Exp $
+     $Id: puFrame.cxx,v 1.12 2002/09/02 06:05:45 sjbaker Exp $
 */
 
 
-
 #include "puLocal.h"
+
+UL_RTTI_DEF1(puFrame,puObject)
+
 
 void puFrame::draw ( int dx, int dy )
 {
   if ( !visible || ( window != puGetWindow () ) ) return ;
 
-  abox . draw ( dx, dy, style, colour, FALSE ) ;
-
-  /* If greyed out then halve the opacity when drawing the label and legend */
-
-  if ( active )
-    glColor4fv ( colour [ PUCOL_LEGEND ] ) ;
-  else
-    glColor4f ( colour [ PUCOL_LEGEND ][0],
-                colour [ PUCOL_LEGEND ][1],
-                colour [ PUCOL_LEGEND ][2],
-                colour [ PUCOL_LEGEND ][3] / 2.0f ) ; /* 50% more transparent */
+  abox.draw ( dx, dy, style, colour, FALSE, border_thickness ) ;
 
   if ( r_cb )
     r_cb ( this, dx, dy, render_data ) ;
   else
-  {
-    int xx = ( abox.max[0] - abox.min[0] - puGetStringWidth ( legendFont, legend ) ) / 2 ;
-
-    puDrawString ( legendFont, legend,
-                  dx + abox.min[0] + xx,
-                  dy + abox.min[1] + puGetStringDescender ( legendFont ) + PUSTR_BGAP ) ;
-  }
+    draw_legend ( dx, dy ) ;
 
   draw_label ( dx, dy ) ;
 }

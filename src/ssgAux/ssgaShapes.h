@@ -1,6 +1,6 @@
 /*
      PLIB - A Suite of Portable Game Libraries
-     Copyright (C) 2001  Steve Baker
+     Copyright (C) 1998,2002  Steve Baker
  
      This library is free software; you can redistribute it and/or
      modify it under the terms of the GNU Library General Public
@@ -13,19 +13,21 @@
      Library General Public License for more details.
  
      You should have received a copy of the GNU Library General Public
-     License along with this library; if not, write to the Free
+     License along with this library; if not, write to the Free Software
      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgaShapes.h,v 1.7 2001/04/12 03:38:54 deca Exp $
+     $Id: ssgaShapes.h,v 1.14 2002/09/02 06:05:49 sjbaker Exp $
 */
 
 
 #ifndef _SSGASHAPES_H_
 #define _SSGASHAPES_H_  1
 
+#include "ssg.h"
 
+typedef float sgVec9 [ 9 ] ;  /* Needed for ssgaPatch */
 
 class ssgaShape : public ssgBranch
 {
@@ -57,13 +59,14 @@ public:
   ssgaShape (void) ;
   ssgaShape ( int numtris ) ;
   virtual ~ssgaShape (void) ;
-  virtual char *getTypeName(void) ;
+  virtual const char *getTypeName(void) ;
 
-  void makeCorrupt () { corrupted = TRUE ; }
-  int  isCorrupt   () { return corrupted ; }
+  void makeCorrupt  () { corrupted = TRUE  ; }
+  int  isCorrupt    () { return corrupted  ; }
 
-  float *getCenter () { return center ; }
-  float *getSize   () { return size   ; }
+  float *getCenter  () { return center     ; }
+  float *getSize    () { return size       ; }
+  int    getNumTris () { return ntriangles ; }
 
   void setColour  ( sgVec4 c ) { sgCopyVec4 ( colour, c ) ; regenerate () ; }
   void setCenter  ( sgVec3 c ) { sgCopyVec3 ( center, c ) ; regenerate () ; }
@@ -107,8 +110,64 @@ public:
   ssgaCube (void) ;
   ssgaCube ( int numtris ) ;
   virtual ~ssgaCube (void) ;
-  virtual char *getTypeName(void) ;
+  virtual const char *getTypeName(void) ;
   virtual void regenerate () ;
+} ;
+
+
+
+#define SSGA_HAVE_PATCH 1
+
+class ssgaPatch : public ssgaShape
+{
+  int   levels ;
+  sgVec9 control_points[4][4] ;
+  void  makePatch  ( sgVec9 points[4][4], int levels ) ;
+  void  writePatch ( sgVec9 points[4][4] ) ;
+  void  makeHSpline  ( sgVec9 points[4]   , sgVec9 nv[7]    ) ;
+  void  makeVSplines ( sgVec9 points[4][7], sgVec9 nv[7][7] ) ;
+
+
+protected:
+  virtual void copy_from ( ssgaPatch *src, int clone_flags ) ;
+public:
+  virtual ssgBase *clone ( int clone_flags = 0 ) ;
+  ssgaPatch (void) ;
+  ssgaPatch ( int numtris ) ;
+
+  void setControlPoint ( int s, int t, sgVec3 xyz, sgVec2 uv, sgVec4 rgba ) ;
+  void setControlPoint ( int s, int t,
+                         float x, float y, float z,
+                         float u, float v,
+                         float r, float g, float b, float a ) ;
+  void getControlPoint ( int s, int t, sgVec3 xyz, sgVec2 uv, sgVec4 rgba ) ;
+
+  virtual ~ssgaPatch (void) ;
+  virtual const char *getTypeName(void) ;
+  virtual void regenerate () ;
+
+  virtual int load ( FILE * ) ;
+  virtual int save ( FILE * ) ;
+} ;
+
+
+
+#define SSGA_HAVE_TEAPOT 1
+
+class ssgaTeapot : public ssgaShape
+{
+protected:
+  virtual void copy_from ( ssgaTeapot *src, int clone_flags ) ;
+public:
+  virtual ssgBase *clone ( int clone_flags = 0 ) ;
+  ssgaTeapot (void) ;
+  ssgaTeapot ( int numtris ) ;
+  virtual ~ssgaTeapot (void) ;
+  virtual const char *getTypeName(void) ;
+  virtual void regenerate () ;
+
+  virtual int load ( FILE * ) ;
+  virtual int save ( FILE * ) ;
 } ;
 
 
@@ -126,7 +185,7 @@ public:
   ssgaSphere (void) ;
   ssgaSphere ( int numtris ) ;
   virtual ~ssgaSphere (void) ;
-  virtual char *getTypeName(void) ;
+  virtual const char *getTypeName(void) ;
   virtual void regenerate () ;
 
   void setLatLongStyle ( int ll ) { latlong_style = ll ; regenerate () ; }
@@ -149,7 +208,7 @@ public:
   ssgaCylinder (void) ;
   ssgaCylinder ( int numtris ) ;
   virtual ~ssgaCylinder (void) ;
-  virtual char *getTypeName(void) ;
+  virtual const char *getTypeName(void) ;
   virtual void regenerate () ;
 
   void makeCapped ( int c ) { capped = c ; regenerate () ; }

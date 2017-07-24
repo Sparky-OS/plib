@@ -1,6 +1,6 @@
 /*
      PLIB - A Suite of Portable Game Libraries
-     Copyright (C) 2001  Steve Baker
+     Copyright (C) 1998,2002  Steve Baker
  
      This library is free software; you can redistribute it and/or
      modify it under the terms of the GNU Library General Public
@@ -13,12 +13,12 @@
      Library General Public License for more details.
  
      You should have received a copy of the GNU Library General Public
-     License along with this library; if not, write to the Free
+     License along with this library; if not, write to the Free Software
      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: smMixer.cxx,v 1.3 2001/04/12 03:37:36 deca Exp $
+     $Id: smMixer.cxx,v 1.9 2002/11/30 00:41:49 sjbaker Exp $
 */
 
 #include "sm.h"
@@ -29,7 +29,7 @@
 /* ------------------------------------------------------------ */
 
 
-void smMixer::open ( char *device )
+void smMixer::open ( const char *device )
 {
   fd = ::open ( device, O_WRONLY ) ;
 
@@ -56,7 +56,7 @@ smMixer::smMixer ()
    open ( SMMIXER_DEFAULT_DEVICE ) ; 
 } 
 
-smMixer::smMixer ( char *device ) 
+smMixer::smMixer ( const char *device ) 
 { 
    open ( device ) ; 
 } 
@@ -66,7 +66,7 @@ smMixer::~smMixer ()
    close () ; 
 }
   
-int smMixer::notWorking () 
+int smMixer::notWorking () const
 { 
    return error ; 
 }
@@ -179,23 +179,23 @@ void smMixer::setCDVolume     ( int left, int right )
    setVolume ( SOUND_MIXER_CD     , left, right ) ; 
 }
 
-#elif defined(__NetBSD__) || defined(__OpenBSD__)
+#elif defined(UL_BSD)
 
 /* ------------------------------------------------------------ */
 /* NetBSD or OpenBSD 2.3                                        */
 /* ------------------------------------------------------------ */
 
-void smMixer::open ( char *device )
+void smMixer::open ( const char *device )
 {
 }
   
 void smMixer::close (){}
 
 smMixer::smMixer ()    {} 
-smMixer::smMixer ( char * ) {} 
+smMixer::smMixer ( const char * ) {} 
 smMixer::~smMixer ()         {}
   
-int smMixer::notWorking () 
+int smMixer::notWorking () const
 { 
    return error ; 
 }
@@ -234,15 +234,15 @@ void smMixer::setCDVolume     ( int, int ) {}
 /* win32                                                        */
 /* ------------------------------------------------------------ */
 
-void smMixer::open ( char * ) {}
+void smMixer::open ( const char * ) {}
   
 void smMixer::close (){}
 
 smMixer::smMixer ()    {} 
-smMixer::smMixer ( char * ) {} 
+smMixer::smMixer ( const char * ) {} 
 smMixer::~smMixer ()         {}
   
-int smMixer::notWorking () 
+int smMixer::notWorking () const
 { 
    return error ; 
 }

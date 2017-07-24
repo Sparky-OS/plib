@@ -1,6 +1,7 @@
-# Makefile.in generated automatically by automake 1.4 from Makefile.am
+# Makefile.in generated automatically by automake 1.5 from Makefile.am.
 
-# Copyright (C) 1994, 1995-8, 1999 Free Software Foundation, Inc.
+# Copyright 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001
+# Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
@@ -10,6 +11,7 @@
 # even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 # PARTICULAR PURPOSE.
 
+@SET_MAKE@
 
 SHELL = @SHELL@
 
@@ -31,13 +33,9 @@ infodir = @infodir@
 mandir = @mandir@
 includedir = @includedir@
 oldincludedir = /usr/include
-
-DESTDIR =
-
 pkgdatadir = $(datadir)/@PACKAGE@
 pkglibdir = $(libdir)/@PACKAGE@
 pkgincludedir = $(includedir)/@PACKAGE@
-
 top_builddir = ../..
 
 ACLOCAL = @ACLOCAL@
@@ -46,104 +44,205 @@ AUTOMAKE = @AUTOMAKE@
 AUTOHEADER = @AUTOHEADER@
 
 INSTALL = @INSTALL@
-INSTALL_PROGRAM = @INSTALL_PROGRAM@ $(AM_INSTALL_PROGRAM_FLAGS)
+INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
+INSTALL_HEADER = $(INSTALL_DATA)
 transform = @program_transform_name@
-
 NORMAL_INSTALL = :
 PRE_INSTALL = :
 POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
+host_alias = @host_alias@
+host_triplet = @host@
+AMTAR = @AMTAR@
+AWK = @AWK@
 CC = @CC@
 CPP = @CPP@
 CXX = @CXX@
 CXXCPP = @CXXCPP@
-MAKEINFO = @MAKEINFO@
+DEPDIR = @DEPDIR@
+EXEEXT = @EXEEXT@
+INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
+OBJEXT = @OBJEXT@
 PACKAGE = @PACKAGE@
 RANLIB = @RANLIB@
 VERSION = @VERSION@
+X_CFLAGS = @X_CFLAGS@
+X_EXTRA_LIBS = @X_EXTRA_LIBS@
+X_LIBS = @X_LIBS@
+X_PRE_LIBS = @X_PRE_LIBS@
+am__include = @am__include@
+am__quote = @am__quote@
+install_sh = @install_sh@
 
-lib_LIBRARIES = libplibssg.a
+@BUILD_SSG_TRUE@lib_LIBRARIES = libplibssg.a
 
-include_HEADERS = ssg.h ssgconf.h ssgKeyFlier.h
+@BUILD_SSG_TRUE@include_HEADERS = ssg.h ssgconf.h ssgMSFSPalette.h ssgKeyFlier.h pcx.h
 
-libplibssg_a_SOURCES = ssg.cxx ssgAnimation.cxx ssgBase.cxx 	ssgBaseTransform.cxx ssgBranch.cxx ssgContext.cxx ssgCutout.cxx 	ssgDList.cxx ssgEntity.cxx ssgIsect.cxx ssgLeaf.cxx ssgList.cxx 	ssgLoadAC.cxx ssgLocal.h ssgOptimiser.cxx ssgRoot.cxx ssgSaveAC.cxx 	ssgSelector.cxx ssgSimpleState.cxx ssgState.cxx ssgStateTables.cxx 	ssgStats.cxx  ssgTexTrans.cxx ssgTexture.cxx ssgTransform.cxx 	ssgStateSelector.cxx ssgRangeSelector.cxx ssgLoadTexture.cxx 	ssgLoadBMP.cxx ssgLoadSGI.cxx ssgLoadPNG.cxx ssgLoadTGA.cxx 	ssgInvisible.cxx ssgLoadSSG.cxx ssgVTable.cxx 	ssgSimpleList.cxx ssgVtxTable.cxx ssgIO.cxx ssgLoad3ds.cxx 	ssgSaveASE.cxx ssgLoadASE.cxx ssgParser.cxx ssgParser.h 	ssgLoadDXF.cxx ssgSaveDXF.cxx ssgLoadTRI.cxx ssgSaveTRI.cxx 	ssgLoadOBJ.cxx ssgSaveOBJ.cxx ssgVtxArray.cxx ssgLoadMD2.cxx 	ssgLoadMDL.cxx ssgLoadX.cxx ssgSaveX.cxx ssgLoaderWriterStuff.cxx 	ssgLoadFLT.cxx ssgLoadM.cxx ssgSaveM.cxx ssgLoadStrip.cxx 	ssgLoadOFF.cxx ssgSaveOFF.cxx ssgSaveQHI.cxx 	ssgLoaderWriterStuff.h ssgMSFSPalette.h ssg3ds.h ssgLoadMDL.h 	ssgSave3ds.cxx ssgAxisTransform.cxx ssgLoadATG.cxx ssgSaveATG.cxx 	ssgLoad.cxx
+@BUILD_SSG_TRUE@libplibssg_a_SOURCES = ssg.cxx ssgAnimation.cxx ssgBase.cxx \
+@BUILD_SSG_TRUE@	ssgBaseTransform.cxx ssgBranch.cxx ssgContext.cxx ssgCutout.cxx \
+@BUILD_SSG_TRUE@	ssgDList.cxx ssgEntity.cxx ssgIsect.cxx ssgLeaf.cxx ssgList.cxx \
+@BUILD_SSG_TRUE@	ssgLoadDOF.cxx ssgLoadAC.cxx \
+@BUILD_SSG_TRUE@        ssgLocal.h ssgOptimiser.cxx ssgRoot.cxx ssgSaveAC.cxx \
+@BUILD_SSG_TRUE@	ssgSelector.cxx ssgSimpleState.cxx ssgState.cxx ssgStateTables.cxx \
+@BUILD_SSG_TRUE@	ssgStats.cxx  ssgTween.cxx ssgTweenController.cxx \
+@BUILD_SSG_TRUE@	ssgTexTrans.cxx ssgTexture.cxx ssgTransform.cxx \
+@BUILD_SSG_TRUE@	ssgStateSelector.cxx ssgRangeSelector.cxx ssgLoadTexture.cxx \
+@BUILD_SSG_TRUE@	ssgLoadBMP.cxx ssgLoadSGI.cxx ssgLoadPNG.cxx ssgLoadTGA.cxx \
+@BUILD_SSG_TRUE@	ssgLoadPCX.cxx ssgInvisible.cxx ssgLoadSSG.cxx ssgVTable.cxx \
+@BUILD_SSG_TRUE@	ssgSimpleList.cxx ssgVtxTable.cxx ssgIO.cxx ssgLoad3ds.cxx \
+@BUILD_SSG_TRUE@	ssgSaveASE.cxx ssgLoadASE.cxx ssgParser.cxx ssgParser.h \
+@BUILD_SSG_TRUE@	ssgLoadDXF.cxx ssgSaveDXF.cxx ssgLoadTRI.cxx ssgSaveTRI.cxx \
+@BUILD_SSG_TRUE@	ssgLoadOBJ.cxx ssgSaveOBJ.cxx ssgVtxArray.cxx ssgLoadMD2.cxx \
+@BUILD_SSG_TRUE@	ssgLoadMDL.cxx ssgLoadX.cxx ssgSaveX.cxx ssgLoaderWriterStuff.cxx \
+@BUILD_SSG_TRUE@	ssgLoadFLT.cxx ssgLoadM.cxx ssgSaveM.cxx ssgLoadStrip.cxx \
+@BUILD_SSG_TRUE@	ssgLoadOFF.cxx ssgSaveOFF.cxx ssgSaveQHI.cxx ssgLoadVRML1.cxx \
+@BUILD_SSG_TRUE@	ssgSaveVRML1.cxx ssgLoaderWriterStuff.h ssgMSFSPalette.h ssg3ds.h \
+@BUILD_SSG_TRUE@	ssgLoadMDL.h ssgSave3ds.cxx ssgAxisTransform.cxx ssgLoadATG.cxx \
+@BUILD_SSG_TRUE@	ssgSaveFLT.cxx ssgSaveATG.cxx ssgLoadIV.cxx ssgLoad.cxx ssgLoadVRML.h \
+@BUILD_SSG_TRUE@	ssgLoadMDL_BGLTexture.cxx ssgLoadXPlaneObj.cxx ssgSaveASC.cxx \
+@BUILD_SSG_TRUE@	ssgVertSplitter.h ssgVertSplitter.cxx ssgStatistics.cxx
 
-INCLUDES =  -I$(top_srcdir)/src/sg -I$(top_srcdir)/src/util
 
-EXTRA_DIST = ssg.dsp libssg.bpr
+@BUILD_SSG_TRUE@INCLUDES = -I$(top_srcdir)/src/sg -I$(top_srcdir)/src/util
+
+EXTRA_DIST = ssg.dsp
+subdir = src/ssg
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
-CONFIG_CLEAN_FILES = 
-LIBRARIES =  $(lib_LIBRARIES)
+CONFIG_CLEAN_FILES =
+LIBRARIES = $(lib_LIBRARIES)
 
+libplibssg_a_AR = $(AR) cru
+libplibssg_a_LIBADD =
+@BUILD_SSG_TRUE@am_libplibssg_a_OBJECTS = ssg.$(OBJEXT) \
+@BUILD_SSG_TRUE@	ssgAnimation.$(OBJEXT) ssgBase.$(OBJEXT) \
+@BUILD_SSG_TRUE@	ssgBaseTransform.$(OBJEXT) ssgBranch.$(OBJEXT) \
+@BUILD_SSG_TRUE@	ssgContext.$(OBJEXT) ssgCutout.$(OBJEXT) \
+@BUILD_SSG_TRUE@	ssgDList.$(OBJEXT) ssgEntity.$(OBJEXT) \
+@BUILD_SSG_TRUE@	ssgIsect.$(OBJEXT) ssgLeaf.$(OBJEXT) \
+@BUILD_SSG_TRUE@	ssgList.$(OBJEXT) ssgLoadDOF.$(OBJEXT) \
+@BUILD_SSG_TRUE@	ssgLoadAC.$(OBJEXT) ssgOptimiser.$(OBJEXT) \
+@BUILD_SSG_TRUE@	ssgRoot.$(OBJEXT) ssgSaveAC.$(OBJEXT) \
+@BUILD_SSG_TRUE@	ssgSelector.$(OBJEXT) ssgSimpleState.$(OBJEXT) \
+@BUILD_SSG_TRUE@	ssgState.$(OBJEXT) ssgStateTables.$(OBJEXT) \
+@BUILD_SSG_TRUE@	ssgStats.$(OBJEXT) ssgTween.$(OBJEXT) \
+@BUILD_SSG_TRUE@	ssgTweenController.$(OBJEXT) \
+@BUILD_SSG_TRUE@	ssgTexTrans.$(OBJEXT) ssgTexture.$(OBJEXT) \
+@BUILD_SSG_TRUE@	ssgTransform.$(OBJEXT) \
+@BUILD_SSG_TRUE@	ssgStateSelector.$(OBJEXT) \
+@BUILD_SSG_TRUE@	ssgRangeSelector.$(OBJEXT) \
+@BUILD_SSG_TRUE@	ssgLoadTexture.$(OBJEXT) ssgLoadBMP.$(OBJEXT) \
+@BUILD_SSG_TRUE@	ssgLoadSGI.$(OBJEXT) ssgLoadPNG.$(OBJEXT) \
+@BUILD_SSG_TRUE@	ssgLoadTGA.$(OBJEXT) ssgLoadPCX.$(OBJEXT) \
+@BUILD_SSG_TRUE@	ssgInvisible.$(OBJEXT) ssgLoadSSG.$(OBJEXT) \
+@BUILD_SSG_TRUE@	ssgVTable.$(OBJEXT) ssgSimpleList.$(OBJEXT) \
+@BUILD_SSG_TRUE@	ssgVtxTable.$(OBJEXT) ssgIO.$(OBJEXT) \
+@BUILD_SSG_TRUE@	ssgLoad3ds.$(OBJEXT) ssgSaveASE.$(OBJEXT) \
+@BUILD_SSG_TRUE@	ssgLoadASE.$(OBJEXT) ssgParser.$(OBJEXT) \
+@BUILD_SSG_TRUE@	ssgLoadDXF.$(OBJEXT) ssgSaveDXF.$(OBJEXT) \
+@BUILD_SSG_TRUE@	ssgLoadTRI.$(OBJEXT) ssgSaveTRI.$(OBJEXT) \
+@BUILD_SSG_TRUE@	ssgLoadOBJ.$(OBJEXT) ssgSaveOBJ.$(OBJEXT) \
+@BUILD_SSG_TRUE@	ssgVtxArray.$(OBJEXT) ssgLoadMD2.$(OBJEXT) \
+@BUILD_SSG_TRUE@	ssgLoadMDL.$(OBJEXT) ssgLoadX.$(OBJEXT) \
+@BUILD_SSG_TRUE@	ssgSaveX.$(OBJEXT) \
+@BUILD_SSG_TRUE@	ssgLoaderWriterStuff.$(OBJEXT) \
+@BUILD_SSG_TRUE@	ssgLoadFLT.$(OBJEXT) ssgLoadM.$(OBJEXT) \
+@BUILD_SSG_TRUE@	ssgSaveM.$(OBJEXT) ssgLoadStrip.$(OBJEXT) \
+@BUILD_SSG_TRUE@	ssgLoadOFF.$(OBJEXT) ssgSaveOFF.$(OBJEXT) \
+@BUILD_SSG_TRUE@	ssgSaveQHI.$(OBJEXT) ssgLoadVRML1.$(OBJEXT) \
+@BUILD_SSG_TRUE@	ssgSaveVRML1.$(OBJEXT) ssgSave3ds.$(OBJEXT) \
+@BUILD_SSG_TRUE@	ssgAxisTransform.$(OBJEXT) ssgLoadATG.$(OBJEXT) \
+@BUILD_SSG_TRUE@	ssgSaveFLT.$(OBJEXT) ssgSaveATG.$(OBJEXT) \
+@BUILD_SSG_TRUE@	ssgLoadIV.$(OBJEXT) ssgLoad.$(OBJEXT) \
+@BUILD_SSG_TRUE@	ssgLoadMDL_BGLTexture.$(OBJEXT) \
+@BUILD_SSG_TRUE@	ssgLoadXPlaneObj.$(OBJEXT) ssgSaveASC.$(OBJEXT) \
+@BUILD_SSG_TRUE@	ssgVertSplitter.$(OBJEXT) \
+@BUILD_SSG_TRUE@	ssgStatistics.$(OBJEXT)
+@BUILD_SSG_FALSE@am_libplibssg_a_OBJECTS =
+libplibssg_a_OBJECTS = $(am_libplibssg_a_OBJECTS)
 
-DEFS = @DEFS@ -I. -I$(srcdir) 
+DEFS = @DEFS@
+DEFAULT_INCLUDES =  -I. -I$(srcdir)
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
-X_CFLAGS = @X_CFLAGS@
-X_LIBS = @X_LIBS@
-X_EXTRA_LIBS = @X_EXTRA_LIBS@
-X_PRE_LIBS = @X_PRE_LIBS@
-libplibssg_a_LIBADD = 
-libplibssg_a_OBJECTS =  ssg.o ssgAnimation.o ssgBase.o \
-ssgBaseTransform.o ssgBranch.o ssgContext.o ssgCutout.o ssgDList.o \
-ssgEntity.o ssgIsect.o ssgLeaf.o ssgList.o ssgLoadAC.o ssgOptimiser.o \
-ssgRoot.o ssgSaveAC.o ssgSelector.o ssgSimpleState.o ssgState.o \
-ssgStateTables.o ssgStats.o ssgTexTrans.o ssgTexture.o ssgTransform.o \
-ssgStateSelector.o ssgRangeSelector.o ssgLoadTexture.o ssgLoadBMP.o \
-ssgLoadSGI.o ssgLoadPNG.o ssgLoadTGA.o ssgInvisible.o ssgLoadSSG.o \
-ssgVTable.o ssgSimpleList.o ssgVtxTable.o ssgIO.o ssgLoad3ds.o \
-ssgSaveASE.o ssgLoadASE.o ssgParser.o ssgLoadDXF.o ssgSaveDXF.o \
-ssgLoadTRI.o ssgSaveTRI.o ssgLoadOBJ.o ssgSaveOBJ.o ssgVtxArray.o \
-ssgLoadMD2.o ssgLoadMDL.o ssgLoadX.o ssgSaveX.o ssgLoaderWriterStuff.o \
-ssgLoadFLT.o ssgLoadM.o ssgSaveM.o ssgLoadStrip.o ssgLoadOFF.o \
-ssgSaveOFF.o ssgSaveQHI.o ssgSave3ds.o ssgAxisTransform.o ssgLoadATG.o \
-ssgSaveATG.o ssgLoad.o
-AR = ar
-CXXFLAGS = @CXXFLAGS@
-CXXCOMPILE = $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
+depcomp = $(SHELL) $(top_srcdir)/depcomp
+@AMDEP_TRUE@DEP_FILES = $(DEPDIR)/ssg.Po $(DEPDIR)/ssgAnimation.Po \
+@AMDEP_TRUE@	$(DEPDIR)/ssgAxisTransform.Po $(DEPDIR)/ssgBase.Po \
+@AMDEP_TRUE@	$(DEPDIR)/ssgBaseTransform.Po \
+@AMDEP_TRUE@	$(DEPDIR)/ssgBranch.Po $(DEPDIR)/ssgContext.Po \
+@AMDEP_TRUE@	$(DEPDIR)/ssgCutout.Po $(DEPDIR)/ssgDList.Po \
+@AMDEP_TRUE@	$(DEPDIR)/ssgEntity.Po $(DEPDIR)/ssgIO.Po \
+@AMDEP_TRUE@	$(DEPDIR)/ssgInvisible.Po $(DEPDIR)/ssgIsect.Po \
+@AMDEP_TRUE@	$(DEPDIR)/ssgLeaf.Po $(DEPDIR)/ssgList.Po \
+@AMDEP_TRUE@	$(DEPDIR)/ssgLoad.Po $(DEPDIR)/ssgLoad3ds.Po \
+@AMDEP_TRUE@	$(DEPDIR)/ssgLoadAC.Po $(DEPDIR)/ssgLoadASE.Po \
+@AMDEP_TRUE@	$(DEPDIR)/ssgLoadATG.Po $(DEPDIR)/ssgLoadBMP.Po \
+@AMDEP_TRUE@	$(DEPDIR)/ssgLoadDOF.Po $(DEPDIR)/ssgLoadDXF.Po \
+@AMDEP_TRUE@	$(DEPDIR)/ssgLoadFLT.Po $(DEPDIR)/ssgLoadIV.Po \
+@AMDEP_TRUE@	$(DEPDIR)/ssgLoadM.Po $(DEPDIR)/ssgLoadMD2.Po \
+@AMDEP_TRUE@	$(DEPDIR)/ssgLoadMDL.Po \
+@AMDEP_TRUE@	$(DEPDIR)/ssgLoadMDL_BGLTexture.Po \
+@AMDEP_TRUE@	$(DEPDIR)/ssgLoadOBJ.Po $(DEPDIR)/ssgLoadOFF.Po \
+@AMDEP_TRUE@	$(DEPDIR)/ssgLoadPCX.Po $(DEPDIR)/ssgLoadPNG.Po \
+@AMDEP_TRUE@	$(DEPDIR)/ssgLoadSGI.Po $(DEPDIR)/ssgLoadSSG.Po \
+@AMDEP_TRUE@	$(DEPDIR)/ssgLoadStrip.Po $(DEPDIR)/ssgLoadTGA.Po \
+@AMDEP_TRUE@	$(DEPDIR)/ssgLoadTRI.Po $(DEPDIR)/ssgLoadTexture.Po \
+@AMDEP_TRUE@	$(DEPDIR)/ssgLoadVRML1.Po $(DEPDIR)/ssgLoadX.Po \
+@AMDEP_TRUE@	$(DEPDIR)/ssgLoadXPlaneObj.Po \
+@AMDEP_TRUE@	$(DEPDIR)/ssgLoaderWriterStuff.Po \
+@AMDEP_TRUE@	$(DEPDIR)/ssgOptimiser.Po $(DEPDIR)/ssgParser.Po \
+@AMDEP_TRUE@	$(DEPDIR)/ssgRangeSelector.Po $(DEPDIR)/ssgRoot.Po \
+@AMDEP_TRUE@	$(DEPDIR)/ssgSave3ds.Po $(DEPDIR)/ssgSaveAC.Po \
+@AMDEP_TRUE@	$(DEPDIR)/ssgSaveASC.Po $(DEPDIR)/ssgSaveASE.Po \
+@AMDEP_TRUE@	$(DEPDIR)/ssgSaveATG.Po $(DEPDIR)/ssgSaveDXF.Po \
+@AMDEP_TRUE@	$(DEPDIR)/ssgSaveFLT.Po $(DEPDIR)/ssgSaveM.Po \
+@AMDEP_TRUE@	$(DEPDIR)/ssgSaveOBJ.Po $(DEPDIR)/ssgSaveOFF.Po \
+@AMDEP_TRUE@	$(DEPDIR)/ssgSaveQHI.Po $(DEPDIR)/ssgSaveTRI.Po \
+@AMDEP_TRUE@	$(DEPDIR)/ssgSaveVRML1.Po $(DEPDIR)/ssgSaveX.Po \
+@AMDEP_TRUE@	$(DEPDIR)/ssgSelector.Po $(DEPDIR)/ssgSimpleList.Po \
+@AMDEP_TRUE@	$(DEPDIR)/ssgSimpleState.Po $(DEPDIR)/ssgState.Po \
+@AMDEP_TRUE@	$(DEPDIR)/ssgStateSelector.Po \
+@AMDEP_TRUE@	$(DEPDIR)/ssgStateTables.Po \
+@AMDEP_TRUE@	$(DEPDIR)/ssgStatistics.Po $(DEPDIR)/ssgStats.Po \
+@AMDEP_TRUE@	$(DEPDIR)/ssgTexTrans.Po $(DEPDIR)/ssgTexture.Po \
+@AMDEP_TRUE@	$(DEPDIR)/ssgTransform.Po $(DEPDIR)/ssgTween.Po \
+@AMDEP_TRUE@	$(DEPDIR)/ssgTweenController.Po \
+@AMDEP_TRUE@	$(DEPDIR)/ssgVTable.Po $(DEPDIR)/ssgVertSplitter.Po \
+@AMDEP_TRUE@	$(DEPDIR)/ssgVtxArray.Po $(DEPDIR)/ssgVtxTable.Po
+CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
+	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 CXXLD = $(CXX)
-CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(LDFLAGS) -o $@
+CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
+	-o $@
+CXXFLAGS = @CXXFLAGS@
 CFLAGS = @CFLAGS@
-COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
+	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
-LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(LDFLAGS) -o $@
-HEADERS =  $(include_HEADERS)
+LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+DIST_SOURCES = $(libplibssg_a_SOURCES)
+HEADERS = $(include_HEADERS)
 
-DIST_COMMON =  Makefile.am Makefile.in
-
-
-DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
-
-TAR = tar
-GZIP_ENV = --best
+DIST_COMMON = $(include_HEADERS) Makefile.am Makefile.in
 SOURCES = $(libplibssg_a_SOURCES)
-OBJECTS = $(libplibssg_a_OBJECTS)
 
-all: all-redirect
+all: all-am
+
 .SUFFIXES:
-.SUFFIXES: .S .c .cxx .o .s
-$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
-	cd $(top_srcdir) && $(AUTOMAKE) --gnu --include-deps src/ssg/Makefile
+.SUFFIXES: .cxx .o .obj
+$(srcdir)/Makefile.in:  Makefile.am  $(top_srcdir)/configure.in $(ACLOCAL_M4)
+	cd $(top_srcdir) && \
+	  $(AUTOMAKE) --gnu  src/ssg/Makefile
+Makefile:  $(srcdir)/Makefile.in  $(top_builddir)/config.status
+	cd $(top_builddir) && \
+	  CONFIG_HEADERS= CONFIG_LINKS= \
+	  CONFIG_FILES=$(subdir)/$@ $(SHELL) ./config.status
 
-Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status
-	cd $(top_builddir) \
-	  && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
-
-
-mostlyclean-libLIBRARIES:
-
-clean-libLIBRARIES:
-	-test -z "$(lib_LIBRARIES)" || rm -f $(lib_LIBRARIES)
-
-distclean-libLIBRARIES:
-
-maintainer-clean-libLIBRARIES:
-
+AR = ar
 install-libLIBRARIES: $(lib_LIBRARIES)
 	@$(NORMAL_INSTALL)
 	$(mkinstalldirs) $(DESTDIR)$(libdir)
@@ -163,306 +262,269 @@ install-libLIBRARIES: $(lib_LIBRARIES)
 
 uninstall-libLIBRARIES:
 	@$(NORMAL_UNINSTALL)
-	list='$(lib_LIBRARIES)'; for p in $$list; do \
+	@list='$(lib_LIBRARIES)'; for p in $$list; do \
+	  echo " rm -f $(DESTDIR)$(libdir)/$$p"; \
 	  rm -f $(DESTDIR)$(libdir)/$$p; \
 	done
 
-.c.o:
-	$(COMPILE) -c $<
-
-.s.o:
-	$(COMPILE) -c $<
-
-.S.o:
-	$(COMPILE) -c $<
+clean-libLIBRARIES:
+	-test -z "$(lib_LIBRARIES)" || rm -f $(lib_LIBRARIES)
+libplibssg.a: $(libplibssg_a_OBJECTS) $(libplibssg_a_DEPENDENCIES) 
+	-rm -f libplibssg.a
+	$(libplibssg_a_AR) libplibssg.a $(libplibssg_a_OBJECTS) $(libplibssg_a_LIBADD)
+	$(RANLIB) libplibssg.a
 
 mostlyclean-compile:
-	-rm -f *.o core *.core
-
-clean-compile:
+	-rm -f *.$(OBJEXT) core *.core
 
 distclean-compile:
 	-rm -f *.tab.c
 
-maintainer-clean-compile:
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssg.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgAnimation.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgAxisTransform.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgBase.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgBaseTransform.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgBranch.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgContext.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgCutout.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgDList.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgEntity.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgIO.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgInvisible.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgIsect.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgLeaf.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgList.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgLoad.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgLoad3ds.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgLoadAC.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgLoadASE.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgLoadATG.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgLoadBMP.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgLoadDOF.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgLoadDXF.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgLoadFLT.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgLoadIV.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgLoadM.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgLoadMD2.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgLoadMDL.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgLoadMDL_BGLTexture.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgLoadOBJ.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgLoadOFF.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgLoadPCX.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgLoadPNG.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgLoadSGI.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgLoadSSG.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgLoadStrip.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgLoadTGA.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgLoadTRI.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgLoadTexture.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgLoadVRML1.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgLoadX.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgLoadXPlaneObj.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgLoaderWriterStuff.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgOptimiser.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgParser.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgRangeSelector.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgRoot.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgSave3ds.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgSaveAC.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgSaveASC.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgSaveASE.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgSaveATG.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgSaveDXF.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgSaveFLT.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgSaveM.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgSaveOBJ.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgSaveOFF.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgSaveQHI.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgSaveTRI.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgSaveVRML1.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgSaveX.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgSelector.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgSimpleList.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgSimpleState.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgState.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgStateSelector.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgStateTables.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgStatistics.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgStats.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgTexTrans.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgTexture.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgTransform.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgTween.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgTweenController.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgVTable.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgVertSplitter.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgVtxArray.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ssgVtxTable.Po@am__quote@
 
-libplibssg.a: $(libplibssg_a_OBJECTS) $(libplibssg_a_DEPENDENCIES)
-	-rm -f libplibssg.a
-	$(AR) cru libplibssg.a $(libplibssg_a_OBJECTS) $(libplibssg_a_LIBADD)
-	$(RANLIB) libplibssg.a
+distclean-depend:
+	-rm -rf $(DEPDIR)
+
 .cxx.o:
-	$(CXXCOMPILE) -c $<
+@AMDEP_TRUE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/$*.Po' tmpdepfile='$(DEPDIR)/$*.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CXXCOMPILE) -c -o $@ `test -f $< || echo '$(srcdir)/'`$<
 
+.cxx.obj:
+@AMDEP_TRUE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/$*.Po' tmpdepfile='$(DEPDIR)/$*.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CXXCOMPILE) -c -o $@ `cygpath -w $<`
+CXXDEPMODE = @CXXDEPMODE@
+uninstall-info-am:
 install-includeHEADERS: $(include_HEADERS)
 	@$(NORMAL_INSTALL)
 	$(mkinstalldirs) $(DESTDIR)$(includedir)
 	@list='$(include_HEADERS)'; for p in $$list; do \
-	  if test -f "$$p"; then d= ; else d="$(srcdir)/"; fi; \
-	  echo " $(INSTALL_DATA) $$d$$p $(DESTDIR)$(includedir)/$$p"; \
-	  $(INSTALL_DATA) $$d$$p $(DESTDIR)$(includedir)/$$p; \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  f="`echo $$p | sed -e 's|^.*/||'`"; \
+	  echo " $(INSTALL_HEADER) $$d$$p $(DESTDIR)$(includedir)/$$f"; \
+	  $(INSTALL_HEADER) $$d$$p $(DESTDIR)$(includedir)/$$f; \
 	done
 
 uninstall-includeHEADERS:
 	@$(NORMAL_UNINSTALL)
-	list='$(include_HEADERS)'; for p in $$list; do \
-	  rm -f $(DESTDIR)$(includedir)/$$p; \
+	@list='$(include_HEADERS)'; for p in $$list; do \
+	  f="`echo $$p | sed -e 's|^.*/||'`"; \
+	  echo " rm -f $(DESTDIR)$(includedir)/$$f"; \
+	  rm -f $(DESTDIR)$(includedir)/$$f; \
 	done
 
 tags: TAGS
 
-ID: $(HEADERS) $(SOURCES) $(LISP)
-	list='$(SOURCES) $(HEADERS)'; \
-	unique=`for i in $$list; do echo $$i; done | \
-	  awk '    { files[$$0] = 1; } \
+ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
+	list='$(SOURCES) $(HEADERS) $(TAGS_FILES)'; \
+	unique=`for i in $$list; do \
+	    if test -f "$$i"; then echo $$i; else echo $(srcdir)/$$i; fi; \
+	  done | \
+	  $(AWK) '    { files[$$0] = 1; } \
 	       END { for (i in files) print i; }'`; \
-	here=`pwd` && cd $(srcdir) \
-	  && mkid -f$$here/ID $$unique $(LISP)
+	mkid -fID $$unique $(LISP)
 
-TAGS:  $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) $(LISP)
+TAGS:  $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) \
+		$(TAGS_FILES) $(LISP)
 	tags=; \
 	here=`pwd`; \
-	list='$(SOURCES) $(HEADERS)'; \
-	unique=`for i in $$list; do echo $$i; done | \
-	  awk '    { files[$$0] = 1; } \
+	list='$(SOURCES) $(HEADERS) $(TAGS_FILES)'; \
+	unique=`for i in $$list; do \
+	    if test -f "$$i"; then echo $$i; else echo $(srcdir)/$$i; fi; \
+	  done | \
+	  $(AWK) '    { files[$$0] = 1; } \
 	       END { for (i in files) print i; }'`; \
 	test -z "$(ETAGS_ARGS)$$unique$(LISP)$$tags" \
-	  || (cd $(srcdir) && etags $(ETAGS_ARGS) $$tags  $$unique $(LISP) -o $$here/TAGS)
+	  || etags $(ETAGS_ARGS) $$tags  $$unique $(LISP)
 
-mostlyclean-tags:
-
-clean-tags:
+GTAGS:
+	here=`CDPATH=: && cd $(top_builddir) && pwd` \
+	  && cd $(top_srcdir) \
+	  && gtags -i $(GTAGS_ARGS) $$here
 
 distclean-tags:
-	-rm -f TAGS ID
+	-rm -f TAGS ID GTAGS GRTAGS GSYMS GPATH
 
-maintainer-clean-tags:
+DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 
-distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
-
-subdir = src/ssg
+top_distdir = ../..
+distdir = $(top_distdir)/$(PACKAGE)-$(VERSION)
 
 distdir: $(DISTFILES)
 	@for file in $(DISTFILES); do \
-	  d=$(srcdir); \
+	  if test -f $$file; then d=.; else d=$(srcdir); fi; \
+	  dir=`echo "$$file" | sed -e 's,/[^/]*$$,,'`; \
+	  if test "$$dir" != "$$file" && test "$$dir" != "."; then \
+	    $(mkinstalldirs) "$(distdir)/$$dir"; \
+	  fi; \
 	  if test -d $$d/$$file; then \
-	    cp -pr $$/$$file $(distdir)/$$file; \
+	    cp -pR $$d/$$file $(distdir) \
+	    || exit 1; \
 	  else \
 	    test -f $(distdir)/$$file \
-	    || ln $$d/$$file $(distdir)/$$file 2> /dev/null \
-	    || cp -p $$d/$$file $(distdir)/$$file || :; \
+	    || cp -p $$d/$$file $(distdir)/$$file \
+	    || exit 1; \
 	  fi; \
 	done
-ssg.o: ssg.cxx ssgLocal.h ssg.h ../../src/util/ul.h ../../src/sg/sg.h \
-	ssgconf.h
-ssgAnimation.o: ssgAnimation.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
-	../../src/sg/sg.h ssgconf.h
-ssgAxisTransform.o: ssgAxisTransform.cxx ssgLocal.h ssg.h \
-	../../src/util/ul.h ../../src/sg/sg.h ssgconf.h
-ssgBase.o: ssgBase.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
-	../../src/sg/sg.h ssgconf.h
-ssgBaseTransform.o: ssgBaseTransform.cxx ssgLocal.h ssg.h \
-	../../src/util/ul.h ../../src/sg/sg.h ssgconf.h
-ssgBranch.o: ssgBranch.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
-	../../src/sg/sg.h ssgconf.h
-ssgContext.o: ssgContext.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
-	../../src/sg/sg.h ssgconf.h
-ssgConvex.o: ssgConvex.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
-	../../src/sg/sg.h ssgconf.h
-ssgCutout.o: ssgCutout.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
-	../../src/sg/sg.h ssgconf.h
-ssgDList.o: ssgDList.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
-	../../src/sg/sg.h ssgconf.h
-ssgEntity.o: ssgEntity.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
-	../../src/sg/sg.h ssgconf.h
-ssgIO.o: ssgIO.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
-	../../src/sg/sg.h ssgconf.h
-ssgImageLoader.o: ssgImageLoader.cxx ssgLocal.h ssg.h \
-	../../src/util/ul.h ../../src/sg/sg.h ssgMSFSPalette.h
-ssgInvisible.o: ssgInvisible.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
-	../../src/sg/sg.h ssgconf.h
-ssgIsect.o: ssgIsect.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
-	../../src/sg/sg.h ssgconf.h
-ssgLeaf.o: ssgLeaf.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
-	../../src/sg/sg.h ssgconf.h
-ssgList.o: ssgList.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
-	../../src/sg/sg.h ssgconf.h
-ssgLoad.o: ssgLoad.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
-	../../src/sg/sg.h ssgconf.h
-ssgLoad3ds.o: ssgLoad3ds.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
-	../../src/sg/sg.h ssgconf.h ssg3ds.h
-ssgLoadAC.o: ssgLoadAC.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
-	../../src/sg/sg.h ssgconf.h
-ssgLoadASE.o: ssgLoadASE.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
-	../../src/sg/sg.h ssgconf.h ssgParser.h
-ssgLoadATG.o: ssgLoadATG.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
-	../../src/sg/sg.h ssgconf.h ssgLoaderWriterStuff.h ssgParser.h
-ssgLoadBMP.o: ssgLoadBMP.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
-	../../src/sg/sg.h ssgconf.h
-ssgLoadDXF.o: ssgLoadDXF.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
-	../../src/sg/sg.h ssgconf.h
-ssgLoadFLT.o: ssgLoadFLT.cxx ssg.h ../../src/util/ul.h ../../src/sg/sg.h \
-	ssgconf.h ssgLoaderWriterStuff.h
-ssgLoadM.o: ssgLoadM.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
-	../../src/sg/sg.h ssgconf.h
-ssgLoadMD2.o: ssgLoadMD2.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
-	../../src/sg/sg.h ssgconf.h ssgLoaderWriterStuff.h
-ssgLoadMDL.o: ssgLoadMDL.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
-	../../src/sg/sg.h ssgconf.h ssgLoadMDL.h ssgMSFSPalette.h
-ssgLoadOBJ.o: ssgLoadOBJ.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
-	../../src/sg/sg.h ssgconf.h
-ssgLoadOFF.o: ssgLoadOFF.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
-	../../src/sg/sg.h ssgconf.h ssgLoaderWriterStuff.h ssgParser.h
-ssgLoadPNG.o: ssgLoadPNG.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
-	../../src/sg/sg.h ssgconf.h
-ssgLoadSGI.o: ssgLoadSGI.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
-	../../src/sg/sg.h ssgconf.h
-ssgLoadSSG.o: ssgLoadSSG.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
-	../../src/sg/sg.h ssgconf.h
-ssgLoadStrip.o: ssgLoadStrip.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
-	../../src/sg/sg.h ssgconf.h
-ssgLoadTGA.o: ssgLoadTGA.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
-	../../src/sg/sg.h ssgconf.h
-ssgLoadTRI.o: ssgLoadTRI.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
-	../../src/sg/sg.h ssgconf.h
-ssgLoadTexture.o: ssgLoadTexture.cxx ssgLocal.h ssg.h \
-	../../src/util/ul.h ../../src/sg/sg.h ssgconf.h
-ssgLoadVRML.o: ssgLoadVRML.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
-	../../src/sg/sg.h ssgconf.h
-ssgLoadX.o: ssgLoadX.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
-	../../src/sg/sg.h ssgconf.h ssgLoaderWriterStuff.h ssgParser.h
-ssgLoaderWriterStuff.o: ssgLoaderWriterStuff.cxx ssgLocal.h ssg.h \
-	../../src/util/ul.h ../../src/sg/sg.h ssgconf.h \
-	ssgLoaderWriterStuff.h
-ssgOptimiser.o: ssgOptimiser.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
-	../../src/sg/sg.h ssgconf.h
-ssgParser.o: ssgParser.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
-	../../src/sg/sg.h ssgconf.h ssgParser.h
-ssgRangeSelector.o: ssgRangeSelector.cxx ssgLocal.h ssg.h \
-	../../src/util/ul.h ../../src/sg/sg.h ssgconf.h
-ssgRoot.o: ssgRoot.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
-	../../src/sg/sg.h ssgconf.h
-ssgSave3ds.o: ssgSave3ds.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
-	../../src/sg/sg.h ssgconf.h ssg3ds.h
-ssgSaveAC.o: ssgSaveAC.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
-	../../src/sg/sg.h ssgconf.h ssgLoaderWriterStuff.h
-ssgSaveASE.o: ssgSaveASE.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
-	../../src/sg/sg.h ssgconf.h ssgLoaderWriterStuff.h
-ssgSaveATG.o: ssgSaveATG.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
-	../../src/sg/sg.h ssgconf.h ssgLoaderWriterStuff.h
-ssgSaveDXF.o: ssgSaveDXF.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
-	../../src/sg/sg.h ssgconf.h
-ssgSaveM.o: ssgSaveM.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
-	../../src/sg/sg.h ssgconf.h ssgLoaderWriterStuff.h
-ssgSaveOBJ.o: ssgSaveOBJ.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
-	../../src/sg/sg.h ssgconf.h
-ssgSaveOFF.o: ssgSaveOFF.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
-	../../src/sg/sg.h ssgconf.h ssgLoaderWriterStuff.h
-ssgSaveQHI.o: ssgSaveQHI.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
-	../../src/sg/sg.h ssgconf.h ssgLoaderWriterStuff.h
-ssgSaveTRI.o: ssgSaveTRI.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
-	../../src/sg/sg.h ssgconf.h
-ssgSaveX.o: ssgSaveX.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
-	../../src/sg/sg.h ssgconf.h
-ssgSelector.o: ssgSelector.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
-	../../src/sg/sg.h ssgconf.h
-ssgSimpleList.o: ssgSimpleList.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
-	../../src/sg/sg.h ssgconf.h
-ssgSimpleState.o: ssgSimpleState.cxx ssgLocal.h ssg.h \
-	../../src/util/ul.h ../../src/sg/sg.h ssgconf.h
-ssgState.o: ssgState.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
-	../../src/sg/sg.h ssgconf.h
-ssgStateSelector.o: ssgStateSelector.cxx ssgLocal.h ssg.h \
-	../../src/util/ul.h ../../src/sg/sg.h ssgconf.h
-ssgStateTables.o: ssgStateTables.cxx ssgLocal.h ssg.h \
-	../../src/util/ul.h ../../src/sg/sg.h ssgconf.h
-ssgStats.o: ssgStats.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
-	../../src/sg/sg.h ssgconf.h
-ssgTexTrans.o: ssgTexTrans.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
-	../../src/sg/sg.h ssgconf.h
-ssgTexture.o: ssgTexture.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
-	../../src/sg/sg.h ssgconf.h
-ssgTextureManager.o: ssgTextureManager.cxx ssgLocal.h ssg.h \
-	../../src/util/ul.h ../../src/sg/sg.h ssgconf.h
-ssgTransform.o: ssgTransform.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
-	../../src/sg/sg.h ssgconf.h
-ssgVTable.o: ssgVTable.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
-	../../src/sg/sg.h ssgconf.h
-ssgVtxArray.o: ssgVtxArray.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
-	../../src/sg/sg.h ssgconf.h
-ssgVtxTable.o: ssgVtxTable.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
-	../../src/sg/sg.h ssgconf.h
-
-info-am:
-info: info-am
-dvi-am:
-dvi: dvi-am
 check-am: all-am
 check: check-am
-installcheck-am:
-installcheck: installcheck-am
-install-exec-am: install-libLIBRARIES
-install-exec: install-exec-am
+all-am: Makefile $(LIBRARIES) $(HEADERS)
 
-install-data-am: install-includeHEADERS
+installdirs:
+	$(mkinstalldirs) $(DESTDIR)$(libdir) $(DESTDIR)$(includedir)
+
+install: install-am
+install-exec: install-exec-am
 install-data: install-data-am
+uninstall: uninstall-am
 
 install-am: all-am
 	@$(MAKE) $(AM_MAKEFLAGS) install-exec-am install-data-am
-install: install-am
-uninstall-am: uninstall-libLIBRARIES uninstall-includeHEADERS
-uninstall: uninstall-am
-all-am: Makefile $(LIBRARIES) $(HEADERS)
-all-redirect: all-am
+
+installcheck: installcheck-am
 install-strip:
-	$(MAKE) $(AM_MAKEFLAGS) AM_INSTALL_PROGRAM_FLAGS=-s install
-installdirs:
-	$(mkinstalldirs)  $(DESTDIR)$(libdir) $(DESTDIR)$(includedir)
-
-
+	$(MAKE) $(AM_MAKEFLAGS) INSTALL_PROGRAM="$(INSTALL_STRIP_PROGRAM)" \
+	  `test -z '$(STRIP)' || \
+	    echo "INSTALL_PROGRAM_ENV=STRIPPROG='$(STRIP)'"` install
 mostlyclean-generic:
 
 clean-generic:
 
 distclean-generic:
-	-rm -f Makefile $(CONFIG_CLEAN_FILES)
-	-rm -f config.cache config.log stamp-h stamp-h[0-9]*
+	-rm -f Makefile $(CONFIG_CLEAN_FILES) stamp-h stamp-h[0-9]*
 
 maintainer-clean-generic:
-mostlyclean-am:  mostlyclean-libLIBRARIES mostlyclean-compile \
-		mostlyclean-tags mostlyclean-generic
-
-mostlyclean: mostlyclean-am
-
-clean-am:  clean-libLIBRARIES clean-compile clean-tags clean-generic \
-		mostlyclean-am
-
+	@echo "This command is intended for maintainers to use"
+	@echo "it deletes files that may require special tools to rebuild."
 clean: clean-am
 
-distclean-am:  distclean-libLIBRARIES distclean-compile distclean-tags \
-		distclean-generic clean-am
+clean-am: clean-generic clean-libLIBRARIES mostlyclean-am
 
 distclean: distclean-am
 
-maintainer-clean-am:  maintainer-clean-libLIBRARIES \
-		maintainer-clean-compile maintainer-clean-tags \
-		maintainer-clean-generic distclean-am
-	@echo "This command is intended for maintainers to use;"
-	@echo "it deletes files that may require special tools to rebuild."
+distclean-am: clean-am distclean-compile distclean-depend \
+	distclean-generic distclean-tags
+
+dvi: dvi-am
+
+dvi-am:
+
+info: info-am
+
+info-am:
+
+install-data-am: install-includeHEADERS
+
+install-exec-am: install-libLIBRARIES
+
+install-info: install-info-am
+
+install-man:
+
+installcheck-am:
 
 maintainer-clean: maintainer-clean-am
 
-.PHONY: mostlyclean-libLIBRARIES distclean-libLIBRARIES \
-clean-libLIBRARIES maintainer-clean-libLIBRARIES uninstall-libLIBRARIES \
-install-libLIBRARIES mostlyclean-compile distclean-compile \
-clean-compile maintainer-clean-compile uninstall-includeHEADERS \
-install-includeHEADERS tags mostlyclean-tags distclean-tags clean-tags \
-maintainer-clean-tags distdir info-am info dvi-am dvi check check-am \
-installcheck-am installcheck install-exec-am install-exec \
-install-data-am install-data install-am install uninstall-am uninstall \
-all-redirect all-am all installdirs mostlyclean-generic \
-distclean-generic clean-generic maintainer-clean-generic clean \
-mostlyclean distclean maintainer-clean
+maintainer-clean-am: distclean-am maintainer-clean-generic
 
+mostlyclean: mostlyclean-am
+
+mostlyclean-am: mostlyclean-compile mostlyclean-generic
+
+uninstall-am: uninstall-includeHEADERS uninstall-info-am \
+	uninstall-libLIBRARIES
+
+.PHONY: GTAGS all all-am check check-am clean clean-generic \
+	clean-libLIBRARIES distclean distclean-compile distclean-depend \
+	distclean-generic distclean-tags distdir dvi dvi-am info \
+	info-am install install-am install-data install-data-am \
+	install-exec install-exec-am install-includeHEADERS \
+	install-info install-info-am install-libLIBRARIES install-man \
+	install-strip installcheck installcheck-am installdirs \
+	maintainer-clean maintainer-clean-generic mostlyclean \
+	mostlyclean-compile mostlyclean-generic tags uninstall \
+	uninstall-am uninstall-includeHEADERS uninstall-info-am \
+	uninstall-libLIBRARIES
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
