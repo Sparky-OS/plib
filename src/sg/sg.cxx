@@ -1,11 +1,28 @@
+/*
+     PLIB - A Suite of Portable Game Libraries
+     Copyright (C) 2001  Steve Baker
+ 
+     This library is free software; you can redistribute it and/or
+     modify it under the terms of the GNU Library General Public
+     License as published by the Free Software Foundation; either
+     version 2 of the License, or (at your option) any later version.
+ 
+     This library is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+     Library General Public License for more details.
+ 
+     You should have received a copy of the GNU Library General Public
+     License along with this library; if not, write to the Free
+     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+ 
+     For further information visit http://plib.sourceforge.net
 
-#include <stdio.h>
+     $Id: sg.cxx,v 1.20 2001/06/22 13:35:07 wolfram_kuss Exp $
+*/
+
+
 #include "sg.h"
-
-#ifndef TRUE
-#define TRUE  1
-#define FALSE 0
-#endif
 
 void sgVectorProductVec3 ( sgVec3 dst, const sgVec3 a, const sgVec3 b )
 {
@@ -63,6 +80,214 @@ void sgMakeRotMat4( sgMat4 mat, const SGfloat angle, const sgVec3 axis )
   mat[3][1] = SG_ZERO ;
   mat[3][2] = SG_ZERO ;
   mat[3][3] = SG_ONE ;
+}
+
+
+
+ 
+void sgMakePickMatrix( sgMat4 mat, sgFloat x, sgFloat y,
+                       sgFloat width, sgFloat height, sgVec4 viewport )
+{
+   sgFloat sx =   viewport[2] / width  ;
+   sgFloat sy =   viewport[3] / height ;
+   sgFloat tx = ( viewport[2] + SG_TWO * (viewport[0] - x) ) / width  ;
+   sgFloat ty = ( viewport[3] + SG_TWO * (viewport[1] - y) ) / height ;
+ 
+   mat[0][0] =    sx   ;
+   mat[0][1] = SG_ZERO ;
+   mat[0][2] = SG_ZERO ;
+   mat[0][3] = SG_ZERO ;
+
+   mat[1][0] = SG_ZERO ;
+   mat[1][1] =    sy   ;
+   mat[1][2] = SG_ZERO ;
+   mat[1][3] = SG_ZERO ;
+
+   mat[2][0] = SG_ZERO ;
+   mat[2][1] = SG_ZERO ;
+   mat[2][2] = SG_ONE  ;
+   mat[2][3] = SG_ZERO ;
+
+   mat[3][0] =    tx   ;
+   mat[3][1] =    ty   ;
+   mat[3][2] = SG_ZERO ;
+   mat[3][3] = SG_ONE  ;
+}                                                                               
+
+
+
+void sgMakeLookAtMat4 ( sgMat4 dst, const sgVec3 eye,
+                                    const sgVec3 center,
+                                    const sgVec3 up )
+{
+  // Caveats:
+  // 1) In order to compute the line of sight, the eye point must not be equal
+  //    to the center point.
+  // 2) The up vector must not be parallel to the line of sight from the eye
+  //    to the center point.
+
+  /* Compute the direction vectors */
+  sgVec3 x,y,z;
+
+  /* Y vector = center - eye */
+  sgSubVec3 ( y, center, eye ) ;
+
+  /* Z vector = up */
+  sgCopyVec3 ( z, up ) ;
+
+  /* X vector = Y cross Z */
+  sgVectorProductVec3 ( x, y, z ) ;
+
+  /* Recompute Z = X cross Y */
+  sgVectorProductVec3 ( z, x, y ) ;
+
+  /* Normalize everything */
+  sgNormaliseVec3 ( x ) ;
+  sgNormaliseVec3 ( y ) ;
+  sgNormaliseVec3 ( z ) ;
+
+  /* Build the matrix */
+  sgSetVec4 ( dst[0], x[0], x[1], x[2], SG_ZERO ) ;
+  sgSetVec4 ( dst[1], y[0], y[1], y[2], SG_ZERO ) ;
+  sgSetVec4 ( dst[2], z[0], z[1], z[2], SG_ZERO ) ;
+  sgSetVec4 ( dst[3], eye[0], eye[1], eye[2], SG_ONE ) ;
+}
+
+// -dw- inconsistent linkage!
+float sgTriArea( sgVec3 p0, sgVec3 p1, sgVec3 p2 )
+{
+  /* 
+    From comp.graph.algorithms FAQ
+	2A(P) = abs(N.(sum_{i=0}^{n-1}(v_i x v_{i+1})))
+	This is an optimized version for a triangle
+	but easily extended for planar polygon's with more sides
+	by passing in the number of sides and the vv array
+	sgTriArea( int nsides, float **vv )
+	and changing the normal calculation and the for loop appropriately
+	sgMakeNormal( norm, vv[0], vv[1], vv[2] )
+	for( int i=0; i<n; i++ )
+  */
+
+	sgVec3 sum;
+	sgZeroVec3( sum );
+
+	sgVec3 norm;
+	sgMakeNormal( norm, p0, p1, p2 );
+
+	float *vv[3];
+	vv[0] = p0;
+	vv[1] = p1;
+	vv[2] = p2;
+
+	for( int i=0; i<3; i++ ) {
+		int ii = (i+1) % 3;
+		sum[0] += (vv[i][1] * vv[ii][2] - vv[i][2] * vv[ii][1]) ;
+		sum[1] += (vv[i][2] * vv[ii][0] - vv[i][0] * vv[ii][2]) ;
+		sum[2] += (vv[i][0] * vv[ii][1] - vv[i][1] * vv[ii][0]) ;
+	}
+
+	float area = sgAbs(sgScalarProductVec3( norm, sum ));
+	return( area / 2.0f );
+}
+
+/***************************************************\
+*   functions to get the angle between two vectors  *
+\***************************************************/
+
+SGfloat sgAngleBetweenVec3 ( sgVec3 v1, sgVec3 v2 )
+{
+  sgVec3 nv1, nv2 ;
+
+  sgNormalizeVec3 ( nv1, v1 ) ;
+  sgNormalizeVec3 ( nv2, v2 ) ;
+  return sgAngleBetweenNormalizedVec3 ( nv1, nv2 ) ;
+}
+
+SGfloat sgAngleBetweenNormalizedVec3 (sgVec3 first, sgVec3 second, sgVec3 normal) { 
+ // result is in the range  0..2*pi
+ // Attention: first and second have to be normalized
+ // the normal is needed to decide between for example 0.123 looking "from one side"
+ // and -0.123 looking fomr the other
+
+  SGfloat myCos, abs1, abs2, SProduct, deltaAngle, myNorm;
+
+#ifdef _DEBUG
+	SGfloat tfA,tfB;
+
+	tfA = sgScalarProductVec3 (first, first);
+	tfB = sgScalarProductVec3 (second, second);
+	assert(tfA>0.99);
+	assert(tfA<1.01);
+	assert(tfB>0.99);
+	assert(tfB<1.01);
+#endif
+  
+	if((normal[0]==0) && (normal[1]==0) && (normal[2]==0))
+	{	
+		ulSetError ( UL_WARNING, "sgGetAngleBetweenVectors: Normal is zero.");
+		return 0.0;
+	}
+	sgVec3 temp;
+  sgVectorProductVec3( temp, first, second);
+  myNorm = sgLengthVec3 ( temp );
+  if ( (sgScalarProductVec3(temp, normal))<0 ) {
+    myNorm = -myNorm;
+  }
+
+  if ( myNorm < -0.99999 ) {
+    deltaAngle = -SG_PI*0.5;
+  }
+  else
+  {   if ( myNorm > 0.99999 ) {
+         deltaAngle = SG_PI*0.5;
+      }
+      else
+      {   deltaAngle = (SGfloat)asin((double)myNorm);
+      }
+  }
+	// deltaAngle is in the range -SG_PI*0.5 to +SG_PI*0.5 here
+	// However, the correct result could also be 
+	// deltaAngleS := pi - deltaAngle
+	// Please note that:
+	// cos(deltaAngleS)=cos(pi-deltaAngle)=-cos(deltaAngle)
+	// So, the question is whether + or - cos(deltaAngle)
+	// is sgScalarProductVec3(first, second)
+  
+  if ( deltaAngle < 0 ) 
+    deltaAngle = deltaAngle + 2*SG_PI; // unnessecary?
+  
+  SProduct = sgScalarProductVec3(first, second);
+  myCos = (SGfloat) cos(deltaAngle);
+  
+	abs1 = SProduct - myCos;
+  if ( abs1 < 0 ) 
+		abs1 = -abs1;
+  
+	abs2 = SProduct + myCos;
+  if ( abs2 < 0 ) 
+    abs2 = -abs2;
+  
+	assert( (abs1 < 0.1) || (abs2 < 0.1) );
+  if ( abs2 < abs1 ) { // deltaAngleS is the correct result
+    if ( deltaAngle <= SG_PI ) {
+      deltaAngle = SG_PI - deltaAngle;
+    }else {
+      deltaAngle = 3*SG_PI - deltaAngle;
+    }
+  }
+	assert(deltaAngle >= 0.0);
+	assert(deltaAngle <= 2.0*SG_PI);
+  return deltaAngle;
+}
+
+SGfloat sgAngleBetweenVec3 ( sgVec3 v1, sgVec3 v2, sgVec3 normal )
+// nornmal has to be normalized.
+{
+  sgVec3 nv1, nv2 ;
+
+  sgNormalizeVec3 ( nv1, v1 ) ;
+  sgNormalizeVec3 ( nv2, v2 ) ;
+  return sgAngleBetweenNormalizedVec3 ( nv1, nv2, normal ) ;
 }
 
 
@@ -178,7 +403,7 @@ void sgSphere::extend ( const sgVec3 v )
   if ( isEmpty () )
   {
     sgCopyVec3 ( center, v ) ;
-    radius = 0.0f ;
+    radius = SG_ZERO ;
     return ;
   }
 
@@ -187,7 +412,7 @@ void sgSphere::extend ( const sgVec3 v )
   if ( d <= radius )  /* Point is already inside sphere */
     return ;
 
-  SGfloat new_radius = (radius + d) / 2.0f ;  /* Grow radius */
+  SGfloat new_radius = (radius + d) / SG_TWO ;  /* Grow radius */
 
   SGfloat ratio = (new_radius - radius) / d ;
 
@@ -207,7 +432,7 @@ void sgSphere::extend ( const sgBox *b )
   if ( isEmpty() )
   {
     sgAddVec3   ( center, b->getMin(), b->getMax() ) ;
-    sgScaleVec3 ( center, 0.5f ) ;
+    sgScaleVec3 ( center, SG_HALF ) ;
     radius = sgDistanceVec3 ( center, b->getMax() ) ;
     return ;
   }
@@ -291,7 +516,7 @@ void sgSphere::extend ( const sgSphere *s )
     triangles
   */
 
-  SGfloat new_radius = (radius + d + s->getRadius() ) / 2.0f ;
+  SGfloat new_radius = (radius + d + s->getRadius() ) / SG_TWO ;
 
   SGfloat ratio = ( new_radius - radius ) / d ;
 
@@ -330,7 +555,7 @@ void sgFrustum::update ()
 {
   if ( fabs ( ffar - nnear ) < 0.1 )
   {
-    fprintf ( stderr, "sgFrustum: Can't support depth of view <0.1 units.\n");
+    ulSetError ( UL_WARNING, "sgFrustum: Can't support depth of view <0.1 units.");
     return ;
   }
 
@@ -338,7 +563,7 @@ void sgFrustum::update ()
   {
     if ( fabs ( hfov ) < 0.1 || fabs ( vfov ) < 0.1 )
     {
-      fprintf ( stderr, "sgFrustum: Can't support fields of view narrower than 0.1 degrees.\n");
+      ulSetError ( UL_WARNING, "sgFrustum: Can't support fields of view narrower than 0.1 degrees.");
       return ;
     }
 
@@ -519,9 +744,47 @@ int sgFrustum::contains ( const sgSphere *s ) const
 }
 
 
+
+SGfloat sgDistSquaredToLineVec3 ( const sgLine3 line, const sgVec3 pnt )
+{
+  sgVec3 r ; sgSubVec3 ( r, pnt, line.point_on_line ) ;
+ 
+  return sgScalarProductVec3 ( r, r ) -
+         sgScalarProductVec3 ( r, line.direction_vector ) ;
+}
+
+
+
+SGfloat sgDistSquaredToLineSegmentVec3 ( const sgLineSegment3 line,
+                                         const sgVec3 pnt )
+{
+  sgLine3 l ; sgLineSegment3ToLine3 ( & l, line ) ;
+ 
+sgVec3 v ; sgSubVec3 ( v, line.b, line.a ) ;
+  sgVec3 r1 ; sgSubVec3 ( r1, pnt, line.a ) ;
+ 
+  SGfloat r1_dot_v = sgScalarProductVec3 ( r1, v /*l.direction_vector*/ ) ;
+ 
+  if ( r1_dot_v <= 0 )  /* Off the "A" end  */
+    return sgScalarProductVec3 ( r1, r1 ) ;
+ 
+  sgVec3 r2 ; sgSubVec3 ( r2, pnt, line.b ) ;
+
+  SGfloat r2_dot_v = sgScalarProductVec3 ( r2, v /*l.direction_vector*/ ) ;
+ 
+  if ( r2_dot_v >= 0 )  /* Off the "B" end */
+    return sgScalarProductVec3 ( r2, r2 ) ;
+ 
+  /* Closest point on line is on the line segment */
+ 
+  return sgScalarProductVec3 ( r1, r1 ) - r1_dot_v ;
+}
+
+
+
 void sgMakeCoordMat4 ( sgMat4 m, const SGfloat x, const SGfloat y, const SGfloat z, const SGfloat h, const SGfloat p, const SGfloat r )
 {
-  double ch, sh, cp, sp, cr, sr, srsp, crsp, srcp ;
+  SGfloat ch, sh, cp, sp, cr, sr, srsp, crsp, srcp ;
 
   if ( h == SG_ZERO )
   {
@@ -530,8 +793,8 @@ void sgMakeCoordMat4 ( sgMat4 m, const SGfloat x, const SGfloat y, const SGfloat
   }
   else
   {
-    sh = (SGfloat) sin( (double)( h * SG_DEGREES_TO_RADIANS )) ;
-    ch = (SGfloat) cos( (double)( h * SG_DEGREES_TO_RADIANS )) ;
+    sh = (SGfloat) sin( h * SG_DEGREES_TO_RADIANS ) ;
+    ch = (SGfloat) cos( h * SG_DEGREES_TO_RADIANS ) ;
   }
 
   if ( p == SG_ZERO )
@@ -541,8 +804,8 @@ void sgMakeCoordMat4 ( sgMat4 m, const SGfloat x, const SGfloat y, const SGfloat
   }
   else
   {
-    sp = sin( (double)( p * SG_DEGREES_TO_RADIANS )) ;
-    cp = cos( (double)( p * SG_DEGREES_TO_RADIANS )) ;
+    sp = (SGfloat) sin( p * SG_DEGREES_TO_RADIANS ) ;
+    cp = (SGfloat) cos( p * SG_DEGREES_TO_RADIANS ) ;
   }
 
   if ( r == SG_ZERO )
@@ -555,8 +818,8 @@ void sgMakeCoordMat4 ( sgMat4 m, const SGfloat x, const SGfloat y, const SGfloat
   }
   else
   {
-    sr   = sin( (double)( r * SG_DEGREES_TO_RADIANS )) ;
-    cr   = cos( (double)( r * SG_DEGREES_TO_RADIANS )) ;
+    sr   = (SGfloat) sin( r * SG_DEGREES_TO_RADIANS ) ;
+    cr   = (SGfloat) cos( r * SG_DEGREES_TO_RADIANS ) ;
     srsp = sr * sp ;
     crsp = cr * sp ;
     srcp = sr * cp ;
@@ -614,7 +877,7 @@ void sgSetCoord ( sgCoord *dst, const sgMat4 src )
 
   if ( s <= 0.00001 )
   {
-    fprintf ( stderr, "sgMat4ToCoord: ERROR - Bad Matrix.\n" ) ;
+    ulSetError ( UL_WARNING, "sgMat4ToCoord: ERROR - Bad Matrix." ) ;
     sgSetVec3 ( dst -> hpr, SG_ZERO, SG_ZERO, SG_ZERO ) ;
     return ;
   }
@@ -670,77 +933,40 @@ void sgMakeNormal(sgVec3 dst, const sgVec3 a, const sgVec3 b, const sgVec3 c )
 void sgPreMultMat4( sgMat4 dst, const sgMat4 src )
 {
   sgMat4 mat ;
-  sgMultMat4 ( mat, src, dst ) ;
+  sgMultMat4 ( mat, dst, src ) ;
   sgCopyMat4 ( dst, mat ) ;
 }
 
 void sgPostMultMat4( sgMat4 dst, const sgMat4 src )
 {
   sgMat4 mat ;
-  sgMultMat4 ( mat, dst, src ) ;
+  sgMultMat4 ( mat, src, dst ) ;
   sgCopyMat4 ( dst, mat ) ;
 }
 
 void sgMultMat4( sgMat4 dst, const sgMat4 m1, const sgMat4 m2 )
 {
-  if (((m1[0][3] != SG_ZERO) |
-       (m1[1][3] != SG_ZERO) |
-       (m1[2][3] != SG_ZERO) |
-       (m2[0][3] != SG_ZERO) |
-       (m2[1][3] != SG_ZERO) |
-       (m2[2][3] != SG_ZERO) ) == 0x0 &&
-        m1[3][3] == SG_ONE &&
-        m2[3][3] == SG_ONE)
+  for ( int j = 0 ; j < 4 ; j++ )
   {
-    for ( int j = 0 ; j < 3 ; j++ )
-    {
-      dst[0][j] = (m1[0][0] * m2[0][j] +
-                   m1[0][1] * m2[1][j] +
-                   m1[0][2] * m2[2][j]);
+    dst[0][j] = m2[0][0] * m1[0][j] +
+		m2[0][1] * m1[1][j] +
+		m2[0][2] * m1[2][j] +
+		m2[0][3] * m1[3][j] ;
 
-      dst[1][j] = (m1[1][0] * m2[0][j] +
-                   m1[1][1] * m2[1][j] +
-                   m1[1][2] * m2[2][j]);
+    dst[1][j] = m2[1][0] * m1[0][j] +
+		m2[1][1] * m1[1][j] +
+		m2[1][2] * m1[2][j] +
+		m2[1][3] * m1[3][j] ;
 
-      dst[2][j] = (m1[2][0] * m2[0][j] +
-                   m1[2][1] * m2[1][j] +
-                   m1[2][2] * m2[2][j]);
+    dst[2][j] = m2[2][0] * m1[0][j] +
+		m2[2][1] * m1[1][j] +
+		m2[2][2] * m1[2][j] +
+		m2[2][3] * m1[3][j] ;
 
-      dst[3][j] = (m1[3][0] * m2[0][j] +
-                   m1[3][1] * m2[1][j] +
-                   m1[3][2] * m2[2][j] +
-                   m2[3][j]);
-    }
-
-    dst[0][3] = SG_ZERO ;
-    dst[1][3] = SG_ZERO ;
-    dst[2][3] = SG_ZERO ;
-    dst[3][3] = SG_ONE ;
-  }
-  else
-  {
-    for ( int j = 0 ; j < 4 ; j++ )
-    {
-      dst[0][j] = (m1[0][0] * m2[0][j] +
-                   m1[0][1] * m2[1][j] +
-                   m1[0][2] * m2[2][j] +
-                   m1[0][3] * m2[3][j]);
-
-      dst[1][j] = (m1[1][0] * m2[0][j] +
-                   m1[1][1] * m2[1][j] +
-                   m1[1][2] * m2[2][j] +
-                   m1[1][3] * m2[3][j]);
-
-      dst[2][j] = (m1[2][0] * m2[0][j] +
-                   m1[2][1] * m2[1][j] +
-                   m1[2][2] * m2[2][j] +
-                   m1[2][3] * m2[3][j]);
-
-      dst[3][j] = (m1[3][0] * m2[0][j] +
-                   m1[3][1] * m2[1][j] +
-                   m1[3][2] * m2[2][j] +
-                   m1[3][3] * m2[3][j]);
-    }
+    dst[3][j] = m2[3][0] * m1[0][j] +
+		m2[3][1] * m1[1][j] +
+		m2[3][2] * m1[2][j] +
+		m2[3][3] * m1[3][j] ;
   }
 }
 
@@ -812,17 +1038,20 @@ void sgInvertMat4 ( sgMat4 dst, const sgMat4 src )
       }
     }
 
-    if ( val == SG_ZERO)
+    // if ( val == SG_ZERO)
+    if ( fabs(val) <= FLT_EPSILON )
     {
-      fprintf ( stderr, "sg: ERROR - Singular matrix, no inverse!\n" ) ;
+      ulSetError ( UL_WARNING, "sg: ERROR - Singular matrix, no inverse!" ) ;
       sgMakeIdentMat4 ( dst ) ;  /* Do *something* */
       return;
     }
 
+    SGfloat ival = SG_ONE / val ;
+
     for ( j = 0 ; j != 4 ; j++ )
     {
-      tmp[j][i] /= val ;
-      dst[j][i] /= val ;
+      tmp[j][i] *= ival ;
+      dst[j][i] *= ival ;
     }
 
     for (j = 0; j != 4; j++)
@@ -849,17 +1078,17 @@ void sgXformVec3 ( sgVec3 dst, const sgVec3 src, const sgMat4 mat )
   SGfloat t1 = src[ 1 ] ;
   SGfloat t2 = src[ 2 ] ;
 
-  dst[0] = ( t0 * mat[ 0 ][ 0 ] +
-             t1 * mat[ 1 ][ 0 ] +
-             t2 * mat[ 2 ][ 0 ] ) ;
+  dst[0] = t0 * mat[ 0 ][ 0 ] +
+           t1 * mat[ 1 ][ 0 ] +
+           t2 * mat[ 2 ][ 0 ] ;
 
-  dst[1] = ( t0 * mat[ 0 ][ 1 ] +
-             t1 * mat[ 1 ][ 1 ] +
-             t2 * mat[ 2 ][ 1 ] ) ;
+  dst[1] = t0 * mat[ 0 ][ 1 ] +
+           t1 * mat[ 1 ][ 1 ] +
+           t2 * mat[ 2 ][ 1 ] ;
 
-  dst[2] = ( t0 * mat[ 0 ][ 2 ] +
-             t1 * mat[ 1 ][ 2 ] +
-             t2 * mat[ 2 ][ 2 ] ) ;
+  dst[2] = t0 * mat[ 0 ][ 2 ] +
+           t1 * mat[ 1 ][ 2 ] +
+           t2 * mat[ 2 ][ 2 ] ;
 }
 
 
@@ -869,20 +1098,20 @@ void sgXformPnt3 ( sgVec3 dst, const sgVec3 src, const sgMat4 mat )
   SGfloat t1 = src[ 1 ] ;
   SGfloat t2 = src[ 2 ] ;
 
-  dst[0] = ( t0 * mat[ 0 ][ 0 ] +
-             t1 * mat[ 1 ][ 0 ] +
-             t2 * mat[ 2 ][ 0 ] +
-                  mat[ 3 ][ 0 ] ) ;
+  dst[0] = t0 * mat[ 0 ][ 0 ] +
+           t1 * mat[ 1 ][ 0 ] +
+           t2 * mat[ 2 ][ 0 ] +
+                mat[ 3 ][ 0 ] ;
 
-  dst[1] = ( t0 * mat[ 0 ][ 1 ] +
-             t1 * mat[ 1 ][ 1 ] +
-             t2 * mat[ 2 ][ 1 ] +
-                  mat[ 3 ][ 1 ] ) ;
+  dst[1] = t0 * mat[ 0 ][ 1 ] +
+           t1 * mat[ 1 ][ 1 ] +
+           t2 * mat[ 2 ][ 1 ] +
+                mat[ 3 ][ 1 ] ;
 
-  dst[2] = ( t0 * mat[ 0 ][ 2 ] +
-             t1 * mat[ 1 ][ 2 ] +
-             t2 * mat[ 2 ][ 2 ] +
-                  mat[ 3 ][ 2 ] ) ;
+  dst[2] = t0 * mat[ 0 ][ 2 ] +
+           t1 * mat[ 1 ][ 2 ] +
+           t2 * mat[ 2 ][ 2 ] +
+                mat[ 3 ][ 2 ] ;
 }
 
 
@@ -893,25 +1122,25 @@ void sgXformPnt4 ( sgVec4 dst, const sgVec4 src, const sgMat4 mat )
   SGfloat t2 = src[ 2 ] ;
   SGfloat t3 = src[ 3 ] ;
 
-  dst[0] = ( t0 * mat[ 0 ][ 0 ] +
-             t1 * mat[ 1 ][ 0 ] +
-             t2 * mat[ 2 ][ 0 ] +
-             t3 * mat[ 3 ][ 0 ] ) ;
+  dst[0] = t0 * mat[ 0 ][ 0 ] +
+           t1 * mat[ 1 ][ 0 ] +
+           t2 * mat[ 2 ][ 0 ] +
+           t3 * mat[ 3 ][ 0 ] ;
 
-  dst[1] = ( t0 * mat[ 0 ][ 1 ] +
-             t1 * mat[ 1 ][ 1 ] +
-             t2 * mat[ 2 ][ 1 ] +
-             t3 * mat[ 3 ][ 1 ] ) ;
+  dst[1] = t0 * mat[ 0 ][ 1 ] +
+           t1 * mat[ 1 ][ 1 ] +
+           t2 * mat[ 2 ][ 1 ] +
+           t3 * mat[ 3 ][ 1 ] ;
 
-  dst[2] = ( t0 * mat[ 0 ][ 2 ] +
-             t1 * mat[ 1 ][ 2 ] +
-             t2 * mat[ 2 ][ 2 ] +
-             t3 * mat[ 3 ][ 2 ] ) ;
+  dst[2] = t0 * mat[ 0 ][ 2 ] +
+           t1 * mat[ 1 ][ 2 ] +
+           t2 * mat[ 2 ][ 2 ] +
+           t3 * mat[ 3 ][ 2 ] ;
 
-  dst[3] = ( t0 * mat[ 0 ][ 3 ] +
-             t1 * mat[ 1 ][ 3 ] +
-             t2 * mat[ 2 ][ 3 ] +
-             t3 * mat[ 3 ][ 3 ] ) ;
+  dst[3] = t0 * mat[ 0 ][ 3 ] +
+           t1 * mat[ 1 ][ 3 ] +
+           t2 * mat[ 2 ][ 3 ] +
+           t3 * mat[ 3 ][ 3 ] ;
 }
 
 
@@ -937,7 +1166,7 @@ void sgHPRfromVec3 ( sgVec3 hpr, const sgVec3 src )
   hpr[1] = -(SGfloat) atan2 ( tmp [ 2 ], sqrt ( sgSquare ( tmp [ 0 ] ) +
                                                 sgSquare ( tmp [ 1 ] ) ) ) *
                                                 SG_RADIANS_TO_DEGREES ;
-  hpr[2] = 0.0f ;
+  hpr[2] = SG_ZERO ;
 }
 
 
@@ -946,12 +1175,13 @@ void sgHPRfromVec3 ( sgVec3 hpr, const sgVec3 src )
   Quaternion routines are Copyright (C) 1999
   Kevin B. Thompson <kevinbthompson@yahoo.com>
   Modified by Sylvan W. Clebsch <sylvan@stanford.edu>
+  Largely rewritten by "Negative0" <negative0@earthlink.net>
 */
 
 
 void sgQuatToAngleAxis ( SGfloat *angle,
                          SGfloat *x, SGfloat *y, SGfloat *z,
-                         const sgQuat *src )
+                         const sgQuat src )
 {
   sgVec3 axis ;
 
@@ -963,9 +1193,9 @@ void sgQuatToAngleAxis ( SGfloat *angle,
 }
 
 
-void sgQuatToAngleAxis ( SGfloat *angle, sgVec3 axis, const sgQuat *src )
+void sgQuatToAngleAxis ( SGfloat *angle, sgVec3 axis, const sgQuat src )
 {
-  SGfloat a = (SGfloat) acos ( src->w ) ;
+  SGfloat a = (SGfloat) acos ( src[SG_W] ) ;
   SGfloat s = (SGfloat) sin  ( a ) ;
 
   *angle = a * SG_RADIANS_TO_DEGREES * SG_TWO ;
@@ -974,43 +1204,23 @@ void sgQuatToAngleAxis ( SGfloat *angle, sgVec3 axis, const sgQuat *src )
     sgSetVec3 ( axis, SG_ZERO, SG_ZERO, SG_ONE );
   else
   {
-    sgSetVec3   ( axis, src->x, src->y, src->z ) ;
+    sgSetVec3   ( axis, src[SG_X], src[SG_Y], src[SG_Z] ) ;
     sgScaleVec3 ( axis, SG_ONE / s ) ;
   }
 }
 
 
-void sgMakeQuat ( sgQuat *dst, const sgVec3 hpr )
-{
-  sgVec3 temp_hpr;
-
-  temp_hpr[0] = hpr[0] * SG_DEGREES_TO_RADIANS / SG_TWO ;
-  temp_hpr[1] = hpr[1] * SG_DEGREES_TO_RADIANS / SG_TWO ;
-  temp_hpr[2] = hpr[2] * SG_DEGREES_TO_RADIANS / SG_TWO ;
-
-  SGfloat sh = -(SGfloat) sin ( temp_hpr[0] ) ; SGfloat ch = (SGfloat) cos ( temp_hpr[0] ) ;
-  SGfloat sp = -(SGfloat) sin ( temp_hpr[1] ) ; SGfloat cp = (SGfloat) cos ( temp_hpr[1] ) ;
-  SGfloat sr = -(SGfloat) sin ( temp_hpr[2] ) ; SGfloat cr = (SGfloat) cos ( temp_hpr[2] ) ;
-
-  SGfloat cpch = cp * ch;
-  SGfloat spsh = sp * sh;
-
-  dst->w = cr * cpch + sr * spsh;
-  dst->x = sr * cpch - cr * spsh;
-  dst->y = cr * sp * ch + sr * cp * sh;
-  dst->z = cr * cp * sh - sr * sp * ch;
-}
-
-
-void sgMakeQuat ( sgQuat *dst, const SGfloat angle, const SGfloat x, const SGfloat y, const SGfloat z )
+void sgAngleAxisToQuat ( sgQuat dst,
+                         const SGfloat angle,
+                         const SGfloat x, const SGfloat y, const SGfloat z )
 {
   sgVec3 axis ; 
   sgSetVec3 ( axis, x, y, z ) ;
-  sgMakeQuat ( dst, angle, axis ) ;
+  sgAngleAxisToQuat ( dst, angle, axis ) ;
 }
 
 
-void sgMakeQuat ( sgQuat *dst, const SGfloat angle, const sgVec3 axis )
+void sgAngleAxisToQuat ( sgQuat dst, const SGfloat angle, const sgVec3 axis )
 {
   SGfloat temp_angle = angle * SG_DEGREES_TO_RADIANS / SG_TWO ;
 
@@ -1019,49 +1229,210 @@ void sgMakeQuat ( sgQuat *dst, const SGfloat angle, const sgVec3 axis )
 
   SGfloat s = - (SGfloat) sin ( temp_angle ) ;
 
-  dst->w = (SGfloat) cos ( temp_angle ) ;
-  dst->x = s * ax[0] ;
-  dst->y = s * ax[1] ;
-  dst->z = s * ax[2] ;
+  dst[SG_W] = (SGfloat) cos ( temp_angle ) ;
+  sgScaleVec3 ( dst, ax, s ) ;
 }
 
 
-void sgMultQuat ( sgQuat *dst, const sgQuat *a, const sgQuat *b )
+//from gamasutra.com
+//by nb
+
+void sgMatrixToQuat( sgQuat quat, const sgMat4 m )
+{
+  SGfloat tr, s, q[4] ;
+  int   i, j, k ;
+
+  int nxt[3] = {1, 2, 0};
+
+  tr = m[0][0] + m[1][1] + m[2][2];
+
+  // check the diagonal
+  if (tr > SG_ZERO )
+  {
+    s = (SGfloat) sqrt (tr + SG_ONE);
+    quat[SG_W] = s / SG_TWO;
+    s = SG_HALF / s;
+    quat[SG_X] = (m[1][2] - m[2][1]) * s;
+    quat[SG_Y] = (m[2][0] - m[0][2]) * s;
+    quat[SG_Z] = (m[0][1] - m[1][0]) * s;
+  }
+  else
+  {		
+    // diagonal is negative
+   	i = 0;
+    if (m[1][1] > m[0][0]) i = 1;
+    if (m[2][2] > m[i][i]) i = 2;
+    j = nxt[i];
+    k = nxt[j];
+    s = (SGfloat) sqrt ((m[i][i] - (m[j][j] + m[k][k])) + SG_ONE);
+    q[i] = s * SG_HALF;
+            
+    if (s != SG_ZERO) s = SG_HALF / s;
+
+    q[3] = (m[j][k] - m[k][j]) * s;
+    q[j] = (m[i][j] + m[j][i]) * s;
+    q[k] = (m[i][k] + m[k][i]) * s;
+
+    quat[SG_X] = q[0];
+    quat[SG_Y] = q[1];
+    quat[SG_Z] = q[2];
+    quat[SG_W] = q[3];
+  }
+}
+
+
+void sgMultQuat ( sgQuat dst, const sgQuat a, const sgQuat b )
 {
   /* [ ww' - v.v', vxv' + wv' + v'w ] */
 
   SGfloat t[8];
 
-  t[0] = (a->w + a->x) * (b->w + b->x);
-  t[1] = (a->z - a->y) * (b->y - b->z);
-  t[2] = (a->x - a->w) * (b->y - b->z);
-  t[3] = (a->y + a->z) * (b->x - b->w);
-  t[4] = (a->x + a->z) * (b->x + b->y);
-  t[5] = (a->x - a->z) * (b->x - b->y);
-  t[6] = (a->w + a->y) * (b->w - b->z);
-  t[7] = (a->w - a->y) * (b->w + b->z);
+  t[0] = (a[SG_W] + a[SG_X]) * (b[SG_W] + b[SG_X]);
+  t[1] = (a[SG_Z] - a[SG_Y]) * (b[SG_Y] - b[SG_Z]);
+  t[2] = (a[SG_X] - a[SG_W]) * (b[SG_Y] + b[SG_Z]);
+  t[3] = (a[SG_Y] + a[SG_Z]) * (b[SG_X] - b[SG_W]);
+  t[4] = (a[SG_X] + a[SG_Z]) * (b[SG_X] + b[SG_Y]);
+  t[5] = (a[SG_X] - a[SG_Z]) * (b[SG_X] - b[SG_Y]);
+  t[6] = (a[SG_W] + a[SG_Y]) * (b[SG_W] - b[SG_Z]);
+  t[7] = (a[SG_W] - a[SG_Y]) * (b[SG_W] + b[SG_Z]);
 
-  dst->w =  t[1] + ((-t[4] - t[5] + t[6] + t[7]) * 0.5f);
-  dst->x =  t[0] - (( t[4] + t[5] + t[6] + t[7]) * 0.5f);
-  dst->y = -t[2] + (( t[4] - t[5] + t[6] - t[7]) * 0.5f);
-  dst->z = -t[3] + (( t[4] - t[5] - t[6] + t[7]) * 0.5f);
+  dst[SG_W] =  t[1] + ((-t[4] - t[5] + t[6] + t[7]) * SG_HALF);
+  dst[SG_X] =  t[0] - (( t[4] + t[5] + t[6] + t[7]) * SG_HALF);
+  dst[SG_Y] = -t[2] + (( t[4] - t[5] + t[6] - t[7]) * SG_HALF);
+  dst[SG_Z] = -t[3] + (( t[4] - t[5] - t[6] + t[7]) * SG_HALF);
+}
+
+//from gamasutra.com
+//by nb@netcom.ca 
+
+void sgMultQuat2 ( sgQuat dst, const sgQuat a, const sgQuat b )
+{
+  SGfloat A, B, C, D, E, F, G, H;
+
+  A = (a[SG_W] + a[SG_X]) * (b[SG_W] + b[SG_X]) ;
+  B = (a[SG_Z] - a[SG_Y]) * (b[SG_Y] - b[SG_Z]) ;
+  C = (a[SG_X] - a[SG_W]) * (b[SG_Y] + b[SG_Z]) ;
+  D = (a[SG_Y] + a[SG_Z]) * (b[SG_X] - b[SG_W]) ;
+  E = (a[SG_X] + a[SG_Z]) * (b[SG_X] + b[SG_Y]) ;
+  F = (a[SG_X] - a[SG_Z]) * (b[SG_X] - b[SG_Y]) ;
+  G = (a[SG_W] + a[SG_Y]) * (b[SG_W] - b[SG_Z]) ;
+  H = (a[SG_W] - a[SG_Y]) * (b[SG_W] + b[SG_Z]) ;
+
+
+  dst[SG_W] =  B + (-E - F + G + H) / SG_TWO ;
+  dst[SG_X] =  A - ( E + F + G + H) / SG_TWO ; 
+  dst[SG_Y] = -C + ( E - F + G - H) / SG_TWO ;
+  dst[SG_Z] = -D + ( E - F - G + H) / SG_TWO ;
+}
+
+//from gamasutra.com
+//by nb@netcom.ca 
+
+void sgEulerToQuat(sgQuat quat, const sgVec3 hpr )
+{
+  SGfloat cr, cp, cy, sr, sp, sy, cpcy, spsy;
+
+// calculate trig identities
+  cr = (SGfloat) cos(hpr[2]*SG_DEGREES_TO_RADIANS/SG_TWO);
+  cp = (SGfloat) cos(hpr[1]*SG_DEGREES_TO_RADIANS/SG_TWO);
+  cy = (SGfloat) cos(hpr[0]*SG_DEGREES_TO_RADIANS/SG_TWO);
+
+  sr = (SGfloat) sin(hpr[2]*SG_DEGREES_TO_RADIANS/SG_TWO);
+  sp = (SGfloat) sin(hpr[1]*SG_DEGREES_TO_RADIANS/SG_TWO);
+  sy = (SGfloat) sin(hpr[0]*SG_DEGREES_TO_RADIANS/SG_TWO);
+  
+  cpcy = cp * cy;
+  spsy = sp * sy;
+
+  quat[SG_W] = cr * cpcy + sr * spsy;
+  quat[SG_X] = sr * cpcy - cr * spsy;
+  quat[SG_Y] = cr * sp * cy + sr * cp * sy;
+  quat[SG_Z] = cr * cp * sy - sr * sp * cy;
+}
+
+//from darwin3d.com
+// jeffl@darwin3d.com
+
+void sgQuatToEuler( sgVec3 hpr, const sgQuat quat )
+{
+  SGfloat matrix[3][3];
+  SGfloat cx,sx;
+  SGfloat cy,sy,yr;
+  SGfloat cz,sz;
+
+  // CONVERT QUATERNION TO MATRIX - I DON'T REALLY NEED ALL OF IT
+
+  matrix[0][0] = SG_ONE - (SG_TWO * quat[SG_Y] * quat[SG_Y])
+                        - (SG_TWO * quat[SG_Z] * quat[SG_Z]);
+//matrix[0][1] = (SG_TWO * quat->x * quat->y) - (SG_TWO * quat->w * quat->z);
+//matrix[0][2] = (SG_TWO * quat->x * quat->z) + (SG_TWO * quat->w * quat->y);
+
+  matrix[1][0] = (SG_TWO * quat[SG_X] * quat[SG_Y]) +
+                          (SG_TWO * quat[SG_W] * quat[SG_Z]);
+//matrix[1][1] = SG_ONE - (SG_TWO * quat->x * quat->x)
+//                      - (SG_TWO * quat->z * quat->z);
+//matrix[1][2] = (SG_TWO * quat->y * quat->z) - (SG_TWO * quat->w * quat->x);
+
+  matrix[2][0] = (SG_TWO * quat[SG_X] * quat[SG_Z]) -
+                 (SG_TWO * quat[SG_W] * quat[SG_Y]);
+  matrix[2][1] = (SG_TWO * quat[SG_Y] * quat[SG_Z]) +
+                 (SG_TWO * quat[SG_W] * quat[SG_X]);
+  matrix[2][2] = SG_ONE - (SG_TWO * quat[SG_X] * quat[SG_X])
+                        - (SG_TWO * quat[SG_Y] * quat[SG_Y]);
+
+  sy = -matrix[2][0];
+  cy = (SGfloat)sqrt(SG_ONE - (sy * sy));
+  yr = (SGfloat)atan2(sy,cy);
+  hpr[1] = yr * SG_RADIANS_TO_DEGREES ;
+
+  // AVOID DIVIDE BY ZERO ERROR ONLY WHERE Y= +-90 or +-270 
+  // NOT CHECKING cy BECAUSE OF PRECISION ERRORS
+  if (sy != SG_ONE && sy != -SG_ONE)	
+  {
+    cx = matrix[2][2] / cy;
+    sx = matrix[2][1] / cy;
+    hpr[0] = ((SGfloat)atan2(sx,cx)) * SG_RADIANS_TO_DEGREES ;
+
+    cz = matrix[0][0] / cy;
+    sz = matrix[1][0] / cy;
+    hpr[2] = ((SGfloat)atan2(sz,cz)) * SG_RADIANS_TO_DEGREES ;
+  }
+  else
+  {
+    // SINCE Cos(Y) IS 0, I AM SCREWED.  ADOPT THE STANDARD Z = 0
+    // I THINK THERE IS A WAY TO FIX THIS BUT I AM NOT SURE.  EULERS SUCK
+    // NEED SOME MORE OF THE MATRIX TERMS NOW
+
+    matrix[1][1] = SG_ONE - (SG_TWO * quat[SG_X] * quat[SG_X])
+                          - (SG_TWO * quat[SG_Z] * quat[SG_Z]);
+    matrix[1][2] = (SG_TWO * quat[SG_Y] * quat[SG_Z]) -
+                   (SG_TWO * quat[SG_W] * quat[SG_X]);
+
+    cx =  matrix[1][1];
+    sx = -matrix[1][2];
+    hpr[0] = ((SGfloat)atan2(sx,cx)) * SG_RADIANS_TO_DEGREES ;
+
+    cz = SG_ONE ;
+    sz = SG_ZERO ;
+    hpr[2] = ((SGfloat)atan2(sz,cz)) * SG_RADIANS_TO_DEGREES ;
+  }
 }
 
 
-void sgMakeRotMat4 ( sgMat4 dst, const sgQuat *q )
+void sgQuatToMatrix ( sgMat4 dst, const sgQuat q )
 {
-  SGfloat two_xx = q->x * (q->x + q->x) ;
-  SGfloat two_xy = q->x * (q->y + q->y) ;
-  SGfloat two_xz = q->x * (q->z + q->z) ;
+  SGfloat two_xx = q[SG_X] * (q[SG_X] + q[SG_X]) ;
+  SGfloat two_xy = q[SG_X] * (q[SG_Y] + q[SG_Y]) ;
+  SGfloat two_xz = q[SG_X] * (q[SG_Z] + q[SG_Z]) ;
 
-  SGfloat two_wx = q->w * (q->x + q->x) ;
-  SGfloat two_wy = q->w * (q->y + q->y) ;
-  SGfloat two_wz = q->w * (q->z + q->z) ;
+  SGfloat two_wx = q[SG_W] * (q[SG_X] + q[SG_X]) ;
+  SGfloat two_wy = q[SG_W] * (q[SG_Y] + q[SG_Y]) ;
+  SGfloat two_wz = q[SG_W] * (q[SG_Z] + q[SG_Z]) ;
 
-  SGfloat two_yy = q->y * (q->y + q->y) ;
-  SGfloat two_yz = q->y * (q->z + q->z) ;
+  SGfloat two_yy = q[SG_Y] * (q[SG_Y] + q[SG_Y]) ;
+  SGfloat two_yz = q[SG_Y] * (q[SG_Z] + q[SG_Z]) ;
 
-  SGfloat two_zz = q->z * (q->z + q->z) ;
+  SGfloat two_zz = q[SG_Z] * (q[SG_Z] + q[SG_Z]) ;
 
   sgSetVec4 ( dst[0], SG_ONE-(two_yy+two_zz), two_xy-two_wz, two_xz+two_wy, SG_ZERO ) ;
   sgSetVec4 ( dst[1], two_xy+two_wz, SG_ONE-(two_xx+two_zz), two_yz-two_wx, SG_ZERO ) ;
@@ -1070,13 +1441,101 @@ void sgMakeRotMat4 ( sgMat4 dst, const sgQuat *q )
 }
 
 
-void sgSlerpQuat( sgQuat *dst, const sgQuat *from, const sgQuat *to, const SGfloat t )
+//from gamasutra.com
+//by nb@netcom.ca 
+
+/*****************************
+ DEPRECATED...use sgQuatToMatrix instead.
+*****************************/
+
+void sgMakeRotMat42( sgMat4 m, sgQuat quat ){
+ SGfloat wx, wy, wz, xx, yy, yz, xy, xz, zz, x2, y2, z2;
+
+  // calculate coefficients
+  x2 = quat[SG_X] + quat[SG_X]; y2 = quat[SG_Y] + quat[SG_Y]; 
+  z2 = quat[SG_Z] + quat[SG_Z];
+  xx = quat[SG_X] * x2;   xy = quat[SG_X] * y2;   xz = quat[SG_X] * z2;
+  yy = quat[SG_Y] * y2;   yz = quat[SG_Y] * z2;   zz = quat[SG_Z] * z2;
+  wx = quat[SG_W] * x2;   wy = quat[SG_W] * y2;   wz = quat[SG_W] * z2;
+
+  m[0][0] = SG_ONE- (yy + zz); 	m[0][1] = xy - wz;
+  m[0][2] = xz + wy;		m[0][3] = SG_ZERO ;
+ 
+  m[1][0] = xy + wz;		m[1][1] = SG_ONE- (xx + zz);
+  m[1][2] = yz - wx;		m[1][3] = SG_ZERO ;
+
+  m[2][0] = xz - wy;		m[2][1] = yz + wx;
+  m[2][2] = SG_ONE- (xx + yy);		m[2][3] = SG_ZERO ;
+
+  m[3][0] = 0;			m[3][1] = 0;
+  m[3][2] = 0;			m[3][3] = 1;
+}
+
+//from gamasutra.com
+//by nb@netcom.ca 
+
+void sgSlerpQuat2( sgQuat dst, const sgQuat from, const sgQuat to, const SGfloat t )
+{
+  SGfloat to1[4];
+  SGfloat omega, cosom, sinom, scale0, scale1;
+
+  // calc cosine
+  cosom = from[SG_X] * to[SG_X] +
+          from[SG_Y] * to[SG_Y] +
+          from[SG_Z] * to[SG_Z] +
+          from[SG_W] * to[SG_W];
+
+  // adjust signs (if necessary)
+
+  if ( cosom < SG_ZERO )
+  { 
+    cosom = -cosom; 
+    to1[0] = - to[SG_X];
+    to1[1] = - to[SG_Y];
+    to1[2] = - to[SG_Z];
+    to1[3] = - to[SG_W];
+  }
+  else
+  {
+    to1[0] = to[SG_X];
+    to1[1] = to[SG_Y];
+    to1[2] = to[SG_Z];
+    to1[3] = to[SG_W];
+  }
+
+  // calculate coefficients
+#define DELTA SG_ZERO 
+  if ( (SG_ONE- cosom) > DELTA )
+  {
+    // standard case (slerp)
+    omega = (SGfloat) acos(cosom);
+    sinom = (SGfloat) sin(omega);
+    scale0 = (SGfloat) sin((SG_ONE- t) * omega) / sinom;
+    scale1 = (SGfloat) sin(t * omega) / sinom;
+  }
+  else
+  {        
+    // "from" and "to" quaternions are very close 
+    //  ... so we can do a linear interpolation
+    scale0 = SG_ONE- t;
+    scale1 = t;
+  }
+
+  // calculate final values
+  dst[SG_X] = scale0 * from[SG_X] + scale1 * to1[0];
+  dst[SG_Y] = scale0 * from[SG_Y] + scale1 * to1[1];
+  dst[SG_Z] = scale0 * from[SG_Z] + scale1 * to1[2];
+  dst[SG_W] = scale0 * from[SG_W] + scale1 * to1[3];
+}
+
+void sgSlerpQuat( sgQuat dst, const sgQuat from, const sgQuat to, const SGfloat t )
 {
   SGfloat sign, co, scale0, scale1;
 
   /* SWC - Interpolate between to quaternions */
 
-  co = from->x * to->x + from->y * to->y + from->z * to->z + from->w * to->w;
+  co = from[SG_X] * to[SG_X] + from[SG_Y] * to[SG_Y] + from[SG_X] * to[SG_Z] + 
+	  from[SG_W] * to[SG_W];
 
   if( co < SG_ZERO )
   {
@@ -1100,11 +1559,22 @@ void sgSlerpQuat( sgQuat *dst, const sgQuat *from, const sgQuat *to, const SGflo
     scale1 = t;
   }
 
-  dst->x = scale0 * from->x + scale1 * ((sign > SG_ZERO) ? to->w : -to->w);
-  dst->y = scale0 * from->y + scale1 * ((sign > SG_ZERO) ? to->w : -to->x);
-  dst->z = scale0 * from->z + scale1 * ((sign > SG_ZERO) ? to->w : -to->y);
-  dst->w = scale0 * from->w + scale1 * ((sign > SG_ZERO) ? to->w : -to->z);
+  dst[SG_X] = scale0 * from[SG_X] + scale1 * ((sign > SG_ZERO) ? to[SG_X] : -to[SG_X]);
+  dst[SG_Y] = scale0 * from[SG_Y] + scale1 * ((sign > SG_ZERO) ? to[SG_Y] : -to[SG_Y]);
+  dst[SG_Z] = scale0 * from[SG_Z] + scale1 * ((sign > SG_ZERO) ? to[SG_Z] : -to[SG_Z]);
+  dst[SG_W] = scale0 * from[SG_W] + scale1 * ((sign > SG_ZERO) ? to[SG_W] : -to[SG_W]);
 }
 
 
+void sgReflectInPlaneVec3 ( sgVec3 dst, const sgVec3 src, const sgVec4 plane )
+{
+  SGfloat src_dot_norm  = sgScalarProductVec3 ( src, plane ) ;
+
+  sgVec3 tmp ;
+
+  sgScaleVec3 ( tmp, plane, SG_TWO * src_dot_norm ) ;
+  sgSubVec3 ( dst, src, tmp ) ;
+}
+
+                                                                                
 

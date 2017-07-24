@@ -1,13 +1,26 @@
+/*
+     PLIB - A Suite of Portable Game Libraries
+     Copyright (C) 2001  Steve Baker
+ 
+     This library is free software; you can redistribute it and/or
+     modify it under the terms of the GNU Library General Public
+     License as published by the Free Software Foundation; either
+     version 2 of the License, or (at your option) any later version.
+ 
+     This library is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+     Library General Public License for more details.
+ 
+     You should have received a copy of the GNU Library General Public
+     License along with this library; if not, write to the Free
+     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+ 
+     For further information visit http://plib.sourceforge.net
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+     $Id: ssgLocal.h,v 1.16 2001/04/12 03:38:15 deca Exp $
+*/
 
-#ifdef WIN32
-#include <windows.h>
-#endif
-
-#include <GL/gl.h>
 
 #define _SSG_PUBLIC  public
 
@@ -16,18 +29,11 @@
 extern void (*__ssgEnableTable[64])() ;
 extern void (*__ssgDisableTable[64])() ;
 
-extern int    _ssgOrthographic ;
 extern sgMat4 _ssgOpenGLAxisSwapMatrix ;
-extern int    _ssgCurrentCullFace ;
-extern int    _ssgOverrideTexture  ;
-extern int    _ssgOverrideCullface ;
 extern int    _ssgIsHotTest ;
-extern void   _ssgForceLineState () ;
+extern int    _ssgFileVersionNumber ;
 
-extern char *_ssgModelPath ;
-extern char *_ssgTexturePath ;
-
-void _ssgInitState () ;
+void _ssgForceLineState () ;
 
 void _ssgDrawDList () ;
 void _ssgPushMatrix ( sgMat4 m ) ;
@@ -55,6 +61,8 @@ extern int stats_hot_radius_reject ;
 extern int stats_hot_triv_accept ;
 extern int stats_hot_straddle    ;
 
+extern ssgState *( *_ssgGetAppState)( char *) ;
+
 void _ssgReadFloat   ( FILE *fd,                float *var ) ;
 void _ssgWriteFloat  ( FILE *fd, const          float  var ) ;
 void _ssgReadUInt    ( FILE *fd,       unsigned int   *var ) ;
@@ -76,6 +84,8 @@ void _ssgReadUShort  ( FILE *fd, const unsigned int n,       unsigned short *var
 void _ssgWriteUShort ( FILE *fd, const unsigned int n, const unsigned short *var ) ;
 void _ssgReadShort   ( FILE *fd, const unsigned int n,                short *var ) ;
 void _ssgWriteShort  ( FILE *fd, const unsigned int n, const          short *var ) ;
+void _ssgReadBytes   ( FILE *fd, const unsigned int n,                 void *var ) ;
+void _ssgWriteBytes  ( FILE *fd, const unsigned int n, const           void *var ) ;
 
 void _ssgReadString  ( FILE *fd,       char **var ) ;
 void _ssgWriteString ( FILE *fd, const char  *var ) ;
@@ -94,8 +104,11 @@ int _ssgReadError    ( void ) ;
 int _ssgWriteError   ( void ) ;
 
 
-ssgBase *_ssgGetFromList ( int key ) ;
-void     _ssgAddToList   ( int key, ssgBase *b ) ;
-int      _ssgGetNextInstanceKey  () ;
-
-
+/*
+  Routines for storing arbitrary ssgBase derived objects within SSG files. 
+  Both functions return 1 on success, and 0 on failure.
+  If an object is encountered that is not derived from type_mask, then
+  the loading is aborted and 0 returned.
+*/
+int _ssgSaveObject ( FILE * , ssgBase * ) ;
+int _ssgLoadObject ( FILE * , ssgBase ** , int type_mask = 0 ) ;

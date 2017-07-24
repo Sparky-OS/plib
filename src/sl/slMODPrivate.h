@@ -1,4 +1,28 @@
+/*
+     PLIB - A Suite of Portable Game Libraries
+     Copyright (C) 2001  Steve Baker
+ 
+     This library is free software; you can redistribute it and/or
+     modify it under the terms of the GNU Library General Public
+     License as published by the Free Software Foundation; either
+     version 2 of the License, or (at your option) any later version.
+ 
+     This library is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+     Library General Public License for more details.
+ 
+     You should have received a copy of the GNU Library General Public
+     License along with this library; if not, write to the Free
+     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+ 
+     For further information visit http://plib.sourceforge.net
 
+     $Id: slMODPrivate.h,v 1.4 2001/04/12 03:37:36 deca Exp $
+*/
+
+
+#include "ul.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -42,7 +66,7 @@ struct InstHirevInfo
   unsigned char *ptr;
   unsigned char *end;
   unsigned char *loopBeg;
-  int xor;
+  int x_or;
   int volL;
   int volR;
   int fadeout;
@@ -62,14 +86,14 @@ struct SampleInfo
 {
   unsigned char *beg;
   unsigned char *end;
-  int xor;	/* 0x80 (or 0x8000?) */
+  int x_or;	/* 0x80 (or 0x8000?) */
   unsigned char *loopBeg;
   int c4spd;
   int vol;
   int mag;	/* magnification */
 } ;
 
-void _MOD_instOutRate(unsigned int or);
+void _MOD_instOutRate(unsigned int _or);
 void _MOD_instSelectCh(int ch);
 void _MOD_instClearPFW(void);
 void _MOD_instDoPerFrameWorks(int frame);
@@ -126,7 +150,7 @@ void _MOD_playNoteSetMasterVol(int mv);
 void _MOD_playNoteSetGlobalVol(int gv);
 void _MOD_playNoteSetSample(SampleInfo *sip);
 void _MOD_playNoteInit(void);
-void _MOD_playNoteSetOutRate(int or);
+void _MOD_playNoteSetOutRate(int _or);
 void _MOD_playNoteSetTempo(int n);
 void _MOD_playNoteSetSpeed(int n);
 void _MOD_playNoteSetNote(int ch, Note *np);

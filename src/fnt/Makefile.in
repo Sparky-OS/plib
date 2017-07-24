@@ -71,10 +71,9 @@ lib_LIBRARIES = libplibfnt.a
 include_HEADERS = fnt.h fntLocal.h
 
 libplibfnt_a_SOURCES = fnt.cxx fntTXF.cxx fntLocal.h
+INCLUDES =  -I$(top_srcdir)/src/sg -I$(top_srcdir)/src/util
 
-INCLUDES =  -I$(top_builddir)/src/sg
-
-EXTRA_DIST = fnt.dsp
+EXTRA_DIST = fnt.dsp libfnt.bpr
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_CLEAN_FILES = 
 LIBRARIES =  $(lib_LIBRARIES)
@@ -106,7 +105,7 @@ DIST_COMMON =  Makefile.am Makefile.in
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
-TAR = gtar
+TAR = tar
 GZIP_ENV = --best
 SOURCES = $(libplibfnt_a_SOURCES)
 OBJECTS = $(libplibfnt_a_OBJECTS)
@@ -239,9 +238,9 @@ distdir: $(DISTFILES)
 	    || cp -p $$d/$$file $(distdir)/$$file || :; \
 	  fi; \
 	done
-fnt.o: fnt.cxx fntLocal.h fnt.h ../../src/sg/sg.h
-fntImageLoader.o: fntImageLoader.cxx fntLocal.h fnt.h ../../src/sg/sg.h
-fntTXF.o: fntTXF.cxx fntLocal.h fnt.h ../../src/sg/sg.h
+fnt.o: fnt.cxx fntLocal.h fnt.h ../../src/sg/sg.h ../../src/util/ul.h
+fntTXF.o: fntTXF.cxx fntLocal.h fnt.h ../../src/sg/sg.h \
+	../../src/util/ul.h
 
 info-am:
 info: info-am

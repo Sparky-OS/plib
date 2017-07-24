@@ -1,5 +1,49 @@
+/*
+     PLIB - A Suite of Portable Game Libraries
+     Copyright (C) 2001  Steve Baker
+ 
+     This library is free software; you can redistribute it and/or
+     modify it under the terms of the GNU Library General Public
+     License as published by the Free Software Foundation; either
+     version 2 of the License, or (at your option) any later version.
+ 
+     This library is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+     Library General Public License for more details.
+ 
+     You should have received a copy of the GNU Library General Public
+     License along with this library; if not, write to the Free
+     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+ 
+     For further information visit http://plib.sourceforge.net
+
+     $Id: fntTXF.cxx,v 1.9 2001/04/09 00:24:58 deca Exp $
+*/
+
 
 #include "fntLocal.h"
+
+#ifndef WIN32
+#  ifndef macintosh
+#    include <GL/glx.h>
+#  else
+#    include <agl.h>
+#  endif
+#endif
+
+static bool glIsValidContext ()
+{
+#if defined(CONSOLE)
+  return true ;
+#elif defined(WIN32)
+  return ( wglGetCurrentContext () != NULL ) ;
+#elif defined(macintosh)
+  return ( aglGetCurrentContext() != NULL ) ;
+#else
+  return ( glXGetCurrentContext() != NULL ) ;
+#endif
+}
 
 FILE *curr_image_fd ;
 int isSwapped = FALSE ;
@@ -59,8 +103,8 @@ static void tex_make_mip_maps ( GLubyte *image, int xsize,
   if ( ! ((xsize & (xsize-1))==0) ||
        ! ((ysize & (ysize-1))==0) )
   {
-    fprintf ( stderr, "TXFloader: TXF Map is not a power-of-two in size!\n" ) ;
-    exit ( 1 ) ;
+    ulSetError ( UL_FATAL,
+      "TXFloader: TXF Map is not a power-of-two in size!" ) ;
   }
 
   glPixelStorei ( GL_UNPACK_ALIGNMENT, 1 ) ;
@@ -93,9 +137,8 @@ static void tex_make_mip_maps ( GLubyte *image, int xsize,
 
       if ( xsize < 64 && ysize < 64 )
       {
-        fprintf ( stderr,
-                "FNT: OpenGL will not accept a font texture?!?\n" ) ;
-        exit ( 1 ) ;
+        ulSetError ( UL_FATAL,
+          "FNT: OpenGL will not accept a font texture?!?" ) ;
       }
     }
   } while ( ww == 0 ) ;
@@ -123,14 +166,20 @@ static void tex_make_mip_maps ( GLubyte *image, int xsize,
 
 
 
-int fntTexFont::loadTXF ( char *fname, GLenum mag, GLenum min )
+int fntTexFont::loadTXF ( const char *fname, GLenum mag, GLenum min )
 {
+  if ( ! glIsValidContext () )
+  {
+    ulSetError ( UL_FATAL,
+      "FNT font loader called without a valid OpenGL context.");
+  }
+
   FILE *fd ;
 
   if ( (fd = fopen ( fname, "rb" )) == NULL )
   {
-    fprintf ( stderr, "fntLoadTXF: Failed to open '%s' for reading.\n",
-                            fname ) ;
+    ulSetError ( UL_WARNING,
+      "fntLoadTXF: Failed to open '%s' for reading.", fname ) ;
     return FNT_FALSE ;
   }
 
@@ -140,14 +189,16 @@ int fntTexFont::loadTXF ( char *fname, GLenum mag, GLenum min )
 
   if ( (int)fread ( &magic, sizeof (unsigned int), 1, fd ) != 1 )
   {
-    fprintf ( stderr, "fntLoadTXF: '%s' an empty file!\n", fname ) ;
+    ulSetError ( UL_WARNING,
+      "fntLoadTXF: '%s' an empty file!", fname ) ;
     return FNT_FALSE ;
   }
 
   if ( magic [ 0 ] != 0xFF || magic [ 1 ] != 't' ||
        magic [ 2 ] != 'x'  || magic [ 3 ] != 'f' )
   {
-    fprintf ( stderr, "fntLoadTXF: '%s' is not a 'txf' font file.\n", fname ) ;
+    ulSetError ( UL_WARNING,
+      "fntLoadTXF: '%s' is not a 'txf' font file.", fname ) ;
     return FNT_FALSE ;
   }
 
@@ -220,7 +271,8 @@ int fntTexFont::loadTXF ( char *fname, GLenum mag, GLenum min )
 
         if ( (int)fread ( orig, 1, ntexels, fd ) != ntexels )
         {
-          fprintf ( stderr, "fntLoadTXF: Premature EOF in '%s'.\n", fname ) ;
+          ulSetError ( UL_WARNING,
+            "fntLoadTXF: Premature EOF in '%s'.", fname ) ;
           return FNT_FALSE ;
         }
 
@@ -228,8 +280,8 @@ int fntTexFont::loadTXF ( char *fname, GLenum mag, GLenum min )
 
         for ( i = 0 ; i < ntexels ; i++ )
         {
-	  teximage [ i*2     ] = orig [ i ] ;
-	  teximage [ i*2 + 1 ] = orig [ i ] ;
+          teximage [ i*2     ] = orig [ i ] ;
+          teximage [ i*2 + 1 ] = orig [ i ] ;
         }
 
         delete orig ;
@@ -245,9 +297,10 @@ int fntTexFont::loadTXF ( char *fname, GLenum mag, GLenum min )
         if ( (int)fread ( texbitmap, 1, stride * h, fd ) != stride * h )
         {
           delete texbitmap ;
-          fprintf ( stderr, "fntLoadTXF: Premature EOF in '%s'.\n", fname ) ;
+          ulSetError ( UL_WARNING,
+            "fntLoadTXF: Premature EOF in '%s'.", fname ) ;
           return FNT_FALSE ;
-	}
+      	}
 
         teximage = new unsigned char [ 2 * ntexels ] ;
 
@@ -267,8 +320,8 @@ int fntTexFont::loadTXF ( char *fname, GLenum mag, GLenum min )
       break ;
 
     default:
-      fprintf ( stderr, "fntLoadTXF: Unrecognised format type in '%s'.\n",
-                          fname ) ;
+      ulSetError ( UL_WARNING,
+        "fntLoadTXF: Unrecognised format type in '%s'.", fname ) ;
       return FNT_FALSE ;
   }
 

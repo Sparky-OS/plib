@@ -1,3 +1,26 @@
+/*
+     PLIB - A Suite of Portable Game Libraries
+     Copyright (C) 2001  Steve Baker
+ 
+     This library is free software; you can redistribute it and/or
+     modify it under the terms of the GNU Library General Public
+     License as published by the Free Software Foundation; either
+     version 2 of the License, or (at your option) any later version.
+ 
+     This library is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+     Library General Public License for more details.
+ 
+     You should have received a copy of the GNU Library General Public
+     License along with this library; if not, write to the Free
+     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+ 
+     For further information visit http://plib.sourceforge.net
+
+     $Id: slMODfile.cxx,v 1.4 2001/04/12 03:37:36 deca Exp $
+*/
+
 
 #include "slMODPrivate.h"
 #include "slMODfile.h"
@@ -100,7 +123,7 @@ static void convolute ( int mag, char *dp )
     int i,j;
 
     for (sp0 = sis.beg; sp0 < sis.end; sp0++) {
-	*dp++ = *sp0 ^ sis.xor;
+	*dp++ = *sp0 ^ sis.x_or;
 	for (i = 0; i < mag-1; i++,dp++) {
 	    int *hp = hn[mag-2][i];
 	    unsigned char *sp = sp0 - 3;
@@ -111,7 +134,7 @@ static void convolute ( int mag, char *dp )
 		    if (sis.loopBeg) sp = sis.loopBeg;
 		    else break;
 		}		
-		sum += *hp * (char)(*sp ^ sis.xor);
+		sum += *hp * (char)(*sp ^ sis.x_or);
 	    }
 	    sum /= 256;
 	    if (sum > 127) sum = 127;
@@ -142,7 +165,7 @@ static void perSampleWork(SampleInfo *sip, unsigned int c4req)
     sid.end = dp0 + len*mag ;
     convolute(mag, (char *)dp0);
     sid.loopBeg = sis.loopBeg? (sid.beg + (sis.loopBeg - sis.beg)*mag) : (unsigned char *)NULL;
-    sid.xor = 0;
+    sid.x_or = 0;
     sid.c4spd = sis.c4spd;
     sid.vol = sis.vol;
     sid.mag = sis.mag * mag;
@@ -451,7 +474,7 @@ void MODfile::makeSampleInfo( int smp15 )
       p->end = sp + len; /*sp+len*/
     }
 
-    p->xor   = 0 ;
+    p->x_or  = 0 ;
     p->mag   = 1 ;
     p->c4spd = freq[(*msp)[24]%16] ;
     p->vol   = (*msp)[25] > 64 ? 64 : (*msp)[25] ;
@@ -460,16 +483,18 @@ void MODfile::makeSampleInfo( int smp15 )
     {
       if (p->beg >= fileEnd || p->loopBeg >= fileEnd)
       {
-	fprintf ( stderr,"Error: short file (assigned an empty sample for #%d)\n", i+1 ) ;
-	p->beg = &emptySample   ;
-	p->end = &emptySample+1 ;
-	p->loopBeg = NULL ;
-	p->vol = 0 ;
+        ulSetError ( UL_WARNING,
+          "short file (assigned an empty sample for #%d)", i+1 ) ;
+        p->beg = &emptySample   ;
+        p->end = &emptySample+1 ;
+        p->loopBeg = NULL ;
+        p->vol = 0 ;
       }
       else
       {
-	fprintf ( stderr, "Warning: short file (sample #%d truncated)\n", i+1 ) ;
-	p->end = fileEnd ;
+        ulSetError ( UL_WARNING,
+          "short file (sample #%d truncated)", i+1 ) ;
+        p->end = fileEnd ;
       }
     }
 
@@ -562,7 +587,8 @@ unsigned char *MODfile::read_whole_file ( char *fname, int *len )
   if ( fd < 0 )
   {
     perror ( "open" ) ;
-    fprintf ( stderr, "SL: Couldn't open MOD file '%s' for reading\n", fname ) ;
+    ulSetError ( UL_WARNING,
+      "SL: Couldn't open MOD file '%s' for reading", fname ) ;
     return NULL ;
   }
 
@@ -575,7 +601,7 @@ unsigned char *MODfile::read_whole_file ( char *fname, int *len )
   l = statbuf.st_size ;
 
   unsigned char *p = new unsigned char [ l ] ;
-  read  ( fd, p, l ) ;
+  read  ( fd, (char *)p, l ) ;
   close ( fd ) ;
 
   if ( len != NULL )
@@ -612,7 +638,7 @@ MODfile::MODfile ( char *fname, int speed, int stereo )
   if ( magic ( buffer, len, &mt, &chNum ) )
   {
     broken = TRUE ;
-    fprintf ( stdout, "Unknown format\n" ) ;
+    ulSetError ( UL_WARNING, "Unknown format" ) ;
     return ;
   }
 
@@ -621,7 +647,7 @@ MODfile::MODfile ( char *fname, int speed, int stereo )
   else
   if ( mt != MAGIC_MODX )
   {
-    fprintf ( stdout, "Unknown format\n" ) ;
+    ulSetError ( UL_WARNING, "Unknown format" ) ;
     broken = TRUE ;
     return ;
   }

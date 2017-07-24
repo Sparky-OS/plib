@@ -1,11 +1,37 @@
+/*
+     PLIB - A Suite of Portable Game Libraries
+     Copyright (C) 2001  Steve Baker
+ 
+     This library is free software; you can redistribute it and/or
+     modify it under the terms of the GNU Library General Public
+     License as published by the Free Software Foundation; either
+     version 2 of the License, or (at your option) any later version.
+ 
+     This library is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+     Library General Public License for more details.
+ 
+     You should have received a copy of the GNU Library General Public
+     License along with this library; if not, write to the Free
+     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+ 
+     For further information visit http://plib.sourceforge.net
+
+     $Id: ssgIO.cxx,v 1.33 2001/04/12 03:38:15 deca Exp $
+*/
+
 
 #include "ssgLocal.h" 
+
 
 static int  read_error = FALSE ;
 static int write_error = FALSE ;
 
+
 int _ssgReadError  (void) { return  read_error ; }
 int _ssgWriteError (void) { return write_error ; }
+
 
 void _ssgReadFloat ( FILE *fd, float *var )
 {
@@ -87,6 +113,24 @@ void _ssgReadFloat ( FILE *fd, const unsigned int n, float *var )
 void _ssgWriteFloat ( FILE *fd, const unsigned int n, const float *var )
 {
   if ( fwrite ( var, sizeof(float), n, fd ) == n ) return ;
+  write_error = TRUE ;
+}
+
+void _ssgReadBytes   ( FILE *fd, const unsigned int n, void *var ) 
+{
+  if ( n == 0)
+		return;
+  if ( fread ( var, n, 1, fd ) == 1 ) 
+		return ;
+  read_error = TRUE ;
+}
+
+void _ssgWriteBytes ( FILE *fd, const unsigned int n, const void *var ) 
+{
+	if ( n == 0)
+		return;
+  if ( fwrite ( var, n, 1, fd ) == 1 ) 
+		return ;
   write_error = TRUE ;
 }
 

@@ -68,7 +68,7 @@ VERSION = @VERSION@
 
 SUBDIRS = src
 
-EXTRA_DIST = README README.win32 CHANGES LICENSE NOTICE acsite.m4              plib.dsp plib.dsw
+EXTRA_DIST = README README.win32 README.mac              CHANGES LICENSE NOTICE acsite.m4              plib.dsp plib.dsw plib.bpg
 
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
@@ -80,7 +80,7 @@ mkinstalldirs
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
-TAR = gtar
+TAR = tar
 GZIP_ENV = --best
 all: all-redirect
 .SUFFIXES:

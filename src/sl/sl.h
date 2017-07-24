@@ -1,3 +1,26 @@
+/*
+     PLIB - A Suite of Portable Game Libraries
+     Copyright (C) 2001  Steve Baker
+ 
+     This library is free software; you can redistribute it and/or
+     modify it under the terms of the GNU Library General Public
+     License as published by the Free Software Foundation; either
+     version 2 of the License, or (at your option) any later version.
+ 
+     This library is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+     Library General Public License for more details.
+ 
+     You should have received a copy of the GNU Library General Public
+     License along with this library; if not, write to the Free
+     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+ 
+     For further information visit http://plib.sourceforge.net
+
+     $Id: sl.h,v 1.7 2001/06/20 19:51:24 sjbaker Exp $
+*/
+
 
 #ifndef __SL_H__
 #define __SL_H__ 1
@@ -14,6 +37,8 @@
 #define SLDSP_DEFAULT_DEVICE "dsp"		// dummy ...
 #elif defined(SOLARIS)
 #define SLDSP_DEFAULT_DEVICE "/dev/audio"
+#elif defined(macintosh)
+#define SLDSP_DEFAULT_DEVICE "dsp" // dummy
 #else
 #error "Port me !"
 #endif
@@ -46,7 +71,7 @@ private:
   int error ;
   int fd ;
 
-#ifdef __OpenBSD__
+#if defined (__NetBSD__) || defined(__OpenBSD__)
   audio_info_t    ainfo;        // ioctl structure
   audio_offset_t  audio_offset; // offset in audiostream
   long            counter;      // counter-written packets
@@ -90,7 +115,7 @@ private:
 #endif
 
 
-#ifndef WIN32
+#if !defined(WIN32) && !defined(macintosh)
   int ioctl ( int cmd, int param = 0 )
   {
     if ( error ) return param ;
@@ -212,7 +237,7 @@ public:
   {
     if ( ref_count != 0 && __slPendingError == NULL )
       __slPendingError =
-        "slSample: FATAL ERROR - Application deleted a sample while it was playing.\n" ;
+        "slSample: FATAL ERROR - Application deleted a sample while it was playing." ;
 
     delete buffer ;
   }
@@ -667,6 +692,9 @@ public:
 
   int   getTimeNow     () { return now ; }
   float getElapsedTime ( int then ) { return (float)(now-then)/(float)getRate() ; }
+
+  void setMaxConcurrent ( int mc ) { /* Stubbed out until PLIB 1.5.0 */ }
+  int  getMaxConcurrent () { return 3 ; /* Stubbed out until PLIB 1.5.0 */ }
 
   void flushCallBacks () ;
   void addCallBack    ( slCallBack c, slSample *s, slEvent e, int m ) ;

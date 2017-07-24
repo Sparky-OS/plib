@@ -1,9 +1,68 @@
+/*
+     PLIB - A Suite of Portable Game Libraries
+     Copyright (C) 2001  Steve Baker
+ 
+     This library is free software; you can redistribute it and/or
+     modify it under the terms of the GNU Library General Public
+     License as published by the Free Software Foundation; either
+     version 2 of the License, or (at your option) any later version.
+ 
+     This library is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+     Library General Public License for more details.
+ 
+     You should have received a copy of the GNU Library General Public
+     License along with this library; if not, write to the Free
+     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+ 
+     For further information visit http://plib.sourceforge.net
+
+     $Id: ssgVTable.cxx,v 1.12 2001/06/16 16:27:37 stromberg Exp $
+*/
+
 
 #include "ssgLocal.h"
 
+void ssgVTable::copy_from ( ssgVTable *src, int clone_flags )
+{
+  ssgLeaf::copy_from ( src, clone_flags ) ;
+
+  gltype  = src -> getPrimitiveType () ;
+  indexed = src -> isIndexed () ;
+
+  num_vertices  = src -> getNumVertices  () ;
+  num_normals   = src -> getNumNormals   () ;
+  num_colours   = src -> getNumColours   () ;
+  num_texcoords = src -> getNumTexCoords () ;
+
+  /*
+    I should probably copy these arrays if SSG_CLONE_GEOMETRY
+    is set - but life is short and ssgVTable is obsolete -
+    and the inability to free the space that would create
+    was the main reason to obsolete ssgVTable.
+  */
+
+  src -> getVertexList   ( (void **) & vertices , & v_index ) ;
+  src -> getNormalList   ( (void **) & normals  , & n_index ) ;
+  src -> getTexCoordList ( (void **) & texcoords, & t_index ) ;
+  src -> getColourList   ( (void **) & colours  , & c_index ) ;
+
+  recalcBSphere () ;
+}
+
+
+ssgBase *ssgVTable::clone ( int clone_flags )
+{
+  ssgVTable *b = new ssgVTable ;
+  b -> copy_from ( this, clone_flags ) ;
+  return b ;
+}
+
+
 ssgVTable::ssgVTable ()
 {
-  type |= SSG_TYPE_VTABLE ;
+  type = ssgTypeVTable () ;
   gltype = GL_POINTS ;
   indexed = FALSE ;
   num_vertices  = 0 ; v_index = NULL ; vertices  = NULL ;
@@ -19,7 +78,7 @@ ssgVTable::ssgVTable ( GLenum ty,
             int nt, unsigned short *ti, sgVec2 *tl,
             int nc, unsigned short *ci, sgVec4 *cl )
 {
-  type |= SSG_TYPE_VTABLE ;
+  type = ssgTypeVTable () ;
   gltype = ty ;
 
   indexed = TRUE ;
@@ -40,7 +99,7 @@ ssgVTable::ssgVTable ( GLenum ty,
             int nc, sgVec4 *cl )
 {
   gltype = ty ;
-  type |= SSG_TYPE_VTABLE ;
+  type = ssgTypeVTable () ;
 
   indexed = FALSE ;
   num_vertices  = nv ; vertices  = vl ;
@@ -59,7 +118,7 @@ ssgVTable::~ssgVTable ()
 
 void ssgVTable::getTriangle ( int n, short *v1, short *v2, short *v3 )
 {
-  switch ( getGLtype () )
+  switch ( getPrimitiveType () )
   {
     case GL_POLYGON :
     case GL_TRIANGLE_FAN :
@@ -103,7 +162,7 @@ void ssgVTable::getTriangle ( int n, short *v1, short *v2, short *v3 )
 
 int ssgVTable::getNumTriangles ()
 {
-  switch ( getGLtype () )
+  switch ( getPrimitiveType () )
   {
     case GL_POLYGON :
     case GL_TRIANGLE_FAN :
@@ -124,11 +183,74 @@ int ssgVTable::getNumTriangles ()
     default : break ;
   }
 
-  return 0 ;   /* Should never get here...but you never know! */
+  return 0 ;   
 }
 
+int ssgVTable::getNumLines ()
+{
+  switch ( getPrimitiveType () )
+  {
+    case GL_POLYGON :
+    case GL_TRIANGLE_FAN :
+    case GL_TRIANGLES :
+    case GL_TRIANGLE_STRIP :
+    case GL_QUADS :
+    case GL_QUAD_STRIP :
+    case GL_POINTS :
+      return 0;
+		case GL_LINES :   
+			// wk: FIXME: check the 3 following formulas. I don't have an OpenGL bokk at hand currently :-(
+			return getNumVertices()/2;
+    case GL_LINE_LOOP :
+    	return getNumVertices();
+    case GL_LINE_STRIP :
+    	return getNumVertices()-1;
+    default : break ;
+  }
+  assert(false); /* Should never get here  */
+  return 0 ;   
+}
 
-void ssgVTable::transform ( sgMat4 m )
+void ssgVTable::getLine ( int n, short *v1, short *v2 )
+{ 
+	assert( n>=0 );
+  switch ( getPrimitiveType () )
+  {
+    case GL_POLYGON :
+    case GL_TRIANGLE_FAN :
+    case GL_TRIANGLES :
+    case GL_TRIANGLE_STRIP :
+    case GL_QUADS :
+    case GL_QUAD_STRIP :
+    case GL_POINTS :
+      assert(false);
+		case GL_LINES :   
+			// wk: FIXME: check the 3 following formulas. I don't have an OpenGL bokk at hand currently :-(
+			assert ( 2*n+1 < getNumVertices() );
+			*v1 = 2*n;
+			*v2 = 2*n+1 ;
+			return ;
+    case GL_LINE_LOOP :
+			assert ( n < getNumVertices() );
+			*v1 = n;
+			if ( n == getNumVertices()-1 )
+			  *v2 = 0;
+			else
+				*v2 = n+1;
+			return ;
+    case GL_LINE_STRIP :
+    	assert ( n < getNumVertices()-1 );
+			*v1 = n;
+			*v2 = n+1;
+			return;
+    default :
+			break ;
+  }
+  assert(false); /* Should never get here  */
+  return ;   
+}
+
+void ssgVTable::transform ( const sgMat4 m )
 {
   int i ;
 
@@ -172,9 +294,11 @@ void ssgVTable::draw ()
   stats_num_leaves++ ;
   stats_num_vertices += num_vertices ;
 
+#ifdef _SSG_USE_DLIST
   if ( dlist )
     glCallList ( dlist ) ;
   else
+#endif
     draw_geometry () ;
 
   if ( postDrawCB != NULL )
@@ -239,7 +363,6 @@ void ssgVTable::pick ( int baseName )
 
   glPopName () ;
 }
-
 
 void ssgVTable::draw_geometry ()
 {
@@ -354,10 +477,10 @@ void ssgVTable::hot_triangles ( sgVec3 s, sgMat4 m, int /* test_needed */ )
     float ep2 = vv2[0] * vv3[1] - vv2[1] * vv3[0] ;
     float ep3 = vv3[0] * vv1[1] - vv3[1] * vv1[0] ;
 
-    float ap = fabs ( ep1 + ep2 + ep3 ) ;
-    float ai = fabs ( e1 + ep1 - e2 ) +
+    float ap = (float) fabs ( ep1 + ep2 + ep3 ) ;
+    float ai = (float) ( fabs ( e1 + ep1 - e2 ) +
                fabs ( e2 + ep2 - e3 ) +
-               fabs ( e3 + ep3 - e1 ) ;
+               fabs ( e3 + ep3 - e1 ) ) ;
 
     if ( ai > ap * 1.01 )
       continue ;
@@ -393,7 +516,7 @@ void ssgVTable::isect_triangles ( sgSphere *s, sgMat4 m, int test_needed )
       continue ;
     }
 
-    float dp = fabs ( sgDistToPlaneVec3 ( plane, s->getCenter() ) ) ;
+    float dp = (float) fabs ( sgDistToPlaneVec3 ( plane, s->getCenter() ) ) ;
 
     if ( dp > s->getRadius() )
       continue ;
@@ -480,9 +603,9 @@ void ssgVTable::isect_triangles ( sgSphere *s, sgMat4 m, int test_needed )
 }
 
 
-void ssgVTable::print ( FILE *fd, char *indent )
+void ssgVTable::print ( FILE *fd, char *indent, int how_much )
 {
-  ssgLeaf::print ( fd, indent ) ;
+  ssgLeaf::print ( fd, indent, how_much ) ;
 }
 
 

@@ -1,12 +1,34 @@
+/*
+     PLIB - A Suite of Portable Game Libraries
+     Copyright (C) 2001  Steve Baker
+ 
+     This library is free software; you can redistribute it and/or
+     modify it under the terms of the GNU Library General Public
+     License as published by the Free Software Foundation; either
+     version 2 of the License, or (at your option) any later version.
+ 
+     This library is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+     Library General Public License for more details.
+ 
+     You should have received a copy of the GNU Library General Public
+     License along with this library; if not, write to the Free
+     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+ 
+     For further information visit http://plib.sourceforge.net
+
+     $Id: fnt.cxx,v 1.4 2001/04/09 00:15:13 deca Exp $
+*/
 
 #include "fntLocal.h"
 
 fntFont:: fntFont () {}
 fntFont::~fntFont () {}
 
-int fntTexFont::load ( char *fname, GLenum mag, GLenum min )
+int fntTexFont::load ( const char *fname, GLenum mag, GLenum min )
 {
-  char *p ;
+  const char *p ;
 
   for ( p = & fname [ strlen ( fname ) -1 ] ;
         p != fname && *p != '.' && *p != '/' ; p-- )
@@ -17,8 +39,8 @@ int fntTexFont::load ( char *fname, GLenum mag, GLenum min )
   }
   else
   {
-    fprintf ( stderr, "fnt::load: Error - Unrecognised file format for '%s'\n",
-                                        fname ) ;
+    ulSetError ( UL_WARNING,
+      "fnt::load: Error - Unrecognised file format for '%s'", fname ) ;
     return FNT_FALSE ;
   }
 }
@@ -129,7 +151,7 @@ int fntTexFont::getGlyph ( char c,
 }
 
 
-void fntTexFont::getBBox ( char *s,
+void fntTexFont::getBBox ( const char *s,
                            float pointsize, float italic,
                            float *left, float *right,
                            float *bot , float *top  )
@@ -202,7 +224,7 @@ void fntTexFont::getBBox ( char *s,
 }
 
 
-void fntTexFont::puts ( sgVec3 curpos, float pointsize, float italic, char *s )
+void fntTexFont::puts ( sgVec3 curpos, float pointsize, float italic, const char *s )
 {
   SGfloat origx = curpos[0] ;
 	

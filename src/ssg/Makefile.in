@@ -68,14 +68,13 @@ VERSION = @VERSION@
 
 lib_LIBRARIES = libplibssg.a
 
-include_HEADERS = ssg.h ssgKeyFlier.h
+include_HEADERS = ssg.h ssgconf.h ssgKeyFlier.h
 
-libplibssg_a_SOURCES = ssg.cxx ssgAnimation.cxx ssgBase.cxx 	ssgBaseTransform.cxx ssgBranch.cxx ssgCutout.cxx ssgDList.cxx 	ssgEntity.cxx ssgIsect.cxx ssgLeaf.cxx ssgList.cxx 	ssgLoadAC.cxx ssgLocal.h ssgOptimiser.cxx ssgRoot.cxx ssgSaveAC.cxx 	ssgSelector.cxx ssgSimpleState.cxx ssgState.cxx ssgStateTables.cxx 	ssgStats.cxx  ssgTexTrans.cxx ssgTexture.cxx ssgTransform.cxx 	ssgStateSelector.cxx ssgRangeSelector.cxx ssgImageLoader.cxx         ssgInvisible.cxx ssgLoadSSG.cxx ssgLoadVRML.cxx ssgVTable.cxx         ssgSimpleList.cxx ssgVtxTable.cxx ssgIO.cxx ssgLoad3ds.cxx
+libplibssg_a_SOURCES = ssg.cxx ssgAnimation.cxx ssgBase.cxx 	ssgBaseTransform.cxx ssgBranch.cxx ssgContext.cxx ssgCutout.cxx 	ssgDList.cxx ssgEntity.cxx ssgIsect.cxx ssgLeaf.cxx ssgList.cxx 	ssgLoadAC.cxx ssgLocal.h ssgOptimiser.cxx ssgRoot.cxx ssgSaveAC.cxx 	ssgSelector.cxx ssgSimpleState.cxx ssgState.cxx ssgStateTables.cxx 	ssgStats.cxx  ssgTexTrans.cxx ssgTexture.cxx ssgTransform.cxx 	ssgStateSelector.cxx ssgRangeSelector.cxx ssgLoadTexture.cxx 	ssgLoadBMP.cxx ssgLoadSGI.cxx ssgLoadPNG.cxx ssgLoadTGA.cxx 	ssgInvisible.cxx ssgLoadSSG.cxx ssgVTable.cxx 	ssgSimpleList.cxx ssgVtxTable.cxx ssgIO.cxx ssgLoad3ds.cxx 	ssgSaveASE.cxx ssgLoadASE.cxx ssgParser.cxx ssgParser.h 	ssgLoadDXF.cxx ssgSaveDXF.cxx ssgLoadTRI.cxx ssgSaveTRI.cxx 	ssgLoadOBJ.cxx ssgSaveOBJ.cxx ssgVtxArray.cxx ssgLoadMD2.cxx 	ssgLoadMDL.cxx ssgLoadX.cxx ssgSaveX.cxx ssgLoaderWriterStuff.cxx 	ssgLoadFLT.cxx ssgLoadM.cxx ssgSaveM.cxx ssgLoadStrip.cxx 	ssgLoadOFF.cxx ssgSaveOFF.cxx ssgSaveQHI.cxx 	ssgLoaderWriterStuff.h ssgMSFSPalette.h ssg3ds.h ssgLoadMDL.h 	ssgSave3ds.cxx ssgAxisTransform.cxx ssgLoadATG.cxx ssgSaveATG.cxx 	ssgLoad.cxx
 
+INCLUDES =  -I$(top_srcdir)/src/sg -I$(top_srcdir)/src/util
 
-INCLUDES =  -I$(top_builddir)/src/sg
-
-EXTRA_DIST = ssg.dsp
+EXTRA_DIST = ssg.dsp libssg.bpr
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_CLEAN_FILES = 
 LIBRARIES =  $(lib_LIBRARIES)
@@ -91,13 +90,19 @@ X_EXTRA_LIBS = @X_EXTRA_LIBS@
 X_PRE_LIBS = @X_PRE_LIBS@
 libplibssg_a_LIBADD = 
 libplibssg_a_OBJECTS =  ssg.o ssgAnimation.o ssgBase.o \
-ssgBaseTransform.o ssgBranch.o ssgCutout.o ssgDList.o ssgEntity.o \
-ssgIsect.o ssgLeaf.o ssgList.o ssgLoadAC.o ssgOptimiser.o ssgRoot.o \
-ssgSaveAC.o ssgSelector.o ssgSimpleState.o ssgState.o ssgStateTables.o \
-ssgStats.o ssgTexTrans.o ssgTexture.o ssgTransform.o ssgStateSelector.o \
-ssgRangeSelector.o ssgImageLoader.o ssgInvisible.o ssgLoadSSG.o \
-ssgLoadVRML.o ssgVTable.o ssgSimpleList.o ssgVtxTable.o ssgIO.o \
-ssgLoad3ds.o
+ssgBaseTransform.o ssgBranch.o ssgContext.o ssgCutout.o ssgDList.o \
+ssgEntity.o ssgIsect.o ssgLeaf.o ssgList.o ssgLoadAC.o ssgOptimiser.o \
+ssgRoot.o ssgSaveAC.o ssgSelector.o ssgSimpleState.o ssgState.o \
+ssgStateTables.o ssgStats.o ssgTexTrans.o ssgTexture.o ssgTransform.o \
+ssgStateSelector.o ssgRangeSelector.o ssgLoadTexture.o ssgLoadBMP.o \
+ssgLoadSGI.o ssgLoadPNG.o ssgLoadTGA.o ssgInvisible.o ssgLoadSSG.o \
+ssgVTable.o ssgSimpleList.o ssgVtxTable.o ssgIO.o ssgLoad3ds.o \
+ssgSaveASE.o ssgLoadASE.o ssgParser.o ssgLoadDXF.o ssgSaveDXF.o \
+ssgLoadTRI.o ssgSaveTRI.o ssgLoadOBJ.o ssgSaveOBJ.o ssgVtxArray.o \
+ssgLoadMD2.o ssgLoadMDL.o ssgLoadX.o ssgSaveX.o ssgLoaderWriterStuff.o \
+ssgLoadFLT.o ssgLoadM.o ssgSaveM.o ssgLoadStrip.o ssgLoadOFF.o \
+ssgSaveOFF.o ssgSaveQHI.o ssgSave3ds.o ssgAxisTransform.o ssgLoadATG.o \
+ssgSaveATG.o ssgLoad.o
 AR = ar
 CXXFLAGS = @CXXFLAGS@
 CXXCOMPILE = $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
@@ -114,7 +119,7 @@ DIST_COMMON =  Makefile.am Makefile.in
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
-TAR = gtar
+TAR = tar
 GZIP_ENV = --best
 SOURCES = $(libplibssg_a_SOURCES)
 OBJECTS = $(libplibssg_a_OBJECTS)
@@ -247,43 +252,145 @@ distdir: $(DISTFILES)
 	    || cp -p $$d/$$file $(distdir)/$$file || :; \
 	  fi; \
 	done
-ssg.o: ssg.cxx ssgLocal.h ssg.h ../../src/sg/sg.h
-ssgAnimation.o: ssgAnimation.cxx ssgLocal.h ssg.h ../../src/sg/sg.h
-ssgBase.o: ssgBase.cxx ssgLocal.h ssg.h ../../src/sg/sg.h
+ssg.o: ssg.cxx ssgLocal.h ssg.h ../../src/util/ul.h ../../src/sg/sg.h \
+	ssgconf.h
+ssgAnimation.o: ssgAnimation.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
+	../../src/sg/sg.h ssgconf.h
+ssgAxisTransform.o: ssgAxisTransform.cxx ssgLocal.h ssg.h \
+	../../src/util/ul.h ../../src/sg/sg.h ssgconf.h
+ssgBase.o: ssgBase.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
+	../../src/sg/sg.h ssgconf.h
 ssgBaseTransform.o: ssgBaseTransform.cxx ssgLocal.h ssg.h \
-	../../src/sg/sg.h
-ssgBranch.o: ssgBranch.cxx ssgLocal.h ssg.h ../../src/sg/sg.h
-ssgCutout.o: ssgCutout.cxx ssgLocal.h ssg.h ../../src/sg/sg.h
-ssgDList.o: ssgDList.cxx ssgLocal.h ssg.h ../../src/sg/sg.h
-ssgEntity.o: ssgEntity.cxx ssgLocal.h ssg.h ../../src/sg/sg.h
-ssgIO.o: ssgIO.cxx ssgLocal.h ssg.h ../../src/sg/sg.h
-ssgImageLoader.o: ssgImageLoader.cxx ssgLocal.h ssg.h ../../src/sg/sg.h
-ssgInvisible.o: ssgInvisible.cxx ssgLocal.h ssg.h ../../src/sg/sg.h
-ssgIsect.o: ssgIsect.cxx ssgLocal.h ssg.h ../../src/sg/sg.h
-ssgLeaf.o: ssgLeaf.cxx ssgLocal.h ssg.h ../../src/sg/sg.h
-ssgList.o: ssgList.cxx ssgLocal.h ssg.h ../../src/sg/sg.h
-ssgLoad3ds.o: ssgLoad3ds.cxx ssgLocal.h ssg.h ../../src/sg/sg.h
-ssgLoadAC.o: ssgLoadAC.cxx ssgLocal.h ssg.h ../../src/sg/sg.h
-ssgLoadSSG.o: ssgLoadSSG.cxx ssgLocal.h ssg.h ../../src/sg/sg.h
-ssgLoadVRML.o: ssgLoadVRML.cxx ssgLocal.h ssg.h ../../src/sg/sg.h
-ssgOptimiser.o: ssgOptimiser.cxx ssgLocal.h ssg.h ../../src/sg/sg.h
+	../../src/util/ul.h ../../src/sg/sg.h ssgconf.h
+ssgBranch.o: ssgBranch.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
+	../../src/sg/sg.h ssgconf.h
+ssgContext.o: ssgContext.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
+	../../src/sg/sg.h ssgconf.h
+ssgConvex.o: ssgConvex.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
+	../../src/sg/sg.h ssgconf.h
+ssgCutout.o: ssgCutout.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
+	../../src/sg/sg.h ssgconf.h
+ssgDList.o: ssgDList.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
+	../../src/sg/sg.h ssgconf.h
+ssgEntity.o: ssgEntity.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
+	../../src/sg/sg.h ssgconf.h
+ssgIO.o: ssgIO.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
+	../../src/sg/sg.h ssgconf.h
+ssgImageLoader.o: ssgImageLoader.cxx ssgLocal.h ssg.h \
+	../../src/util/ul.h ../../src/sg/sg.h ssgMSFSPalette.h
+ssgInvisible.o: ssgInvisible.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
+	../../src/sg/sg.h ssgconf.h
+ssgIsect.o: ssgIsect.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
+	../../src/sg/sg.h ssgconf.h
+ssgLeaf.o: ssgLeaf.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
+	../../src/sg/sg.h ssgconf.h
+ssgList.o: ssgList.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
+	../../src/sg/sg.h ssgconf.h
+ssgLoad.o: ssgLoad.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
+	../../src/sg/sg.h ssgconf.h
+ssgLoad3ds.o: ssgLoad3ds.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
+	../../src/sg/sg.h ssgconf.h ssg3ds.h
+ssgLoadAC.o: ssgLoadAC.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
+	../../src/sg/sg.h ssgconf.h
+ssgLoadASE.o: ssgLoadASE.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
+	../../src/sg/sg.h ssgconf.h ssgParser.h
+ssgLoadATG.o: ssgLoadATG.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
+	../../src/sg/sg.h ssgconf.h ssgLoaderWriterStuff.h ssgParser.h
+ssgLoadBMP.o: ssgLoadBMP.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
+	../../src/sg/sg.h ssgconf.h
+ssgLoadDXF.o: ssgLoadDXF.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
+	../../src/sg/sg.h ssgconf.h
+ssgLoadFLT.o: ssgLoadFLT.cxx ssg.h ../../src/util/ul.h ../../src/sg/sg.h \
+	ssgconf.h ssgLoaderWriterStuff.h
+ssgLoadM.o: ssgLoadM.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
+	../../src/sg/sg.h ssgconf.h
+ssgLoadMD2.o: ssgLoadMD2.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
+	../../src/sg/sg.h ssgconf.h ssgLoaderWriterStuff.h
+ssgLoadMDL.o: ssgLoadMDL.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
+	../../src/sg/sg.h ssgconf.h ssgLoadMDL.h ssgMSFSPalette.h
+ssgLoadOBJ.o: ssgLoadOBJ.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
+	../../src/sg/sg.h ssgconf.h
+ssgLoadOFF.o: ssgLoadOFF.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
+	../../src/sg/sg.h ssgconf.h ssgLoaderWriterStuff.h ssgParser.h
+ssgLoadPNG.o: ssgLoadPNG.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
+	../../src/sg/sg.h ssgconf.h
+ssgLoadSGI.o: ssgLoadSGI.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
+	../../src/sg/sg.h ssgconf.h
+ssgLoadSSG.o: ssgLoadSSG.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
+	../../src/sg/sg.h ssgconf.h
+ssgLoadStrip.o: ssgLoadStrip.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
+	../../src/sg/sg.h ssgconf.h
+ssgLoadTGA.o: ssgLoadTGA.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
+	../../src/sg/sg.h ssgconf.h
+ssgLoadTRI.o: ssgLoadTRI.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
+	../../src/sg/sg.h ssgconf.h
+ssgLoadTexture.o: ssgLoadTexture.cxx ssgLocal.h ssg.h \
+	../../src/util/ul.h ../../src/sg/sg.h ssgconf.h
+ssgLoadVRML.o: ssgLoadVRML.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
+	../../src/sg/sg.h ssgconf.h
+ssgLoadX.o: ssgLoadX.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
+	../../src/sg/sg.h ssgconf.h ssgLoaderWriterStuff.h ssgParser.h
+ssgLoaderWriterStuff.o: ssgLoaderWriterStuff.cxx ssgLocal.h ssg.h \
+	../../src/util/ul.h ../../src/sg/sg.h ssgconf.h \
+	ssgLoaderWriterStuff.h
+ssgOptimiser.o: ssgOptimiser.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
+	../../src/sg/sg.h ssgconf.h
+ssgParser.o: ssgParser.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
+	../../src/sg/sg.h ssgconf.h ssgParser.h
 ssgRangeSelector.o: ssgRangeSelector.cxx ssgLocal.h ssg.h \
-	../../src/sg/sg.h
-ssgRoot.o: ssgRoot.cxx ssgLocal.h ssg.h ../../src/sg/sg.h
-ssgSaveAC.o: ssgSaveAC.cxx ssgLocal.h ssg.h ../../src/sg/sg.h
-ssgSelector.o: ssgSelector.cxx ssgLocal.h ssg.h ../../src/sg/sg.h
-ssgSimpleList.o: ssgSimpleList.cxx ssgLocal.h ssg.h ../../src/sg/sg.h
-ssgSimpleState.o: ssgSimpleState.cxx ssgLocal.h ssg.h ../../src/sg/sg.h
-ssgState.o: ssgState.cxx ssgLocal.h ssg.h ../../src/sg/sg.h
+	../../src/util/ul.h ../../src/sg/sg.h ssgconf.h
+ssgRoot.o: ssgRoot.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
+	../../src/sg/sg.h ssgconf.h
+ssgSave3ds.o: ssgSave3ds.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
+	../../src/sg/sg.h ssgconf.h ssg3ds.h
+ssgSaveAC.o: ssgSaveAC.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
+	../../src/sg/sg.h ssgconf.h ssgLoaderWriterStuff.h
+ssgSaveASE.o: ssgSaveASE.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
+	../../src/sg/sg.h ssgconf.h ssgLoaderWriterStuff.h
+ssgSaveATG.o: ssgSaveATG.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
+	../../src/sg/sg.h ssgconf.h ssgLoaderWriterStuff.h
+ssgSaveDXF.o: ssgSaveDXF.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
+	../../src/sg/sg.h ssgconf.h
+ssgSaveM.o: ssgSaveM.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
+	../../src/sg/sg.h ssgconf.h ssgLoaderWriterStuff.h
+ssgSaveOBJ.o: ssgSaveOBJ.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
+	../../src/sg/sg.h ssgconf.h
+ssgSaveOFF.o: ssgSaveOFF.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
+	../../src/sg/sg.h ssgconf.h ssgLoaderWriterStuff.h
+ssgSaveQHI.o: ssgSaveQHI.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
+	../../src/sg/sg.h ssgconf.h ssgLoaderWriterStuff.h
+ssgSaveTRI.o: ssgSaveTRI.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
+	../../src/sg/sg.h ssgconf.h
+ssgSaveX.o: ssgSaveX.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
+	../../src/sg/sg.h ssgconf.h
+ssgSelector.o: ssgSelector.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
+	../../src/sg/sg.h ssgconf.h
+ssgSimpleList.o: ssgSimpleList.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
+	../../src/sg/sg.h ssgconf.h
+ssgSimpleState.o: ssgSimpleState.cxx ssgLocal.h ssg.h \
+	../../src/util/ul.h ../../src/sg/sg.h ssgconf.h
+ssgState.o: ssgState.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
+	../../src/sg/sg.h ssgconf.h
 ssgStateSelector.o: ssgStateSelector.cxx ssgLocal.h ssg.h \
-	../../src/sg/sg.h
-ssgStateTables.o: ssgStateTables.cxx ssgLocal.h ssg.h ../../src/sg/sg.h
-ssgStats.o: ssgStats.cxx ssgLocal.h ssg.h ../../src/sg/sg.h
-ssgTexTrans.o: ssgTexTrans.cxx ssgLocal.h ssg.h ../../src/sg/sg.h
-ssgTexture.o: ssgTexture.cxx ssgLocal.h ssg.h ../../src/sg/sg.h
-ssgTransform.o: ssgTransform.cxx ssgLocal.h ssg.h ../../src/sg/sg.h
-ssgVTable.o: ssgVTable.cxx ssgLocal.h ssg.h ../../src/sg/sg.h
-ssgVtxTable.o: ssgVtxTable.cxx ssgLocal.h ssg.h ../../src/sg/sg.h
+	../../src/util/ul.h ../../src/sg/sg.h ssgconf.h
+ssgStateTables.o: ssgStateTables.cxx ssgLocal.h ssg.h \
+	../../src/util/ul.h ../../src/sg/sg.h ssgconf.h
+ssgStats.o: ssgStats.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
+	../../src/sg/sg.h ssgconf.h
+ssgTexTrans.o: ssgTexTrans.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
+	../../src/sg/sg.h ssgconf.h
+ssgTexture.o: ssgTexture.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
+	../../src/sg/sg.h ssgconf.h
+ssgTextureManager.o: ssgTextureManager.cxx ssgLocal.h ssg.h \
+	../../src/util/ul.h ../../src/sg/sg.h ssgconf.h
+ssgTransform.o: ssgTransform.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
+	../../src/sg/sg.h ssgconf.h
+ssgVTable.o: ssgVTable.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
+	../../src/sg/sg.h ssgconf.h
+ssgVtxArray.o: ssgVtxArray.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
+	../../src/sg/sg.h ssgconf.h
+ssgVtxTable.o: ssgVtxTable.cxx ssgLocal.h ssg.h ../../src/util/ul.h \
+	../../src/sg/sg.h ssgconf.h
 
 info-am:
 info: info-am
