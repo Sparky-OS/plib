@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgLocal.h,v 1.23 2004/02/02 01:35:15 sjbaker Exp $
+     $Id: ssgLocal.h,v 1.26 2004/12/29 07:19:40 sjbaker Exp $
 */
 
 
@@ -41,6 +41,7 @@ extern int    _ssgFileVersionNumber ;
 void _ssgForceLineState () ;
 
 void _ssgDrawDList () ;
+void _ssgSetTweenState ( float state, int mode ) ;
 void _ssgPushMatrix ( sgMat4 m ) ;
 void _ssgPopMatrix  () ;
 void _ssgLoadMatrix ( sgMat4 m ) ;
@@ -116,9 +117,9 @@ int _ssgReadError    ( void ) ;
 int _ssgWriteError   ( void ) ;
 
 float _ssgGetCurrentTweenState () ;
-void  _ssgSetCurrentTweenState ( float tweenstate ) ;
 int   _ssgGetCurrentTweenMode  () ;
-void  _ssgSetCurrentTweenMode  ( int   tweenmode  ) ;
+void  _ssgSetCurrentTweenSettings ( float tweenstate, int tweenmode ) ;
+void  _ssgSetRealCurrentTweenSettings ( float tweenstate, int tweenmode ) ;
 
 /*
   Routines for storing arbitrary ssgBase derived objects within SSG files.
@@ -129,6 +130,7 @@ void  _ssgSetCurrentTweenMode  ( int   tweenmode  ) ;
 int _ssgSaveObject ( FILE * , ssgBase * ) ;
 int _ssgLoadObject ( FILE * , ssgBase ** , int type_mask = 0 ) ;
 
-extern ssgStatistics _ssgCurrStatistics ;
+extern class ssgStatistics _ssgCurrStatistics ;
+extern bool          _ssgBackFaceCollisions ;
 
 

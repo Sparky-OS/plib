@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgLoadMDL_BGLTexture.cxx,v 1.5 2002/09/02 06:05:48 sjbaker Exp $
+     $Id: ssgLoadMDL_BGLTexture.cxx,v 1.6 2004/05/04 12:45:47 wolfram_kuss Exp $
 */
 
 //===========================================================================
@@ -30,7 +30,7 @@
 // Author: Thomas Engh Sevaldrud <tse@math.sintef.no>
 //         Juergen Marquardt <juergen_marquardt@t-online.de>
 //
-// Revision: $Id: ssgLoadMDL_BGLTexture.cxx,v 1.5 2002/09/02 06:05:48 sjbaker Exp $
+// Revision: $Id: ssgLoadMDL_BGLTexture.cxx,v 1.6 2004/05/04 12:45:47 wolfram_kuss Exp $
 //
 // Description:
 //
@@ -316,7 +316,11 @@ bool ssgLoadMDLTexture ( const char *fname, ssgTextureInfo* info )
   FILE *tfile;
   int index = 0;
   if ( (tfile = fopen(fname, "rb")) == NULL) {
-    char *p = strrchr(fname,'_');
+#ifdef UL_BB
+		char *p = strrchr((char*)fname,'_');
+#else
+		char *p = strrchr(fname,'_');
+#endif
     if (p != 0) {
       *p = '\0';
       p++;

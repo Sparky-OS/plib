@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: ul.h,v 1.67 2004/04/06 13:34:07 sjbaker Exp $
+     $Id: ul.h,v 1.69 2004/06/24 16:30:55 sjbaker Exp $
 */
 
 //
@@ -98,6 +98,13 @@
 
 #endif
 
+
+#if defined(BORLANDBUILDER)
+
+#define UL_BB     1
+
+#endif
+
 /*
   Add specialised includes/defines...
 */
@@ -152,7 +159,7 @@
 
 #define PLIB_MAJOR_VERSION 1
 #define PLIB_MINOR_VERSION 8
-#define PLIB_TINY_VERSION  3
+#define PLIB_TINY_VERSION  4
 
 #define PLIB_VERSION (PLIB_MAJOR_VERSION*100 \
                      +PLIB_MINOR_VERSION*10 \

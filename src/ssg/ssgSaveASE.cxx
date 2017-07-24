@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgSaveASE.cxx,v 1.13 2002/09/02 06:05:48 sjbaker Exp $
+     $Id: ssgSaveASE.cxx,v 1.14 2004/09/13 12:11:56 wolfram_kuss Exp $
 */
 
 //
@@ -272,7 +272,8 @@ static void save_geom ( ssgEntity *e )
 
     if ( br -> isAKindOf ( ssgTypeSelector() ) )
     {
-      save_geom ( br -> getKid ( 0 ) ) ;
+      for ( int i = 0 ; i < br -> getNumKids () ; i++ )
+        save_geom ( br -> getKid ( i ) ) ;
     }
     else
     {

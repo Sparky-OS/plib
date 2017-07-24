@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgSaveAC.cxx,v 1.19 2002/09/02 06:05:48 sjbaker Exp $
+     $Id: ssgSaveAC.cxx,v 1.21 2004/12/01 08:28:05 wolfram_kuss Exp $
 */
 
 
@@ -86,10 +86,18 @@ static int ssgSaveLeaf ( ssgEntity *ent )
       {
         if ( writeTextureWithoutPath )
         {
-          char *s = strrchr ( tfname, '\\' ) ;
 
+#ifdef UL_BB
+          char *s = strrchr ( (char*)tfname, '\\' ) ;
+#else
+          char *s = strrchr ( tfname, '\\' ) ;
+#endif
           if ( s == NULL )
+#ifdef UL_BB
+            s = strrchr ( (char*)tfname, '/' ) ;
+#else
             s = strrchr ( tfname, '/' ) ;
+#endif
 
           if ( s == NULL )
             fprintf ( save_fd, "texture \"%s\"\n", tfname ) ;
@@ -111,7 +119,7 @@ static int ssgSaveLeaf ( ssgEntity *ent )
 
   for ( i = 0 ; i < num_tris ; i++ )
   {
-    fprintf ( save_fd, "SURF 0x0\n" ) ;
+    fprintf ( save_fd, "SURF 0x0%x\n", (! vt -> getCullFace () ) << 5 ) ;
     ssgState *s = vt->getState ();
 
     int istate = 0;

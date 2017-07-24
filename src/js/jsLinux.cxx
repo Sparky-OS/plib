@@ -18,31 +18,43 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: jsLinux.cxx,v 1.3 2003/04/10 12:36:27 puggles Exp $
+     $Id: jsLinux.cxx,v 1.6 2004/10/20 23:49:33 wolfram_kuss Exp $
 */
 
 #include "js.h"
 
-#if defined(UL_LINUX) && defined(JS_NEW)
+#if defined (UL_LINUX)
+
+#include <linux/joystick.h>
+
+#if defined(JS_VERSION) && JS_VERSION >= 0x010000
 
 #include <sys/param.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
 
-/* check the joystick driver version */
+struct os_specific_s {
+  js_event     js          ;
+  int          tmp_buttons ;
+  float        tmp_axes [ _JS_MAX_AXES ] ;
+  char         fname [ 128 ] ;
+  int          fd ;
+};
+
+void jsInit () {}
 
 void jsJoystick::open ()
 {
   name [0] = '\0' ;
 
   for ( int i = 0 ; i < _JS_MAX_AXES ; i++ )
-    tmp_axes [ i ] = 0.0f ;
+    os->tmp_axes [ i ] = 0.0f ;
 
-  tmp_buttons = 0 ;
+  os->tmp_buttons = 0 ;
 
-  fd = ::open ( fname, O_RDONLY ) ;
+  os->fd = ::open ( os->fname, O_RDONLY ) ;
 
-  error = ( fd < 0 ) ;
+  error = ( os->fd < 0 ) ;
 
   if ( error )
     return ;
@@ -56,15 +68,28 @@ void jsJoystick::open ()
    *  9 April 2003 
    */
   unsigned char u ;
-  ioctl ( fd, JSIOCGAXES   , &u ) ; 
+  ioctl ( os->fd, JSIOCGAXES   , &u ) ; 
   num_axes = u ;
-  ioctl ( fd, JSIOCGBUTTONS, &u ) ;
+  ioctl ( os->fd, JSIOCGBUTTONS, &u ) ;
   num_buttons = u ;
-  ioctl ( fd, JSIOCGNAME ( sizeof(name) ), name ) ;
-  fcntl ( fd, F_SETFL      , O_NONBLOCK   ) ;
+  ioctl ( os->fd, JSIOCGNAME ( sizeof(name) ), name ) ;
+  fcntl ( os->fd, F_SETFL      , O_NONBLOCK   ) ;
 
   if ( num_axes > _JS_MAX_AXES )
     num_axes = _JS_MAX_AXES ;
+
+  // Remove any deadband value already done in the kernel.
+  // Since we have our own deadband management this is save to do so.
+  struct js_corr corr [ _JS_MAX_AXES ] ;
+  ioctl ( os->fd, JSIOCGCORR, corr );
+  for ( int i = 0; i < num_axes ; ++i ) {
+    if ( corr[ i ] . type == JS_CORR_BROKEN ) {
+      int nodeadband = ( corr[ i ] . coef[ 0 ] + corr[ i ] . coef[ 1 ] ) / 2 ;
+      corr[ i ] . coef[ 0 ] = nodeadband ;
+      corr[ i ] . coef[ 1 ] = nodeadband ;
+    }
+  }
+  ioctl ( os->fd, JSIOCSCORR, corr );
 
   for ( int i = 0 ; i < _JS_MAX_AXES ; i++ )
   {
@@ -81,18 +106,20 @@ void jsJoystick::open ()
 void jsJoystick::close ()
 {
   if ( ! error )
-    ::close ( fd ) ;
+    ::close ( os->fd ) ;
+  delete os;
 }
 
 
 jsJoystick::jsJoystick ( int ident )
 {
   id = ident ;
+  os = new struct os_specific_s;
 
-  sprintf ( fname, "/dev/input/js%d", ident ) ;
+  sprintf ( os->fname, "/dev/input/js%d", ident ) ;
 
-  if ( access ( fname, F_OK ) != 0 )
-    sprintf ( fname, "/dev/js%d", ident ) ;
+  if ( access ( os->fname, F_OK ) != 0 )
+    sprintf ( os->fname, "/dev/js%d", ident ) ;
 
   open () ;
 }
@@ -114,40 +141,40 @@ void jsJoystick::rawRead ( int *buttons, float *axes )
 
   while (1)
   {
-    int status = ::read ( fd, &js, sizeof(js_event) ) ;
+    int status = ::read ( os->fd, &(os->js), sizeof(js_event) ) ;
 
     if ( status != sizeof(js_event) )
     {
       /* use the old values */
 
-      if ( buttons != NULL ) *buttons = tmp_buttons ;
+      if ( buttons != NULL ) *buttons = os->tmp_buttons ;
       if ( axes    != NULL )
-        memcpy ( axes, tmp_axes, sizeof(float) * num_axes ) ;
+        memcpy ( axes, os->tmp_axes, sizeof(float) * num_axes ) ;
 
       if ( errno == EAGAIN )
         return ;
 
-      perror( fname ) ;
+      perror( os->fname ) ;
       setError () ;
       return ;
     }
 
-    switch ( js.type & ~JS_EVENT_INIT )
+    switch ( os->js.type & ~JS_EVENT_INIT )
     {
       case JS_EVENT_BUTTON :
-        if ( js.value == 0 ) /* clear the flag */
-          tmp_buttons &= ~(1 << js.number) ;
+        if ( os->js.value == 0 ) /* clear the flag */
+          os->tmp_buttons &= ~(1 << os->js.number) ;
         else
-          tmp_buttons |=  (1 << js.number) ;
+          os->tmp_buttons |=  (1 << os->js.number) ;
         break ;
 
       case JS_EVENT_AXIS:
-        if ( js.number < num_axes )
+        if ( os->js.number < num_axes )
         {
-          tmp_axes [ js.number ] = (float) js.value ;
+          os->tmp_axes [ os->js.number ] = (float) os->js.value ;
 
           if ( axes )
-            memcpy ( axes, tmp_axes, sizeof(float) * num_axes ) ;
+            memcpy ( axes, os->tmp_axes, sizeof(float) * num_axes ) ;
         }
         break ;
 
@@ -156,17 +183,17 @@ void jsJoystick::rawRead ( int *buttons, float *axes )
 
         /* use the old values */
 
-        if ( buttons != NULL ) *buttons = tmp_buttons ;
+        if ( buttons != NULL ) *buttons = os->tmp_buttons ;
         if ( axes    != NULL )
-          memcpy ( axes, tmp_axes, sizeof(float) * num_axes ) ;
+          memcpy ( axes, os->tmp_axes, sizeof(float) * num_axes ) ;
 
         return ;
     }
 
     if ( buttons != NULL )
-      *buttons = tmp_buttons ;
+      *buttons = os->tmp_buttons ;
   }
 }
 
 #endif
-
+#endif

@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgaScreenDump.cxx,v 1.3 2004/02/16 02:26:28 sjbaker Exp $
+     $Id: ssgaScreenDump.cxx,v 1.4 2004/12/29 07:19:40 sjbaker Exp $
 */
 
 
@@ -45,6 +45,67 @@ static void writeInt ( FILE *fd, unsigned int x )
 {
   x = ulEndianBig32 ( x ) ;
   fwrite ( & x, sizeof(unsigned int), 1, fd ) ;
+}
+
+
+void ssgaScreenDepthDump ( char *filename,
+                           int xsize, int ysize, int frontBuffer )
+{
+  FILE *fd = fopen ( filename, "wb" ) ;
+
+  if ( fd == NULL )
+  {
+    fprintf ( stderr, "Failed to open '%s' for writing screendepthdump.\n", 
+                       filename ) ;
+    return ;
+  }
+
+  unsigned char *row    = new unsigned char [ xsize ] ;
+  unsigned int  *buffer = ssgaScreenDepthDump ( xsize, ysize, frontBuffer ) ;
+
+  char  type  =   0 /* RGB_IMG_VERBATIM */ ;
+  short dim   =   3 ;
+  short zsize =   3 ;
+  char  bpp   =   1 ;
+  int   min   =   0 ;
+  int   max   = 255 ;
+  short magic = 0x01DA /* RGB_IMG_MAGIC */ ;
+  int   colormap = 0 ;
+  int   i ;
+
+  writeShort ( fd, magic ) ;
+  writeByte  ( fd, type  ) ;
+  writeByte  ( fd, bpp   ) ;
+  writeShort ( fd, dim   ) ;
+  writeShort ( fd, xsize ) ;
+  writeShort ( fd, ysize ) ;
+  writeShort ( fd, zsize ) ;
+  writeInt   ( fd, min   ) ;
+  writeInt   ( fd, max   ) ;
+  writeInt   ( fd, 0 ) ;  /* Dummy field */
+
+  for ( i = 0 ; i < 80 ; i++ )
+    writeByte ( fd, '\0' ) ;         /* Name field */
+
+  writeInt ( fd, colormap ) ;
+
+  for ( i = 0 ; i < 404 ; i++ )
+    writeByte ( fd, 0 ) ;         /* Dummy field */
+
+  for ( int z = 0 ; z < 3 ; z++ )
+    for ( int y = 0 ; y < ysize ; y++ )
+    {
+      for ( i = 0 ; i < xsize ; i++ )
+        row [ i ] = ((buffer [ y * xsize + i ] >> (8*z)) & 0xFF) ;
+
+      fseek ( fd, ( z * ysize + y ) * xsize + 512, SEEK_SET ) ;
+      fwrite ( row, 1, xsize, fd ) ;
+    }
+
+  fclose ( fd ) ;
+
+  delete row ;
+  delete buffer ;
 }
 
 
@@ -116,6 +177,23 @@ unsigned char *ssgaScreenDump ( int xsize, int ysize, int frontBuffer )
     glReadBuffer ( GL_FRONT ) ;
 
   glReadPixels( 0, 0, xsize, ysize, GL_RGB, GL_UNSIGNED_BYTE,
+                                                       (void *) buffer ) ;
+  if ( frontBuffer )
+    glReadBuffer ( GL_BACK ) ;
+
+  return buffer ;
+}
+
+
+
+unsigned int *ssgaScreenDepthDump ( int xsize, int ysize, int frontBuffer )
+{
+  unsigned int *buffer = new unsigned int [ xsize * ysize ] ;
+
+  if ( frontBuffer )
+    glReadBuffer ( GL_FRONT ) ;
+
+  glReadPixels( 0, 0, xsize, ysize, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT,
                                                        (void *) buffer ) ;
   if ( frontBuffer )
     glReadBuffer ( GL_BACK ) ;

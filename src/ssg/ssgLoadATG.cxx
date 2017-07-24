@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgLoadATG.cxx,v 1.18 2002/09/15 01:29:11 ude Exp $
+     $Id: ssgLoadATG.cxx,v 1.19 2004/10/04 08:11:26 wolfram_kuss Exp $
 */
 /* 
  .scenery loader for SSG/PLIB
@@ -86,6 +86,7 @@ static _ssgParserSpec parser_spec =
 {
    "\r\n\t ",  // delim_chars_skipable
    NULL,       // delim_chars_non_skipable
+   NULL,      // pre_processor
    NULL,          // open_brace_chars
    NULL,          // close_brace_chars
    '"',        // quote_char. not used for scenery

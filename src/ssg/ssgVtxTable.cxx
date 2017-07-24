@@ -18,7 +18,7 @@
  
      For further information visit http://plib.sourceforge.net
 
-     $Id: ssgVtxTable.cxx,v 1.34 2004/02/02 01:35:15 sjbaker Exp $
+     $Id: ssgVtxTable.cxx,v 1.38 2004/12/01 08:28:05 wolfram_kuss Exp $
 */
 
 
@@ -28,34 +28,33 @@
 
 int ssgSimpleList::compare(ssgSimpleList *other, int print_result)
 {
-	int result = TRUE;
+  int result = TRUE;
   if (total   !=other->total   )
-	{	result = FALSE;
-		if(print_result)
-			printf("ERROR: total   \n");
-	}
-	else
-		if(print_result)
-		  printf("Ok: total   \n");
+  { result = FALSE;
+    if(print_result)
+      printf("ERROR: total   \n");
+  }
+  else
+    if(print_result)
+      printf("Ok: total   \n");
   if (size_of !=other->size_of )
-	{	result = FALSE;
-		if(print_result)
-		  printf("ERROR: size_of \n");
-	}
-	else
-		if(print_result)
-		  if(print_result)
-		    printf("Ok: size_of \n");
-	if (memcmp(list, other->list, total*size_of))
-	{	result = FALSE;
-		if(print_result)
-		  printf("ERROR: list \n");
-	}
-	else
-		if(print_result)
-		  printf("Ok: list \n");
+  { result = FALSE;
+    if(print_result)
+      printf("ERROR: size_of \n");
+  }
+  else
+    if(print_result)
+      printf("Ok: size_of \n");
+  if (memcmp(list, other->list, total*size_of))
+  { result = FALSE;
+    if(print_result)
+      printf("ERROR: list \n");
+  }
+  else
+    if(print_result)
+      printf("Ok: list \n");
 
-	return result;
+  return result;
 }
 
 
@@ -63,67 +62,67 @@ int ssgVtxTable::compare(ssgVtxTable *other, int print_result)
 // returns TRUE, if equal.
 // prints stuff to stdout.
 {
-	int result = TRUE;
-	if(print_result)
-		printf("comparing vertices\n");
+  int result = TRUE;
+  if(print_result)
+    printf("comparing vertices\n");
   if(!vertices->compare(other->vertices, print_result))
-		result=FALSE;
+    result=FALSE;
   if(print_result)
-		printf("comparing normals\n");
+    printf("comparing normals\n");
   if(!normals->compare(other->normals, print_result))
-		result=FALSE;
+    result=FALSE;
   if(print_result)
-		printf("comparing texcoords\n");
+    printf("comparing texcoords\n");
   if(!texcoords->compare(other->texcoords, print_result))
-		result=FALSE;
+    result=FALSE;
   if(print_result)
-		printf("comparing colours \n");
+    printf("comparing colours \n");
   if(!colours ->compare(other->colours, print_result))
-		result=FALSE;
+    result=FALSE;
   // could be in ssgLeaf:
   if(getState () == other->getState ())
-	{
-		if(print_result)
-		  printf("Ok: state\n");
-	}
+  {
+    if(print_result)
+      printf("Ok: state\n");
+  }
   else
-	  if(print_result)
-		  printf("WARNING: state pointers differ. state contents is not investigated\n");
+    if(print_result)
+      printf("WARNING: state pointers differ. state contents is not investigated\n");
   
   if (getNumVertices  ()!=other->getNumVertices  ())
-	{	result = FALSE;
-		if(print_result)
-		  printf("ERROR: getNumVertices  ()\n");
-	}
-	else
-		if(print_result)
-		  printf("Ok: getNumVertices  ()\n");
+  { result = FALSE;
+    if(print_result)
+      printf("ERROR: getNumVertices  ()\n");
+  }
+  else
+    if(print_result)
+      printf("Ok: getNumVertices  ()\n");
   if (getNumNormals   ()!=other->getNumNormals   ())
-	{	result = FALSE;
-		if(print_result)
-		  printf("ERROR: getNumNormals   ()\n");
-	}
-	else
-		if(print_result)
-		  printf("Ok: getNumNormals   ()\n");
+  { result = FALSE;
+    if(print_result)
+      printf("ERROR: getNumNormals   ()\n");
+  }
+  else
+    if(print_result)
+      printf("Ok: getNumNormals   ()\n");
   if (getNumColours   ()!=other->getNumColours   ())
-	{	result = FALSE;
-		if(print_result)
-		  printf("ERROR: getNumColours   ()\n");
-	}
-	else
-		if(print_result)
-		  printf("Ok: getNumColours   ()\n");
+  { result = FALSE;
+    if(print_result)
+      printf("ERROR: getNumColours   ()\n");
+  }
+  else
+    if(print_result)
+      printf("Ok: getNumColours   ()\n");
   if (getNumTexCoords ()!=other->getNumTexCoords ())
-	{	result = FALSE;
-		if(print_result)
-		  printf("ERROR: getNumTexCoords ()\n");
-	}
-	else
-		if(print_result)
-		  printf("Ok: getNumTexCoords ()\n");
+  { result = FALSE;
+    if(print_result)
+      printf("ERROR: getNumTexCoords ()\n");
+  }
+  else
+    if(print_result)
+      printf("Ok: getNumTexCoords ()\n");
   // end could be in leaf
-	return result;
+  return result;
 }
 
 void ssgVtxTable::copy_from ( ssgVtxTable *src, int clone_flags )
@@ -311,15 +310,16 @@ int ssgVtxTable::getNumTriangles ()
 
     case GL_QUAD_STRIP :
       return ( ( getNumVertices() - 2 ) / 2 ) * 2 ;
+
+    case GL_POINTS :
+    case GL_LINES :
+    case GL_LINE_LOOP :
+    case GL_LINE_STRIP :
+      return 0;
     default : break ;
   }
 
-  return 0 ;   /* Should never get here...but you never know! 
-	                wk: Yes it does, for GL_POINTS      
-										GL_LINES       
-										GL_LINE_LOOP   
-										GL_LINE_STRIP  
-										*/
+  return 0 ;   /* Should never get here...but you never know! */
 }
 
 int ssgVtxTable::getNumLines ()
@@ -334,13 +334,13 @@ int ssgVtxTable::getNumLines ()
     case GL_QUAD_STRIP :
     case GL_POINTS :
       return 0;
-		case GL_LINES :   
-			// wk: FIXME: check the 3 following formulas. I don't have an OpenGL bokk at hand currently :-(
-			return getNumVertices()/2;
+    case GL_LINES :   
+      // wk: FIXME: check the 3 following formulas. I don't have an OpenGL bokk at hand currently :-(
+      return getNumVertices()/2;
     case GL_LINE_LOOP :
-    	return getNumVertices();
+      return getNumVertices();
     case GL_LINE_STRIP :
-    	return getNumVertices()-1;
+      return getNumVertices()-1;
     default : break ;
   }
   assert(false); /* Should never get here  */
@@ -349,7 +349,7 @@ int ssgVtxTable::getNumLines ()
 
 void ssgVtxTable::getLine ( int n, short *v1, short *v2 )
 { 
-	assert( n>=0 );
+  assert( n>=0 );
   switch ( getPrimitiveType () )
   {
     case GL_POLYGON :
@@ -360,27 +360,27 @@ void ssgVtxTable::getLine ( int n, short *v1, short *v2 )
     case GL_QUAD_STRIP :
     case GL_POINTS :
       assert(false);
-		case GL_LINES :   
-			// wk: FIXME: check the 3 following formulas. I don't have an OpenGL bokk at hand currently :-(
-			assert ( 2*n+1 < getNumVertices() );
-			*v1 = 2*n;
-			*v2 = 2*n+1 ;
-			return ;
+    case GL_LINES :   
+      // wk: FIXME: check the 3 following formulas. I don't have an OpenGL bokk at hand currently :-(
+      assert ( 2*n+1 < getNumVertices() );
+      *v1 = 2*n;
+      *v2 = 2*n+1 ;
+      return ;
     case GL_LINE_LOOP :
-			assert ( n < getNumVertices() );
-			*v1 = n;
-			if ( n == getNumVertices()-1 )
-			  *v2 = 0;
-			else
-				*v2 = n+1;
-			return ;
+      assert ( n < getNumVertices() );
+      *v1 = n;
+      if ( n == getNumVertices()-1 )
+        *v2 = 0;
+      else
+        *v2 = n+1;
+      return ;
     case GL_LINE_STRIP :
-    	assert ( n < getNumVertices()-1 );
-			*v1 = n;
-			*v2 = n+1;
-			return;
+      assert ( n < getNumVertices()-1 );
+      *v1 = n;
+      *v2 = n+1;
+      return;
     default :
-			break ;
+      break ;
   }
   assert(false); /* Should never get here  */
   return ;   
@@ -407,14 +407,17 @@ void ssgVtxTable::transform ( const sgMat4 m )
   */
 
 
-  for ( i = 0 ; i < getNumVertices() ; i++ )
+  int num_vertices = getNumVertices () ;
+  int num_normals = getNumNormals () ;
+  for ( i = 0 ; i < num_vertices ; i++ )
     sgXformPnt3 ( vertices->get(i), vertices->get(i), m ) ;
 
 
-  sgMat4 w ;
+  
 
   if ( ( flags & ( SG_SCALE | SG_MIRROR | SG_NONORTHO ) ) )
   {
+    sgMat4 w ;
     if ( ( flags & SG_NONORTHO ) )
     {
       // use the transposed adjoint matrix (only the upper 3x3 is needed)
@@ -428,14 +431,14 @@ void ssgVtxTable::transform ( const sgMat4 m )
 
       if ( ( flags & SG_SCALE ) )
       {
-	// prescale matrix to avoid renormalisation
-	scale = scale / sgLengthVec3 ( m[0] ) ;
+  // prescale matrix to avoid renormalisation
+  scale = scale / sgLengthVec3 ( m[0] ) ;
       }
 
       if ( ( flags & SG_MIRROR ) )
       {
-	// negate to keep normals consistent with triangle orientations
-	scale = - scale ;
+  // negate to keep normals consistent with triangle orientations
+  scale = - scale ;
       }
 
       sgScaleVec3 ( w[0], m[0], scale ) ;
@@ -443,17 +446,17 @@ void ssgVtxTable::transform ( const sgMat4 m )
       sgScaleVec3 ( w[2], m[2], scale ) ;
     }
 
-    m = w ;
+    for ( i = 0 ; i < num_normals ; i++ )
+      sgXformVec3 ( normals->get(i), normals->get(i), w ) ;
   }
-
-
-  for ( i = 0 ; i < getNumNormals() ; i++ )
-    sgXformVec3 ( normals->get(i), normals->get(i), m ) ;
+  else
+    for ( i = 0 ; i < num_normals ; i++ )
+      sgXformVec3 ( normals->get(i), normals->get(i), m ) ;
 
 
   if ( ( flags & SG_NONORTHO ) )
   {
-    for ( i = 0 ; i < getNumNormals() ; i++ )
+    for ( i = 0 ; i < num_normals ; i++ )
       sgNormaliseVec3 ( normals->get(i) ) ;
   }
 
@@ -467,7 +470,8 @@ void ssgVtxTable::recalcBSphere ()
   emptyBSphere () ;
   bbox . empty () ;
 
-  for ( int i = 0 ; i < getNumVertices() ; i++ )
+  int num_vertices  = getNumVertices () ;
+  for ( int i = 0 ; i < num_vertices ; i++ )
     bbox . extend ( vertices->get(i) ) ;
 
   extendBSphere ( & bbox ) ;
@@ -647,7 +651,10 @@ void ssgVtxTable::hot_triangles ( sgVec3 s, sgMat4 m, int /* test_needed */ )
     sgVec3 vv1, vv2, vv3 ;
     sgVec4 plane ;
 
-    getTriangle ( i, &v1, &v2, &v3 ) ;
+    if ( _ssgBackFaceCollisions )
+      getTriangle ( i, &v1, &v3, &v2 ) ;
+    else
+      getTriangle ( i, &v1, &v2, &v3 ) ;
 
     sgXformPnt3 ( vv1, getVertex(v1), m ) ;
     sgXformPnt3 ( vv2, getVertex(v2), m ) ;
@@ -732,7 +739,10 @@ void ssgVtxTable::los_triangles ( sgVec3 s, sgMat4 m, int /* test_needed */ )
     SGfloat det,inv_det;
     SGfloat /*t,*/u,v;
 
-    getTriangle ( i, &v1, &v2, &v3 ) ;
+    if ( _ssgBackFaceCollisions )
+      getTriangle ( i, &v1, &v3, &v2 ) ;
+    else
+      getTriangle ( i, &v1, &v2, &v3 ) ;
 
     sgXformPnt3 ( vv1, getVertex(v1), m ) ;
     sgXformPnt3 ( vv2, getVertex(v2), m ) ;
@@ -786,30 +796,30 @@ void ssgVtxTable::los_triangles ( sgVec3 s, sgMat4 m, int /* test_needed */ )
 ssgVtxArray *ssgVtxTable::getAs_ssgVtxArray()
 { 
 
-	ssgIndexArray    *indices = new ssgIndexArray ();
-	int i, no = 0;
-	switch ( getPrimitiveType () )
+  ssgIndexArray    *indices = new ssgIndexArray ();
+  int i, no = 0;
+  switch ( getPrimitiveType () )
   {
     case GL_POLYGON :
     case GL_TRIANGLE_FAN :
     case GL_TRIANGLE_STRIP :
       no = getNumTriangles() + 2 ;
-			break;
+      break;
 
     case GL_TRIANGLES :
       no = getNumTriangles() * 3 ;
-	}
-	for(i=0;i<no;i++)
-		indices ->add(i);
+  }
+  for(i=0;i<no;i++)
+    indices ->add(i);
 
   
-	ssgState * state = getState();
-	char * name = getName();
-	ssgVtxArray * s = new ssgVtxArray ( getGLtype(),
-							vertices, normals, texcoords, colours, indices);
-	s->setName(name);
-	s->setState(state);
-	return s;
+  ssgState * state = getState();
+  char * name = getName();
+  ssgVtxArray * s = new ssgVtxArray ( getGLtype(),
+              vertices, normals, texcoords, colours, indices);
+  s->setName(name);
+  s->setState(state);
+  return s;
 }
 
 
@@ -825,7 +835,10 @@ void ssgVtxTable::isect_triangles ( sgSphere *s, sgMat4 m, int test_needed )
     sgVec3 vv1, vv2, vv3 ;
     sgVec4 plane ;
 
-    getTriangle ( i, &v1, &v2, &v3 ) ;
+    if ( _ssgBackFaceCollisions )
+      getTriangle ( i, &v1, &v3, &v2 ) ;
+    else
+      getTriangle ( i, &v1, &v2, &v3 ) ;
 
     sgXformPnt3 ( vv1, getVertex(v1), m ) ;
     sgXformPnt3 ( vv2, getVertex(v2), m ) ;
@@ -934,9 +947,9 @@ void ssgVtxTable::print ( FILE *fd, char *indent, int how_much )
     return ;
   
   sprintf ( in, "%s  ", indent );
-	
+  
   ssgLeaf  ::print ( fd, indent, how_much ) ;
-		
+    
   if ( vertices == NULL )
     fprintf ( fd, "%s  No Vertices!\n", indent ) ;
   else

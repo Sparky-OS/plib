@@ -18,7 +18,7 @@
 
      For further information visit http://plib.sourceforge.net
 
-     $Id: pu.h,v 1.147 2004/04/06 12:53:16 sjbaker Exp $
+     $Id: pu.h,v 1.148 2004/08/05 01:05:48 puggles Exp $
 */
 
 #ifndef _PU_H_
@@ -62,9 +62,11 @@ public:
     slant = sl ;
   }
 
+  float getPointSize ( ) const { return pointsize; }
+
   int getStringDescender ( void ) const ;
   int getStringHeight ( const char *str ) const ;
-  int getStringHeight ( void ) const { return getStringHeight ( "K" ) ; }
+  int getStringHeight ( void ) const { return getStringHeight ( "" ) ; }
 
   float getFloatStringWidth ( const char *str ) const ; 
   int   getStringWidth      ( const char *str ) const /* Deprecated ? */ 
