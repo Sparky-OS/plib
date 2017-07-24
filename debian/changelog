@@ -5,6 +5,7 @@ plib (1.8.5-8) UNRELEASED; urgency=medium
   * Bump compat level to 10
   * Refactor d/copyright using the maschine-readable d/copyright format.
   * Set d/source/format to 3.0 (quilt)
+  * Refresh patch 04_CVE-2011-4620.diff
 
  -- Tobias Frost <tobi@debian.org>  Mon, 24 Jul 2017 19:08:20 +0200
 
