@@ -11,6 +11,7 @@ plib (1.8.5-8) UNRELEASED; urgency=medium
   * Remove ancient Conflict/Replace from d/control
   * Enable hardening
   * Applying wrap-and-sort
+  * Fix two spelling errors (new patch 06_spelling_errors.diff)
 
  -- Tobias Frost <tobi@debian.org>  Mon, 24 Jul 2017 19:08:20 +0200
 
