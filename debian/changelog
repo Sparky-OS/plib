@@ -1,3 +1,12 @@
+plib (1.8.5-9) unstable; urgency=medium
+
+  * QA upload.
+  * debian/control:
+    + Replace obsolete Priority: extra with Priority: optional.
+    + Add Vcs-* fields to use git packaging repo on Debian Salsa GitLab.
+
+ -- Boyuan Yang <byang@debian.org>  Fri, 17 Sep 2021 16:28:49 -0400
+
 plib (1.8.5-8) unstable; urgency=medium
 
   * QA upload.
