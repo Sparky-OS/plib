@@ -1,0 +1,3 @@
+Tests: CVE-2021-38714
+Depends: libplib-dev, build-essential
+Restrictions: allow-stderr
