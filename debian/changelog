@@ -467,7 +467,7 @@ plib (1.0.18-1) unstable; urgency=low
 
 plib (1.0.16-2) unstable; urgency=low
 
-  * 'Depends: mesag3 | mesag3+ggi' (hope this works although I 
+  * 'Depends: mesag3 | mesag3+ggi' (hope this works although I
      compiled with mesag3 installed). Closes: #44817.
 
  -- Philipp Frauenfelder <pfrauenf@debian.org>  Wed, 29 Sep 1999 14:42:46 +0200
