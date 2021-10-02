@@ -1,3 +1,4 @@
+Description: _fix_kfreebsd_FTBFS.diff
 Index: plib/src/js/jsBSD.cxx
 ===================================================================
 --- plib.orig/src/js/jsBSD.cxx	2009-06-09 18:18:17.000000000 +0100

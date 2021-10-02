@@ -1,3 +1,4 @@
+Description: _fix_hurd_FTBFS.diff
 --- a/src/js/jsNone.cxx
 +++ b/src/js/jsNone.cxx
 @@ -22,7 +22,7 @@

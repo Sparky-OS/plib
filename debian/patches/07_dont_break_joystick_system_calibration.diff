@@ -1,11 +1,10 @@
 Description: Don't break system calibration settings when a joystick is opened
  plib may do additional dead-band management on top of the OS joystick driver,
  it should not break system settings for that reason!
-Author: Florent Rougon <f.rougon@free.fr>
 Bug: https://sourceforge.net/p/plib/bugs/47/
-Bug-Debian: http://bugs.debian.org/787464
+Bug-Debian: https://bugs.debian.org/787464
+Author: Florent Rougon <f.rougon@free.fr>
 Last-Update: 2015-06-01
-
 --- a/src/js/jsLinux.cxx
 +++ b/src/js/jsLinux.cxx
 @@ -79,20 +79,6 @@
