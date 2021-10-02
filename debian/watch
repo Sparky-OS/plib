@@ -1,2 +1,2 @@
-version=3
+version=4
 http://plib.sourceforge.net/download.html dist/plib-([^_]*)\.tar\.gz
