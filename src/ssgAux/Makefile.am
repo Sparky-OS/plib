@@ -1,6 +1,6 @@
 if BUILD_SSGAUX
 
-lib_LIBRARIES = libplibssgaux.a
+lib_LTLIBRARIES = libplibssgaux.la
 
 include_HEADERS = ssgAux.h             \
                   ssgaShapes.h         \
@@ -13,7 +13,7 @@ include_HEADERS = ssgAux.h             \
                   ssgaFire.h           \
                   ssgaBillboards.h
 
-libplibssgaux_a_SOURCES = ssgAux.cxx               \
+libplibssgaux_la_SOURCES = ssgAux.cxx               \
                           ssgaShapes.cxx           \
                           ssgaPatch.cxx            \
                           ssgaParticleSystem.cxx   \
@@ -30,6 +30,9 @@ libplibssgaux_a_SOURCES = ssgAux.cxx               \
                           ssgaSky.cxx              \
                           ssgaTeapot.cxx           \
                           ssgaBillboards.cxx
+libplibssgaux_la_LIBADD = ../util/libplibul.la ../ssg/libplibssg.la \
+	../sg/libplibsg.la
+libplibssgaux_la_LDFLAGS = -version-info 9:5:8
 
 INCLUDES = -I$(top_srcdir)/src/sg -I$(top_srcdir)/src/ssg
 INCLUDES += -I$(top_srcdir)/src/util

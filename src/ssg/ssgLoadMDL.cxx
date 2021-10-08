@@ -1858,7 +1858,7 @@ ssgEntity *ssgLoadMDL(const char *fname, const ssgLoaderOptions *options)
             fseek(fp, -12, SEEK_CUR);
             unsigned long addr = ftell(fp);
             if(addr&1L)
-              printf("strange... found RIFF, but on an odd adress %lx\n", addr);
+              printf("strange... found RIFF, but on an odd address %lx\n", addr);
             else
               printf("found a good RIFF header at address %lx\n", addr);
             FindBGLBeginRIFF(fp);

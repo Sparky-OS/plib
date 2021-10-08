@@ -1,10 +1,10 @@
 if BUILD_SSG
 
-lib_LIBRARIES = libplibssg.a
+lib_LTLIBRARIES = libplibssg.la
 
 include_HEADERS = ssg.h ssgconf.h ssgMSFSPalette.h ssgKeyFlier.h pcx.h
 
-libplibssg_a_SOURCES = ssg.cxx ssgAnimation.cxx ssgBase.cxx \
+libplibssg_la_SOURCES = ssg.cxx ssgAnimation.cxx ssgBase.cxx \
 	ssgBaseTransform.cxx ssgBranch.cxx ssgContext.cxx ssgCutout.cxx \
 	ssgDList.cxx ssgEntity.cxx ssgIsect.cxx ssgLeaf.cxx ssgList.cxx \
 	ssgLoadDOF.cxx ssgLoadAC.cxx \
@@ -28,6 +28,8 @@ libplibssg_a_SOURCES = ssg.cxx ssgAnimation.cxx ssgBase.cxx \
 	ssgLoadMDL_BGLTexture.cxx ssgLoadXPlaneObj.cxx ssgLoadASC.cxx ssgSaveASC.cxx \
 	ssgSaveIV.cxx ssgAnimTransform.cxx\
 	ssgVertSplitter.h ssgVertSplitter.cxx ssgStatistics.cxx
+libplibssg_la_LIBADD = ../util/libplibul.la ../sg/libplibsg.la
+libplibssg_la_LDFLAGS = -version-info 9:5:8
 
 INCLUDES = -I$(top_srcdir)/src/sg -I$(top_srcdir)/src/util
 

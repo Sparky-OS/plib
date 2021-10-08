@@ -1,12 +1,14 @@
 if BUILD_SG
 
-lib_LIBRARIES = libplibsg.a
+lib_LTLIBRARIES = libplibsg.la
 
 include_HEADERS = sg.h
 
-libplibsg_a_SOURCES = sg.cxx sgd.cxx \
+libplibsg_la_SOURCES = sg.cxx sgd.cxx \
                       sgIsect.cxx sgdIsect.cxx \
                       sgPerlinNoise.cxx
+libplibsg_la_LIBADD = ../util/libplibul.la
+libplibsg_la_LDFLAGS = -version-info 9:5:8
 
 INCLUDES = -I$(top_srcdir)/src/util
 

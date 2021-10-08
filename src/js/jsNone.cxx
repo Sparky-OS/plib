@@ -22,7 +22,7 @@
 
 #include "js.h"
 
-#if defined(UL_IRIX) || defined(UL_SOLARIS) || defined (UL_HPUX)
+#if defined(UL_IRIX) || defined(UL_SOLARIS) || defined (UL_HPUX) || defined(UL_GNU)
 
 struct os_specific_s ;
 

@@ -1,10 +1,10 @@
 if BUILD_PUAUX
 
-lib_LIBRARIES = libplibpuaux.a
+lib_LTLIBRARIES = libplibpuaux.la
 
 include_HEADERS = puAux.h puAuxLocal.h
 
-libplibpuaux_a_SOURCES = puAux.cxx                  \
+libplibpuaux_la_SOURCES = puAux.cxx                  \
                          puAuxBiSlider.cxx          \
                          puAuxBiSliderWithEnds.cxx  \
                          puAuxComboBox.cxx          \
@@ -19,6 +19,9 @@ libplibpuaux_a_SOURCES = puAux.cxx                  \
                          puAuxTriSlider.cxx         \
                          puAuxVerticalMenu.cxx      \
                          puAuxChooser.cxx
+libplibpuaux_la_LIBADD = ../util/libplibul.la ../pui/libplibpu.la \
+	../fnt/libplibfnt.la ../sg/libplibsg.la
+libplibpuaux_la_LDFLAGS = -version-info 9:5:8
 
 INCLUDES = -I$(top_srcdir)/src/sg  \
            -I$(top_srcdir)/src/pui \
