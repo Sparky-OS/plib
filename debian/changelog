@@ -1,3 +1,10 @@
+plib (1.8.5-11) unstable; urgency=medium
+
+  * Improve allocation-patch introduced in previous upload.
+    It should fix FTBFS on arm64 and ppc64el.
+
+ -- Anton Gladky <gladk@debian.org>  Fri, 08 Oct 2021 20:16:46 +0200
+
 plib (1.8.5-10) unstable; urgency=medium
 
   * [6a45ca2] Add .gitlab-ci.yml
