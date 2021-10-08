@@ -1,11 +1,10 @@
 if BUILD_PW
 
-lib_LTLIBRARIES = libplibpw.la
+lib_LIBRARIES = libplibpw.a
 
 include_HEADERS = pw.h
 
-libplibpw_la_SOURCES = pw.cxx pwX11.cxx pwWindows.cxx pwMacOSX.cxx
-libplibpw_la_LDFLAGS = -version-info 9:5:8
+libplibpw_a_SOURCES = pw.cxx pwX11.cxx pwWindows.cxx pwMacOSX.cxx
 
 INCLUDES = -I$(top_srcdir)/src/util
 

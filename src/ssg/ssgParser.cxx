@@ -57,16 +57,18 @@ void _ssgParser::error( const char *format, ... )
   char msgbuff[ 255 ];
   va_list argp;
 
-  va_start( argp, format );
-  vsnprintf( msgbuff, sizeof(msgbuff), format, argp );
-  va_end( argp );
-
+  char* msgptr = msgbuff;
   if (linenum)
   {
-    ulSetError ( UL_WARNING, "%s, line %d: %s", path, linenum, msgbuff ) ;
-  } else {
-    ulSetError ( UL_WARNING, "%s", msgbuff ) ;
+    msgptr += sprintf ( msgptr,"%s, line %d: ",
+      path, linenum );
   }
+
+  va_start( argp, format );
+  vsprintf( msgptr, format, argp );
+  va_end( argp );
+
+  ulSetError ( UL_WARNING, "%s", msgbuff ) ;
 }
 
 
@@ -76,16 +78,18 @@ void _ssgParser::message( const char *format, ... )
   char msgbuff[ 255 ];
   va_list argp;
 
-  va_start( argp, format );
-  vsnprintf( msgbuff, sizeof(msgbuff), format, argp );
-  va_end( argp );
-
+  char* msgptr = msgbuff;
   if (linenum)
   {
-    ulSetError ( UL_DEBUG, "%s, line %d: %s", path, linenum, msgbuff ) ;
-  } else {
-    ulSetError ( UL_DEBUG, "%s", msgbuff ) ;
+    msgptr += sprintf ( msgptr,"%s, line %d: ",
+      path, linenum );
   }
+
+  va_start( argp, format );
+  vsprintf( msgptr, format, argp );
+  va_end( argp );
+
+  ulSetError ( UL_DEBUG, "%s", msgbuff ) ;
 }
 
 // Opens the file and does a few internal calculations based on the spec.

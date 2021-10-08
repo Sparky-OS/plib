@@ -51,7 +51,7 @@
 #include <limits.h>
 #include <math.h>
 
-#if (defined(UL_LINUX) || defined(UL_BSD) || defined(UL_GNU)) && !defined(__NetBSD__)
+#if (defined(UL_LINUX) || defined(UL_BSD)) && !defined(__NetBSD__)
 #define SL_USING_OSS_AUDIO 1
 #endif
 
@@ -59,7 +59,7 @@
 #  if defined(UL_LINUX)
 #    include <linux/soundcard.h>
 #    include <sys/ioctl.h>
-#  elif defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(UL_GNU)
+#  elif defined(__FreeBSD__)
 #    include <sys/soundcard.h>
 #  else
     /*
@@ -75,7 +75,7 @@
 #endif
 
 #ifdef UL_BSD
-#if !defined(__FreeBSD__) && !defined(__FreeBSD_kernel__)
+#ifndef __FreeBSD__
 #  include <sys/audioio.h>
 #endif
 #endif

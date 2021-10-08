@@ -92,10 +92,6 @@
 
 #define UL_HPUX      1
 
-#elif defined(__GNU__)
-
-#define UL_GNU       1
-
 #elif (defined(__unix__) || defined(unix)) && !defined(USG)
 
 #define UL_BSD       1
@@ -145,12 +141,6 @@
 
 #if defined(UL_BSD)
 #include <sys/param.h>
-#define  UL_GLX     1
-#endif
-
-#ifdef UL_GNU
-#include <unistd.h>
-#include <dlfcn.h>
 #define  UL_GLX     1
 #endif
 

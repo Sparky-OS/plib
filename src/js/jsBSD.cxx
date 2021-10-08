@@ -47,7 +47,7 @@
 #include <string.h>
 #include <errno.h>
 #include <sys/ioctl.h>
-#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
+#if defined(__FreeBSD__)
 # include <sys/joystick.h>
 #else
 # include <machine/joystick.h>		// For analog joysticks

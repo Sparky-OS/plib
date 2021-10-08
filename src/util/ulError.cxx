@@ -39,7 +39,7 @@ void ulSetError ( enum ulSeverity severity, const char *fmt, ... )
 {
   va_list argp;
   va_start ( argp, fmt ) ;
-  vsnprintf ( _ulErrorBuffer, sizeof(_ulErrorBuffer), fmt, argp ) ;
+  vsprintf ( _ulErrorBuffer, fmt, argp ) ;
   va_end ( argp ) ;
  
   if ( _ulErrorCB )

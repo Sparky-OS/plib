@@ -169,29 +169,9 @@ bool ssgLoadTGA ( const char *fname, ssgTextureInfo* info )
     }
 
 
-    const auto bytes_to_allocate = (bits / 8) * xsize * ysize;
-
-    if (xsize != 0 && ((ysize * (bits / 8)) != bytes_to_allocate / xsize))
-    {
-    	ulSetError( UL_FATAL, "Integer overflow in image size: xsize = %d, ysize = %d", xsize, ysize);
-	    return false;
-    }
-    else
-    {
-        ulSetError( UL_DEBUG, "ssgLoadTGA: Allocating %d bytes for the size %d x %d %s", bytes_to_allocate, xsize, ysize );
-    }
-
     // read image data
 
-    try
-    {
-        GLubyte *image = new GLubyte [ bytes_to_allocate ];
-    }
-    catch (const std::bad_alloc& e) {
-        std::cout << "Allocation failed: " << e.what() << '\n';
-        ulSetError( UL_FATAL, "ssgLoadTGA:  allocation of %d bytes failed! Error: %s", bytes_to_allocate, e.what());
-	    return false;
-    }
+    GLubyte *image = new GLubyte [ (bits / 8) * xsize * ysize ];
 
     if ((type & 8) != 0) 
     {

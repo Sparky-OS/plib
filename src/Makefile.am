@@ -1,1 +1,1 @@
-SUBDIRS = util fnt sg js sl pui puAux ssg ssgAux net psl pw
+SUBDIRS = util js sl pui puAux sg ssg fnt ssgAux net psl pw

@@ -102,7 +102,7 @@ static void save_vtx_table ( ssgVtxTable *vt )
     }
   }
 	else
-		ulSetError ( UL_WARNING, "ssgSaveDXF: OpenGL mode %d not implemented yet. Parts or all of the model are ignored!' for writing", (int)mode ) ;
+		ulSetError ( UL_WARNING, "ssgSaveDXF: OpenGL mode %d not implmented yet. Parts or all of the model are ignored!' for writing", (int)mode ) ;
 }
 
 
