@@ -1,3 +1,9 @@
+plib (1.8.5-12) unstable; urgency=medium
+
+  * [312f625] Update patch for previous CVE
+
+ -- Anton Gladky <gladk@debian.org>  Sat, 09 Oct 2021 10:18:16 +0200
+
 plib (1.8.5-11) unstable; urgency=medium
 
   * Improve allocation-patch introduced in previous upload.
