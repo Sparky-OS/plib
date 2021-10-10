@@ -1,3 +1,9 @@
+plib (1.8.5-13) unstable; urgency=medium
+
+  * [062aa40] Simplify patch, for the previous CVE
+
+ -- Anton Gladky <gladk@debian.org>  Sun, 10 Oct 2021 15:15:11 +0200
+
 plib (1.8.5-12) unstable; urgency=medium
 
   * [312f625] Update patch for previous CVE
