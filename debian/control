@@ -24,6 +24,7 @@ Depends: freeglut3,
          libgl1-mesa-glx | libgl1,
          ${misc:Depends},
          ${shlibs:Depends}
+Multi-Arch: same
 Description: Portability Libraries: Run-time package
  Provides a Joystick interface, a simple GUI built on top of OpenGL,
  some standard geometry functions, a sound library and a simple scene
