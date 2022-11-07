@@ -5,7 +5,7 @@ Priority: optional
 Build-Depends: autoconf,
                automake,
                debhelper-compat (= 13),
-               freeglut3-dev,
+               libglut-dev,
                libgl1-mesa-dev | libgl-dev,
                libtool,
                libx11-dev,
@@ -21,8 +21,7 @@ Package: libplib1
 Architecture: any
 Multi-Arch: same
 Section: libs
-Depends: freeglut3,
-         libgl1-mesa-glx | libgl1,
+Depends: libgl1-mesa-glx | libgl1,
          ${misc:Depends},
          ${shlibs:Depends}
 Description: Portability Libraries: Run-time package
@@ -36,13 +35,10 @@ Description: Portability Libraries: Run-time package
 Package: libplib-dev
 Architecture: any
 Section: libdevel
-Depends: freeglut3-dev,
+Depends: libglut-dev,
          libgl1-mesa-dev | libgl-dev,
          libplib1 (= ${binary:Version}),
          ${misc:Depends}
-Conflicts: plib1.8.4-dev
-Provides: plib1.8.4-dev
-Replaces: plib1.8.4-dev
 Description: Portability Libraries: Development package
  Provides a Joystick interface, a simple GUI built on top of OpenGL,
  some standard geometry functions, a sound library and a simple scene
