@@ -1,3 +1,17 @@
+plib (1.8.5-14) unstable; urgency=medium
+
+  [ Debian Janitor ]
+  * [ff934bf] Apply multi-arch hints. + libplib1: Add Multi-Arch: same.
+
+  [ Anton Gladky ]
+  * [fc9a5b2] Set Standards-Version to 4.6.1
+  * [25257b5] Use secure URI in Homepage field.
+  * [c340a73] Drop explicit dependency on freeglut3-dev. (Closes: #1023587)
+  * Close all historical bugs (over 20 years old!).
+    Please reopen them, if reproducible. (Closes: #144534, #161040).
+
+ -- Anton Gladky <gladk@debian.org>  Mon, 07 Nov 2022 20:00:33 +0100
+
 plib (1.8.5-13) unstable; urgency=medium
 
   * [062aa40] Simplify patch, for the previous CVE
