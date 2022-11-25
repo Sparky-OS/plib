@@ -39,6 +39,7 @@ Depends: libglut-dev,
          libgl1-mesa-dev | libgl-dev,
          libplib1 (= ${binary:Version}),
          ${misc:Depends}
+Multi-Arch: same
 Description: Portability Libraries: Development package
  Provides a Joystick interface, a simple GUI built on top of OpenGL,
  some standard geometry functions, a sound library and a simple scene
