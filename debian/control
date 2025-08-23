@@ -1,32 +1,38 @@
 Source: plib
-Maintainer: Anton Gladky <gladk@debian.org>
 Section: devel
 Priority: optional
-Build-Depends: dpkg-dev (>= 1.22.5), autoconf,
-               automake,
-               debhelper-compat (= 13),
-               libglut-dev,
-               libgl1-mesa-dev | libgl-dev,
-               libtool,
-               libx11-dev,
-               libxi-dev,
-               libxmu-dev,
-               quilt
-Standards-Version: 4.6.1
-Vcs-Browser: https://salsa.debian.org/debian/plib
-Vcs-Git: https://salsa.debian.org/debian/plib.git
+Maintainer: Debian Games Team <pkg-games-devel@lists.alioth.debian.org>
+Uploaders:
+ Alexandre Detiste <tchet@debian.org>,
+Build-Depends:
+ debhelper-compat (= 13),
+ dpkg-dev (>= 1.22.5),
+ libgl-dev,
+ libglut-dev,
+ libtool,
+ libx11-dev,
+ libxi-dev,
+ libxmu-dev,
+Standards-Version: 4.7.2
+Vcs-Browser: https://salsa.debian.org/games-team/plib
+Vcs-Git: https://salsa.debian.org/games-team/plib.git
 Homepage: https://plib.sourceforge.net/
+X-Style: black
 
 Package: libplib1t64
-Provides: ${t64:Provides}
-Replaces: libplib1
-Breaks: libplib1 (<< ${source:Version})
+Provides:
+ ${t64:Provides},
+Replaces:
+ libplib1,
+Breaks:
+ libplib1 (<< ${source:Version}),
 Architecture: any
 Multi-Arch: same
 Section: libs
-Depends: libgl1-mesa-glx | libgl1,
-         ${misc:Depends},
-         ${shlibs:Depends}
+Depends:
+ libgl1-mesa-glx | libgl1,
+ ${misc:Depends},
+ ${shlibs:Depends},
 Description: Portability Libraries: Run-time package
  Provides a Joystick interface, a simple GUI built on top of OpenGL,
  some standard geometry functions, a sound library and a simple scene
@@ -37,11 +43,13 @@ Description: Portability Libraries: Run-time package
 
 Package: libplib-dev
 Architecture: any
+Multi-Arch: same
 Section: libdevel
-Depends: libglut-dev,
-         libgl1-mesa-dev | libgl-dev,
-         libplib1t64 (= ${binary:Version}),
-         ${misc:Depends}
+Depends:
+ libgl-dev,
+ libglut-dev,
+ libplib1t64 (= ${binary:Version}),
+ ${misc:Depends},
 Description: Portability Libraries: Development package
  Provides a Joystick interface, a simple GUI built on top of OpenGL,
  some standard geometry functions, a sound library and a simple scene
