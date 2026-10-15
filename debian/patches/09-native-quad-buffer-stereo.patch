@@ -1,0 +1,147 @@
+Description: Draw parallel off-axis eyes on explicitly enabled stereo drawables
+ Preserve the centre camera, frustum and caller draw buffer after both eyes.
+ PLIB_SSG_STEREO=ON enables this path; separation and convergence use scene units.
+Forwarded: no
+
+Index: plib-1.8.5/src/ssg/ssg.cxx
+===================================================================
+--- plib-1.8.5.orig/src/ssg/ssg.cxx
++++ plib-1.8.5/src/ssg/ssg.cxx
+@@ -270,6 +270,17 @@ void ssgCullAndPick ( ssgBranch *r, sgVe
+ }
+ 
+ 
++static float stereoValue ( const char *name, float fallback )
++{
++  const char *text = getenv ( name ) ;
++  if ( text == NULL ) return fallback ;
++  char *end ;
++  double value = strtod ( text, &end ) ;
++  if ( end == text || *end != '\0' || !(value > 0.0 && value < 1.0e6) )
++    return fallback ;
++  return (float) value ;
++}
++
+ void ssgCullAndDraw ( ssgBranch *r )
+ {
+   if ( _ssgCurrentContext == NULL )
+@@ -277,38 +288,86 @@ void ssgCullAndDraw ( ssgBranch *r )
+     ulSetError ( UL_FATAL, "ssg: No Current Context: Did you forgot to call ssgInit()?" ) ;
+   }
+ 
+-  _ssgStartOfFrameInit () ;
++  const char *enabled = getenv ( "PLIB_SSG_STEREO" ) ;
++  GLboolean available = GL_FALSE ;
++  GLint drawBuffer = GL_BACK ;
++  bool stereo = enabled != NULL &&
++                (strcmp ( enabled, "ON" ) == 0 || strcmp ( enabled, "1" ) == 0) &&
++                !_ssgCurrentContext->isOrtho () ;
++  if ( stereo )
++  {
++    glGetBooleanv ( GL_STEREO, &available ) ;
++    glGetIntegerv ( GL_DRAW_BUFFER, &drawBuffer ) ;
++    stereo = available && drawBuffer == GL_BACK ;
++  }
++
++  sgMat4 camera ;
++  _ssgCurrentContext->getModelviewMatrix ( camera ) ;
++  sgFrustum frustum = *_ssgCurrentContext->getFrustum () ;
++  float separation = stereoValue ( "PLIB_SSG_EYE_SEPARATION", 0.065f ) ;
++  float convergence = stereoValue ( "PLIB_SSG_CONVERGENCE", 10.0f ) ;
+ 
+-  ssgForceBasicState () ;
++  for ( int eye = 0 ; eye < (stereo ? 2 : 1) ; eye++ )
++  {
++    float offset = stereo ? (eye == 0 ? -0.5f : 0.5f) * separation : 0.0f ;
++    if ( stereo )
++    {
++      sgCopyMat4 ( _ssgCurrentContext->cameraMatrix, camera ) ;
++      _ssgCurrentContext->cameraMatrix[3][0] -= offset ;
++      float shift = -offset * frustum.getNear () / convergence ;
++      _ssgCurrentContext->setFrustum ( frustum.getLeft () + shift,
++                                     frustum.getRight () + shift,
++                                     frustum.getBot (), frustum.getTop (),
++                                     frustum.getNear (), frustum.getFar () ) ;
++      glDrawBuffer ( eye == 0 ? GL_BACK_LEFT : GL_BACK_RIGHT ) ;
++      if ( eye != 0 ) glClear ( GL_DEPTH_BUFFER_BIT ) ;
++    }
+ 
+-  glMatrixMode ( GL_PROJECTION ) ;
+-  _ssgCurrentContext->loadProjectionMatrix () ;
++    _ssgStartOfFrameInit () ;
+ 
+-  glMatrixMode ( GL_MODELVIEW ) ;
+-  glLoadIdentity () ;
++    ssgForceBasicState () ;
+ 
+-  int i ;
++    glMatrixMode ( GL_PROJECTION ) ;
++    _ssgCurrentContext->loadProjectionMatrix () ;
+ 
+-  for ( i = 0 ; i < 8 ; i++ )
+-    if ( _ssgLights [ i ] . isHeadlight () )
+-      _ssgLights [ i ] . setup () ;
++    glMatrixMode ( GL_MODELVIEW ) ;
++    glLoadIdentity () ;
++    if ( stereo ) glTranslatef ( -offset, 0.0f, 0.0f ) ;
+ 
+-  _ssgCurrentContext->loadModelviewMatrix () ;
+-  _ssgCurrentContext->applyClipPlanes () ;
++    int i ;
+ 
+-  for ( i = 0 ; i < 8 ; i++ )
+-    if ( ! _ssgLights [ i ] . isHeadlight () )
+-      _ssgLights [ i ] . setup () ;
++    for ( i = 0 ; i < 8 ; i++ )
++      if ( _ssgLights [ i ] . isHeadlight () )
++        _ssgLights [ i ] . setup () ;
+ 
+-  _ssgCurrentContext->cull(r) ;
+-  _ssgDrawDList () ;
++    _ssgCurrentContext->loadModelviewMatrix () ;
++    _ssgCurrentContext->applyClipPlanes () ;
+ 
+-  _ssgCurrentContext->removeClipPlanes () ;
++    for ( i = 0 ; i < 8 ; i++ )
++      if ( ! _ssgLights [ i ] . isHeadlight () )
++        _ssgLights [ i ] . setup () ;
+ 
+-  glMatrixMode ( GL_MODELVIEW ) ;
+-  glLoadIdentity () ;
++    _ssgCurrentContext->cull(r) ;
++    _ssgDrawDList () ;
+ 
+-  _ssgEndOfFrameCleanup () ;
++    _ssgCurrentContext->removeClipPlanes () ;
++
++    glMatrixMode ( GL_MODELVIEW ) ;
++    glLoadIdentity () ;
++
++    _ssgEndOfFrameCleanup () ;
++  }
++
++  if ( stereo )
++  {
++    sgCopyMat4 ( _ssgCurrentContext->cameraMatrix, camera ) ;
++    *_ssgCurrentContext->getFrustum () = frustum ;
++    glDrawBuffer ( drawBuffer ) ;
++    glMatrixMode ( GL_PROJECTION ) ;
++    _ssgCurrentContext->loadProjectionMatrix () ;
++    glMatrixMode ( GL_MODELVIEW ) ;
++    glLoadIdentity () ;
++  }
+   _ssgFrameCounter++ ;
+ }
+ 
+Index: plib-1.8.5/src/ssg/ssg.h
+===================================================================
+--- plib-1.8.5.orig/src/ssg/ssg.h
++++ plib-1.8.5/src/ssg/ssg.h
+@@ -2341,6 +2341,7 @@ public:
+ 
+ class ssgContext
+ {
++  friend void ssgCullAndDraw ( ssgBranch *r ) ;
+  protected:
+ 
+   int enabledClipPlanes ;

@@ -7,3 +7,4 @@
 05_CVE-2012-4552.diff
 07_dont_break_joystick_system_calibration.diff
 08_CVE-2021-38714.patch
+09-native-quad-buffer-stereo.patch
